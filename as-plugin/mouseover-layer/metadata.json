@@ -1,0 +1,11 @@
+{
+	"name": "Mouseover Layer",
+	"description": "Shows article content on mouse over in article lists",
+	"version": "1.0.1",
+	"date": "2011-12-06",
+	"author": "AppSmata",
+	"author_uri": "http://www.appsmata.org",
+	"license": "GPLv2",
+	"min_aps": "1.5",
+	"load_order": "after_db_init"
+}

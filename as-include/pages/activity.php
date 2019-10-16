@@ -1,0 +1,79 @@
+<?php
+/*
+	AppSmata by AppSmata Sol.
+	http://www.appsmata.org/
+
+	Description: Controller for page listing recent activity
+
+
+	This program is free software; you can redistribute it and/or
+	modify it under the terms of the GNU General Public License
+	as published by the Free Software Foundation; either version 2
+	of the License, or (at your option) any later version.
+
+	This program is distributed in the hope that it will be useful,
+	but WITHOUT ANY WARRANTY; without even the implied warranty of
+	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+	GNU General Public License for more details.
+
+	More about this license: http://www.appsmata.org/license.php
+*/
+
+if (!defined('AS_VERSION')) { // don't allow this page to be requested directly from browser
+	header('Location: ../../');
+	exit;
+}
+
+
+require_once AS_INCLUDE_DIR . 'db/selects.php';
+require_once AS_INCLUDE_DIR . 'app/format.php';
+require_once AS_INCLUDE_DIR . 'app/p-list.php';
+
+$categoryslugs = as_request_parts(1);
+$countslugs = count($categoryslugs);
+$userid = as_get_logged_in_userid();
+
+
+// Get lists of recent activity in all its forms, plus category information
+
+list($articles1, $articles2, $articles3, $articles4, $categories, $categoryid) = as_db_select_with_pending(
+	as_db_question_selectspec($userid, 'created', 0, $categoryslugs, null, false, false, as_opt_if_loaded('page_size_activity')),
+	as_db_recent_a_qs_selectspec($userid, 0, $categoryslugs),
+	as_db_recent_c_qs_selectspec($userid, 0, $categoryslugs),
+	as_db_recent_edit_qs_selectspec($userid, 0, $categoryslugs),
+	as_db_category_nav_selectspec($categoryslugs, false, false, true),
+	$countslugs ? as_db_slugs_to_category_id_selectspec($categoryslugs) : null
+);
+
+if ($countslugs) {
+	if (!isset($categoryid))
+		return include AS_INCLUDE_DIR . 'as-page-not-found.php';
+
+	$categorytitlehtml = as_html($categories[$categoryid]['title']);
+	$sometitle = as_lang_html_sub('main/recent_activity_in_x', $categorytitlehtml);
+	$nonetitle = as_lang_html_sub('main/no_articles_in_x', $categorytitlehtml);
+
+} else {
+	$sometitle = as_lang_html('main/recent_activity_title');
+	$nonetitle = as_lang_html('main/no_articles_found');
+}
+
+
+// Prepare and return content for theme
+
+return as_p_list_page_content(
+	as_any_sort_and_dedupe(array_merge($articles1, $articles2, $articles3, $articles4)), // items
+	as_opt('page_size_activity'), // items per page
+	0, // start offset
+	null, // total count (null to hide page links)
+	$sometitle, // title if some items
+	$nonetitle, // title if no items
+	$categories, // categories for navigation
+	$categoryid, // selected category id
+	true, // show item counts in category navigation
+	'activity/', // prefix for links in category navigation
+	as_opt('feed_for_activity') ? 'activity' : null, // prefix for RSS feed paths (null to hide)
+	as_html_suggest_qs_tags(as_using_tags(), as_category_path_request($categories, $categoryid)), // suggest what to do next
+	null, // page link params
+	null // category nav params
+);
