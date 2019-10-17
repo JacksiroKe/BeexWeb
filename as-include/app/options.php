@@ -281,6 +281,7 @@ function as_default_option($name)
 		'max_rate_ip_messages' => 10,
 		'max_rate_ip_qs' => 20,
 		'max_rate_ip_signups' => 5,
+		'max_rate_ip_business_resgistrations' => 5,
 		'max_rate_ip_uploads' => 20,
 		'max_rate_ip_likes' => 600,
 		'max_rate_user_as' => 25,

@@ -30,6 +30,8 @@ define('AS_LIMIT_REVIEWS', 'R');
 define('AS_LIMIT_COMMENTS', 'C');
 define('AS_LIMIT_VOTES', 'V');
 define('AS_LIMIT_SIGNUPS', 'R');
+define('AS_LIMIT_BUSINESSES', 'B');
+define('AS_LIMIT_SALES', 'S');
 define('AS_LIMIT_SIGNINS', 'L');
 define('AS_LIMIT_UPLOADS', 'U');
 define('AS_LIMIT_FLAGS', 'F');
@@ -101,6 +103,11 @@ function as_limits_calc_remaining($action, $userlimits, $iplimits)
 		case AS_LIMIT_SIGNUPS:
 			$usermax = 1; // not really relevant
 			$ipmax = as_opt('max_rate_ip_signups');
+			break;
+
+		case AS_LIMIT_BUSINESSES:
+			$usermax = 1; // not really relevant
+			$ipmax = as_opt('max_rate_ip_business_resgistrations');
 			break;
 
 		case AS_LIMIT_SIGNINS:

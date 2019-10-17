@@ -69,8 +69,8 @@
                 'morris'        => 'bower_components/morris.js/morris.css',
                 'jvectormap'    => 'bower_components/jvectormap/jquery-jvectormap.css',
                 'datepicker'    => 'bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css',
-                'rangepicker'   => 'bower_components/bootstrap-daterangepicker/daterangepicker.css"',
-                'bootstrap3'    => 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css"'
+                'rangepicker'   => 'bower_components/bootstrap-daterangepicker/daterangepicker.css',
+                'bootstrap3'    => 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css'
             );
             
             $this->bluelte_resources( $css_paths, 'css' );

@@ -166,6 +166,47 @@ function as_password_validate($password, $olduser = null)
 	return array();
 }
 
+/**
+ * Create a new business (application level) with $email, $password, $handle and $level.
+ * Set $confirmed to true if the email address has been confirmed elsewhere.
+ * Handles user points, notification and optional email confirmation.
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param int $level
+ * @param bool $confirmed
+ * @return mixed
+ */
+function as_create_new_business($type, $categoryid, $location, $contact, $title, $username, $content, $icon, $tags, $userid)
+{
+	require_once AS_INCLUDE_DIR . 'db/users.php';
+	require_once AS_INCLUDE_DIR . 'app/options.php';
+	require_once AS_INCLUDE_DIR . 'app/emails.php';
+
+	$businessid = as_db_business_create($type, $categoryid, $location, $contact, $title, $username, $content, $icon, $tags, $userid);
+	
+	/*as_send_notification($userid, $firstname.' '.$lastname, $email, $handle, as_lang('emails/welcome_subject'), as_lang('emails/welcome_body'), array(
+		'^password' => isset($password) ? as_lang('main/hidden') : as_lang('users/password_to_set'),
+		'^url' => as_opt('site_url'),
+		'^custom' => strlen($custom) ? ($custom . "\n\n") : '',
+		'^confirm' => $confirm,
+	));*/
+
+	return $businessid;
+}
+
+
+/**
+ * Create a new supplier (application level) with $email, $password, $handle and $level.
+ * Set $confirmed to true if the email address has been confirmed elsewhere.
+ * Handles user points, notification and optional email confirmation.
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param int $level
+ * @param bool $confirmed
+ * @return mixed
+ */
 function as_create_new_supplier($userid, $title, $content, $field1, $field2, $usertype)
 {
 	require_once AS_INCLUDE_DIR . 'db/users.php';
@@ -302,7 +343,7 @@ function as_send_new_confirm($userid)
 
 	$emailcode = as_db_user_rand_emailcode();
 
-	if (!as_send_notification($userid, $userinfo['email'], $userinfo['handle'], as_lang('emails/confirm_subject'), as_lang('emails/confirm_body'), array(
+	if (!as_send_notification($userid, "BeExpress User", $userinfo['email'], $userinfo['handle'], as_lang('emails/confirm_subject'), as_lang('emails/confirm_body'), array(
 			'^url' => as_get_new_confirm_url($userid, $userinfo['handle'], $emailcode),
 			'^code' => $emailcode,
 	))) {
@@ -447,7 +488,7 @@ function as_start_reset_user($userid)
 
 	$userinfo = as_db_select_with_pending(as_db_user_account_selectspec($userid, true));
 
-	if (!as_send_notification($userid, $userinfo['email'], $userinfo['handle'], as_lang('emails/reset_subject'), as_lang('emails/reset_body'), array(
+	if (!as_send_notification($userid, "BeExpress User", $userinfo['email'], $userinfo['handle'], as_lang('emails/reset_subject'), as_lang('emails/reset_body'), array(
 		'^code' => $userinfo['emailcode'],
 		'^url' => as_path_absolute('reset', array('c' => $userinfo['emailcode'], 'e' => $userinfo['email'])),
 	))) {
@@ -477,7 +518,7 @@ function as_complete_reset_user($userid)
 
 	$userinfo = as_db_select_with_pending(as_db_user_account_selectspec($userid, true));
 
-	if (!as_send_notification($userid, $userinfo['email'], $userinfo['handle'], as_lang('emails/new_password_subject'), as_lang('emails/new_password_body'), array(
+	if (!as_send_notification($userid, "BeExpress", $userinfo['email'], $userinfo['handle'], as_lang('emails/new_password_subject'), as_lang('emails/new_password_body'), array(
 		'^password' => $password,
 		'^url' => as_opt('site_url'),
 	))) {

@@ -432,6 +432,7 @@ function as_page_routing()
 		'signout' => 'pages/signout.php',
 		'messages/' => 'pages/messages.php',
 		'message/' => 'pages/message.php',
+		'business/' => 'pages/business.php',
 		'products/' => 'pages/products.php',
 		'products/dashboard' => 'pages/products-dashboard.php',
 		'signup' => 'pages/signup.php',

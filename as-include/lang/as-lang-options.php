@@ -151,6 +151,7 @@ return array(
 	'max_rate_ip_messages' => 'Rate limit for private and wall messages:',
 	'max_rate_ip_qs' => 'Rate limit for writeing items:',
 	'max_rate_ip_signups' => 'Rate limit for user registrations:',
+	'max_rate_ip_business_resgistrations' => 'Rate limit for business registrations:',
 	'max_rate_ip_uploads' => 'Rate limit for uploading files:',
 	'max_rate_ip_likes' => 'Rate limit for voting:',
 	'max_rate_user_as' => 'Maximum reviews per user per hour:',

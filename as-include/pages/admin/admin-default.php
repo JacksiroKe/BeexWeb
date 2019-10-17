@@ -99,6 +99,7 @@ $optiontype = array(
 	'max_rate_ip_messages' => 'number',
 	'max_rate_ip_qs' => 'number',
 	'max_rate_ip_signups' => 'number',
+	'max_rate_ip_business_resgistrations' => 'number',
 	'max_rate_ip_uploads' => 'number',
 	'max_rate_ip_likes' => 'number',
 	'max_rate_user_as' => 'number',
@@ -607,7 +608,7 @@ switch ($adminsection) {
 		if (!AS_FINAL_EXTERNAL_USERS)
 			array_push($showoptions, 'max_rate_ip_signups', 'max_rate_ip_signins', '');
 
-		array_push($showoptions, 'max_rate_ip_qs', 'max_rate_user_qs', 'max_rate_ip_as', 'max_rate_user_as');
+		array_push($showoptions, 'max_rate_ip_business_resgistrations', 'max_rate_ip_qs', 'max_rate_user_qs', 'max_rate_ip_as', 'max_rate_user_as');
 
 		if (as_opt('comment_on_qs') || as_opt('comment_on_as'))
 			array_push($showoptions, 'max_rate_ip_cs', 'max_rate_user_cs');
@@ -1537,6 +1538,7 @@ foreach ($showoptions as $optionname) {
 			case 'max_rate_ip_messages':
 			case 'max_rate_ip_qs':
 			case 'max_rate_ip_signups':
+			case 'max_rate_ip_business_resgistrations':
 			case 'max_rate_ip_uploads':
 			case 'max_rate_ip_likes':
 				$optionfield['note'] = as_lang_html('admin/per_ip_hour');

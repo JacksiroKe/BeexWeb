@@ -678,6 +678,23 @@ function as_db_posts_basetype_selectspec($postids)
 }
 
 
+function as_db_business_list($userid)
+{
+	/*return array(
+		'columns' => array('businessid', 'type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', 'userid', 'created'),
+		'source' => '^businesses WHERE userid=$',
+		'arguments' => array($userid),
+		'arraykey' => 'title',
+		'arrayvalue' => 'businessid',
+		'sortdesc' => 'businessid',
+	);*/
+	return array(
+		'columns' => array('businessid', 'type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', 'userid', 'created'),
+		'source' => '^businesses WHERE userid=#',
+		'arguments' => array($userid),
+	);
+}
+
 /**
  * Return the selectspec to retrieve the basetype for the posts in $postids, as an array mapping postid => basetype
  * @param $likeuserid
@@ -1509,7 +1526,6 @@ function as_db_user_recent_edit_qs_selectspec($likeuserid, $identifier, $count =
 
 	return $selectspec;
 }
-
 
 /**
  * Return the selectspec to retrieve the most popular tags. Return $count (if null, a default is used) tags, starting

@@ -147,12 +147,14 @@ function as_db_table_definitions()
 			'PRIMARY KEY (customerid)',
 		),
 
-		'businesses' => array(
+		'businesses' => array(//type, categoryid, location, contact, title, username, content, icon, tags, userid, created
 			'businessid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('PUBLIC', 'PRIVATE') NOT NULL",
 			'categoryid' => 'INT UNSIGNED', // this is the canonical final category id
 			'title' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ')',
-			'username' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'', // item code
+			'contact' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'location' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'username' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'content' => 'VARCHAR(' . AS_DB_MAX_CONTENT_LENGTH . ')',
 			'icon' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // category name
 			'images' => 'VARCHAR(' . AS_DB_MAX_OTHER_LENGTH . ')', // string of tags separated by commas

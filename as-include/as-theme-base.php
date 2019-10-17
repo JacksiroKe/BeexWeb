@@ -1215,6 +1215,10 @@ class as_html_theme_base
 				case 'small-box':
 					$this->smallbox_view($c_item);
 					break;
+					
+				case 'btn-app':
+					$this->btnapp_view($c_item);
+					break;
 				
 				case 'nav-tabs-custom':
 					$this->tabs_view($c_item);
@@ -1438,6 +1442,20 @@ class as_html_theme_base
 		}
 	}
 	
+	public function btnapp_view($btnapp)
+	{
+		if (!empty($btnapp)) {
+			$this->output('<a class="btn btn-app" style="height:200px;width:200px;" href="'.(isset($btnapp['link'][1]) ? 
+				$btnapp['link'] : '#').'">');
+			if (isset($btnapp['updates'])) 
+				$this->output('<span class="badge '.$btnapp['updates'][0].'" style="font-size:20px;">'.$btnapp['updates'][1].'</span>');
+			if (isset($btnapp['img'])) $this->output($btnapp['img']);
+			else $this->output('<div class="icon">', '<i class="fa fa-'.$btnapp['icon'].'" style="font-size:100px;"></i>', '</div>');
+			$this->output('<h3>'.$btnapp['title'].'</h3>');
+			$this->output('</a>');
+		}
+	}
+	
 	public function list_view($box)
 	{
 		if (!empty($box)) {
@@ -1450,10 +1468,11 @@ class as_html_theme_base
 				switch ($box['body']['type']) {
 					case 'product':
 						$this->output('<ul class="products-list product-list-in-box">');
+						if (isset($box['body']['items']))
 						foreach ($box['body']['items'] as $bi => $item) {
 							$this->output('<li class="item">
 							<div class="product-img">
-							<img src="'.$item['img'].'" alt="Product Image">
+							<img src="'.$item['img'].'" alt="Item Image">
 							</div>
 							<div class="product-info">
 							<a href="javascript:void(0)" class="product-title">'.$item['label'].'

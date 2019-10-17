@@ -37,6 +37,34 @@ function as_db_calc_passcheck($password, $salt)
 	return sha1(substr($salt, 0, 8) . $password . substr($salt, 8));
 }
 
+/**
+ * Create a new business in the database with type, categoryid, location, contact, title, username, content, icon, tags, userid, created
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param $level
+ * @param $ip
+ * @return mixed
+ */
+function as_db_business_create($type, $categoryid, $location, $contact, $title, $username, $content, $icon, $tags, $userid)
+{
+	as_db_query_sub(
+			'INSERT INTO ^businesses (type, categoryid, location, contact, title, username, content, icon, tags, userid, created) ' .
+			'VALUES (#, #, $, $, $, $, $, $, $, #, NOW())',
+			$type, $categoryid, $location, $contact, $title, $username, $content, $icon, $tags, $userid
+		);
+	return as_db_last_insert_id();
+}
+
+/**
+ * Create a new supplier in the database with $email, $password, $handle, privilege $level, and $ip address
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param $level
+ * @param $ip
+ * @return mixed
+ */
 function as_db_supplier_create($userid, $title, $content, $field1, $field2)
 {
 	as_db_query_sub(
@@ -46,7 +74,6 @@ function as_db_supplier_create($userid, $title, $content, $field1, $field2)
 		);
 	return as_db_last_insert_id();
 }
-
 
 /**
  * Create a new user in the database with $email, $password, $handle, privilege $level, and $ip address
