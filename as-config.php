@@ -37,7 +37,7 @@
 	define('AS_MYSQL_HOSTNAME', '127.0.0.1');
 	define('AS_MYSQL_USERNAME', 'root');
 	define('AS_MYSQL_PASSWORD', '');
-	define('AS_MYSQL_DATABASE', 'beexpress');
+	define('AS_MYSQL_DATABASE', 'beex');
 
 /*
 	Ultra-concise installation instructions:

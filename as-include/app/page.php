@@ -577,20 +577,20 @@ function as_content_prepare($voting = false, $categoryids = array())
     );
 
     if ($rules['baseuser']) {
-        $as_content['navigation']['main']['sell'] = array(
-            'label' => as_lang_html('main/nav_sell'),
-            'url' => as_path_html('products'),
+        $as_content['navigation']['main']['business'] = array(
+            'label' => as_lang_html('main/nav_bs'),
+            'url' => as_path_html('business'),
             'icon' => 'fa fa-dashboard',
         );
     }
 
-    if ($rules['baseuser']) {
+    /*if ($rules['baseuser']) {
         $as_content['navigation']['main']['sell'] = array(
             'label' => as_lang_html('main/nav_sell'),
             'url' => as_path_html('products'),
             'icon' => 'fa fa-dashboard',
         );
-    }
+    }*/
 
     if ($rules['superadmin']) {
         require_once AS_INCLUDE_DIR . 'app/admin.php';

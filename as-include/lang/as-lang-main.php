@@ -106,6 +106,7 @@ return array(
 	'moved' => 'moved',
 	'nav_activity' => 'All Activity',
 	'nav_admin' => 'Site Adminstrator',
+	'nav_bs' => 'Businesses',
 	'nav_sell' => 'Sell on Beex',
 	'nav_write' => 'Post an Item',
 	'nav_categories' => 'Categories',
