@@ -40,31 +40,31 @@ $latestnews = array( 'type' => 'list', 'theme' => 'primary', 'title' => 'Latest 
 		'type' => 'product',
 		'items' => array(
 			0 => array(
-				'img' => $defaulticon, 'label' => 'Panel Doors', 'price' => 'Kshs. 2500',
+				'img' => $defaulticon, 'label' => 'Panel Doors', 'numbers' => 'Kshs. 2500',
 				'description' => 'The best you need to be where ytou wanna be',
 			),
 			1 => array(
-				'img' => $defaulticon, 'label' => 'MDF Panel Doors', 'price' => 'Kshs. 2000',
+				'img' => $defaulticon, 'label' => 'MDF Panel Doors', 'numbers' => 'Kshs. 2000',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			2 => array(
-				'img' => $defaulticon, 'label' => 'Flush Panel Doors', 'price' => 'Kshs. 2100',
+				'img' => $defaulticon, 'label' => 'Flush Panel Doors', 'numbers' => 'Kshs. 2100',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			3 => array(
-				'img' => $defaulticon, 'label' => 'Flush Doors', 'price' => 'Kshs. 1600',
+				'img' => $defaulticon, 'label' => 'Flush Doors', 'numbers' => 'Kshs. 1600',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			4 => array(
-				'img' => $defaulticon, 'label' => 'Mahogany', 'price' => 'Kshs. 1800',
+				'img' => $defaulticon, 'label' => 'Mahogany', 'numbers' => 'Kshs. 1800',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			5 => array(
-				'img' => $defaulticon, 'label' => 'Panel Doors', 'price' => 'Kshs. 2500',
+				'img' => $defaulticon, 'label' => 'Panel Doors', 'numbers' => 'Kshs. 2500',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			6 => array(
-				'img' => $defaulticon, 'label' => 'Block Boards', 'price' => 'Kshs. 3000',
+				'img' => $defaulticon, 'label' => 'Block Boards', 'numbers' => 'Kshs. 3000',
 				'description' => 'The best you need to be where ytou wanna be',
 			),				
 		),
@@ -76,31 +76,31 @@ $latestoffers = array( 'type' => 'list', 'theme' => 'primary', 'title' => 'Lates
 		'type' => 'product',
 		'items' => array(
 			0 => array(
-				'img' => $defaulticon, 'label' => 'Panel Doors', 'price' => 'Kshs. 2500',
+				'img' => $defaulticon, 'label' => 'Panel Doors', 'numbers' => 'Kshs. 2500',
 				'description' => 'The best you need to be where ytou wanna be',
 			),
 			1 => array(
-				'img' => $defaulticon, 'label' => 'MDF Panel Doors', 'price' => 'Kshs. 2000',
+				'img' => $defaulticon, 'label' => 'MDF Panel Doors', 'numbers' => 'Kshs. 2000',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			2 => array(
-				'img' => $defaulticon, 'label' => 'Flush Panel Doors', 'price' => 'Kshs. 2100',
+				'img' => $defaulticon, 'label' => 'Flush Panel Doors', 'numbers' => 'Kshs. 2100',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			3 => array(
-				'img' => $defaulticon, 'label' => 'Flush Doors', 'price' => 'Kshs. 1600',
+				'img' => $defaulticon, 'label' => 'Flush Doors', 'numbers' => 'Kshs. 1600',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			4 => array(
-				'img' => $defaulticon, 'label' => 'Mahogany', 'price' => 'Kshs. 1800',
+				'img' => $defaulticon, 'label' => 'Mahogany', 'numbers' => 'Kshs. 1800',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			5 => array(
-				'img' => $defaulticon, 'label' => 'Panel Doors', 'price' => 'Kshs. 2500',
+				'img' => $defaulticon, 'label' => 'Panel Doors', 'numbers' => 'Kshs. 2500',
 				'description' => 'The best you need to be where ytou wanna be',
 			),	
 			6 => array(
-				'img' => $defaulticon, 'label' => 'Block Boards', 'price' => 'Kshs. 3000',
+				'img' => $defaulticon, 'label' => 'Block Boards', 'numbers' => 'Kshs. 3000',
 				'description' => 'The best you need to be where ytou wanna be',
 			),				
 		),

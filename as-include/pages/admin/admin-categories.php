@@ -41,7 +41,6 @@ if (!isset($editcategoryid))
 
 $categories = as_db_select_with_pending(as_db_category_nav_selectspec($editcategoryid, true, false, true));
 
-
 // Check admin privileges (do late to allow one DB query)
 
 if (!as_admin_check_privileges($as_content))
@@ -630,6 +629,5 @@ if (as_get('recalc')) {
 }
 
 $as_content['navigation']['sub'] = as_admin_sub_navigation();
-
 
 return $as_content;

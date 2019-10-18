@@ -1786,7 +1786,7 @@ function as_set_display_rules(&$as_content, $effects)
 */
 function as_avatar($size, $class, $user)
 { 
-	$avatar = '<img src="'.as_opt('site_url') . '/as-media/user.jpg" width="'.$size.'" height="'.$size.' class="'.($class ? $class.' ' : '').'img-circle" style="border-radius: '.(0.75 * $size).'px" alt="User Image" />';
+	$avatar = '<img src="'.as_opt('site_url') . '/as-media/user.jpg" width="'.$size.'" height="'.$size.'" class="'.($class ? $class.' ' : '').'img-circle" style="border-radius: '.(0.75 * $size).'px" alt="User Image" />';
 
 	if (as_is_logged_in())
 	{

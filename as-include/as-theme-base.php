@@ -1117,7 +1117,7 @@ class as_html_theme_base
 						break;
 						
 					case 'link':
-						$this->output('<a href="'.$tool['url'].'" class="'.$tool['class'].'" style="float:right">'.$tl.'</a>');
+						$this->output('<a href="'.$tool['url'].'" class="'.$tool['class'].'" style="float:right">' . @$tool['label'] . '</a>');
 						break;
 					
 					case 'buttonx':
@@ -1210,6 +1210,10 @@ class as_html_theme_base
 					
 				case 'list':
 					$this->list_view($c_item);
+					break;
+						
+				case 'dashlist':
+					$this->dashlist_view($c_item);
 					break;
 					
 				case 'small-box':
@@ -1475,8 +1479,8 @@ class as_html_theme_base
 							<img src="'.$item['img'].'" alt="Item Image">
 							</div>
 							<div class="product-info">
-							<a href="javascript:void(0)" class="product-title">'.$item['label'].'
-							<span class="label label-warning pull-right">'.$item['price'].'</span></a>
+							<a href="javascript:void(0)" class="product-title" style="font-size: 20px;">'.$item['label'].'
+							<span class="label label-warning pull-right">'.$item['numbers'].'</span></a>
 							<span class="product-description">'.$item['description'].'</span>
 							</div>
 							</li>');
@@ -1487,6 +1491,66 @@ class as_html_theme_base
 				$this->output('</div>');
 			}
 			
+            $this->output('</div>');
+		}
+	}
+	
+	public function dashlist_view($dashlist)
+	{
+		if (!empty($dashlist)) {
+			$this->output('<div class="box box-'.$dashlist['theme'].'">');
+			
+			if (isset($dashlist['title'])) $this->box_title($dashlist);
+				
+			/*if (isset($box['body'])){
+				$this->output('<div class="box-body">');
+				switch ($box['body']['type']) {
+					case 'product':
+						$this->output('<ul class="products-list product-list-in-box">');
+						if (isset($box['body']['items']))
+						foreach ($box['body']['items'] as $bi => $item) {
+							$this->output('<li class="item">
+							<div class="product-img">
+							<img src="'.$item['img'].'" alt="Item Image">
+							</div>
+							<div class="product-info">
+							<a href="javascript:void(0)" class="product-title" style="font-size: 20px;">'.$item['label'].'
+							<span class="label label-warning pull-right">'.$item['numbers'].'</span></a>
+							<span class="product-description">'.$item['description'].'</span>
+							</div>
+							</li>');
+						}
+						$this->output('</ul>');
+						break;					
+				}
+				$this->output('</div>');
+			}*/
+			if (isset($dashlist['items'])) {
+				$this->output('<div class="box-body">');
+				$this->output('<ul class="products-list product-list-in-box">');
+				
+				foreach ($dashlist['items'] as $bi => $item) {
+					$this->output('<li class="item">');
+					$this->output('<div class="product-img"><img src="'.$item['img'].'" alt="Item Image"></div>');
+					$this->output('<div class="product-info">');
+					$this->output('<a href="'.$item['link'].'" class="product-title" style="font-size: 20px;">'.$item['label'].'</a>');
+					//$this->output('<span class="label label-warning pull-right">'.$item['numbers'].'</span>');
+					$this->output('<span class="product-description">'.$item['description'].'</span>');
+					$this->output('</div><br>');
+
+					if (isset($item['infors'])) {
+						foreach ($item['infors'] as $info) {
+							$this->output('<a class="btn btn-app" style="height: 100px; margin-right:10px;">');
+							if (isset($info['inew'])) $this->output('<span class="badge bg-green">'.$info['inew'].'</span>');
+							$this->output('<i class="fa fa-'.$info['ibadge'].'"></i><h4>'.$info['icount'].'</h4>'.$info['ilabel'].'</a>');
+						}
+					}
+					$this->output('</li>');
+				}
+				$this->output('</ul>');
+			}
+			
+
             $this->output('</div>');
 		}
 	}

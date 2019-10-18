@@ -82,7 +82,7 @@ $handle = as_request_part(1);
 $username = as_get_logged_in_handle();
 
 $gender = $useraccount['gender'] == 1 ? ' ('.as_lang('users/gender_male').')' : ' ('.as_lang('users/gender_female').')';
-$usertime = as_time_to_string(as_opt('db_time') - $useraccount['created']);
+$sincetime = as_time_to_string(as_opt('db_time') - $useraccount['created']);
 $joindate = as_when_to_html($useraccount['created'], 0);
             
 $profile1 = array( 'type' => 'box', 'theme' => 'primary', 
@@ -91,7 +91,7 @@ $profile1 = array( 'type' => 'box', 'theme' => 'primary',
 		'items' => array(
 			0 => array( 
 				'tag' => array('avatar'),
-				'img' => as_avatar(100, 'profile-user-img img-responsive', $useraccount),
+				'img' => '<center>'.as_avatar(100, 'profile-user-img img-responsive', $useraccount).'</center>',
 			),
 			
 			1 => array( 
@@ -110,7 +110,7 @@ $profile1 = array( 'type' => 'box', 'theme' => 'primary',
 					'Level' => as_html(as_user_level_string($useraccount['level'])), 
 					'Mobile' => $useraccount['mobile'], 
 					'Country' => $useraccount['country'],
-					as_lang_html('users/user_for') => $usertime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
+					as_lang_html('users/user_for') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
 				),
 			),
 			4 => '',			

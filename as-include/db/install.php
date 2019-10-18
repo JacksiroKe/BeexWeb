@@ -176,6 +176,7 @@ function as_db_table_definitions()
 
 		'departments' => array(
 			'departid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'businessid' => 'INT UNSIGNED',
 			'parentid' => 'INT UNSIGNED',
 			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // category name
 			'icon' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'', // category name

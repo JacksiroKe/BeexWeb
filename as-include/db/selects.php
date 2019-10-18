@@ -680,19 +680,100 @@ function as_db_posts_basetype_selectspec($postids)
 
 function as_db_business_list($userid)
 {
-	/*return array(
+	return array(
 		'columns' => array('businessid', 'type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', 'userid', 'created'),
 		'source' => '^businesses WHERE userid=$',
 		'arguments' => array($userid),
-		'arraykey' => 'title',
-		'arrayvalue' => 'businessid',
-		'sortdesc' => 'businessid',
-	);*/
+		'sortasc' => 'title',
+	);
+}
+		
+function as_db_business_selectspec($loggedinuserid, $businessid)
+{
+	$selectspec['columns'] = array('businessid', '^businesses.type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', '^businesses.userid', 'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)');
+		
+	$selectspec['source'] = '^businesses LEFT JOIN ^users ON ^users.userid=^businesses.userid';
+	$selectspec['source'] .= " WHERE ^businesses.businessid=$";	
+	$selectspec['arguments'][] = $businessid;
+	$selectspec['single'] = true;
+
+	return $selectspec;
+}
+
+function as_db_business_departmentsx($businessid)
+{
 	return array(
 		'columns' => array('businessid', 'type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', 'userid', 'created'),
-		'source' => '^businesses WHERE userid=#',
-		'arguments' => array($userid),
+		'source' => '^businesses WHERE businessid=$',
+		'arguments' => array($businessid),
+		'sortasc' => 'title',
 	);
+}
+/**
+ * Return the selectspec to retrieve ($full or not) info on the departments which "surround" the central category specified
+ * by $slugsorid, $isid and $ispostid. The "surrounding" departments include all categories (even unrelated) at the
+ * top level, any ancestors (at any level) of the category, the category's siblings and sub-categories (to one level).
+ * The central category is specified as follows. If $isid AND $ispostid then $slugsorid is the ID of a post with the category.
+ * Otherwise if $isid then $slugsorid is the category's own id. Otherwise $slugsorid is the full backpath of the category.
+ * @param $slugsorid
+ * @param $isid
+ * @param bool $ispostid
+ * @param bool $full
+ * @return array
+ */
+function as_db_business_departments($businessid, $slugsorid, $isid, $ispostid = false, $full = false)
+{
+	/*if ($businessid) $identifiersql = 'departid=#' . $businessid;
+	else {
+		
+	}*/
+	if ($isid) {
+		if ($ispostid) {
+			$identifiersql = 'departid=(SELECT departid FROM ^posts WHERE postid=#)';
+		} else {
+			$identifiersql = 'departid=#';
+		}
+	} else {
+		$identifiersql = 'backpath=$';
+		$slugsorid = as_db_slugs_to_backpath($slugsorid);
+	}
+
+	$parentselects = array( // requires AS_department_DEPTH=4
+		'SELECT NULL AS parentkey', // top level
+		'SELECT grandparent.parentid FROM ^departments JOIN ^departments AS parent ON ^departments.parentid=parent.departid JOIN ^departments AS grandparent ON parent.parentid=grandparent.departid WHERE ^departments.' . $identifiersql, // 2 gens up
+		'SELECT parent.parentid FROM ^departments JOIN ^departments AS parent ON ^departments.parentid=parent.departid WHERE ^departments.' . $identifiersql,
+		// 1 gen up
+		'SELECT parentid FROM ^departments WHERE ' . $identifiersql, // same gen
+		'SELECT departid FROM ^departments WHERE ' . $identifiersql, // gen below
+	);
+
+	$columns = array(
+		'parentid' => '^departments.parentid', 'title' => '^departments.title', 'tags' => '^departments.tags', 'position' => '^departments.position', 'icon' => '^departments.icon'
+	);
+
+	if ($full) {
+		foreach ($columns as $alias => $column) {
+			$columns[$alias] = 'MAX(' . $column . ')';
+		}
+
+		$columns['childcount'] = 'COUNT(child.departid)';
+		$columns['content'] = 'MAX(^departments.content)';
+		$columns['backpath'] = 'MAX(^departments.backpath)';
+	}
+
+	array_unshift($columns, '^departments.departid');
+
+	$selectspec = array(
+		'columns' => $columns,
+		'source' => '^departments JOIN (' . implode(' UNION ', $parentselects) . ') y ON ^departments.parentid<=>parentkey' .
+			($full ? ' LEFT JOIN ^departments AS child ON child.parentid=^departments.departid GROUP BY ^departments.departid' : '') .
+			' ORDER BY ^departments.position',
+		'arguments' => array($slugsorid, $slugsorid, $slugsorid, $slugsorid),
+		'arraykey' => 'departid',
+		'sortasc' => 'position',
+	);
+
+	return $selectspec;
 }
 
 /**
