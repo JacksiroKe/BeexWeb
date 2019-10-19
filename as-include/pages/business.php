@@ -70,89 +70,516 @@ if (as_clicked('doregister')) {
 if (is_numeric($request)) {
 	$business = as_db_select_with_pending(as_db_business_selectspec($userid, $request));
 	$as_content['title'] = $business['title'].' <small>Business</small>';
+	$sincetime = as_time_to_string(as_opt('db_time') - $business['created']);
+	$joindate = as_when_to_html($business['created'], 0);
+	$contacts = explode('xx', $business['contact']);		
+	$profile1 = array( 'type' => 'box', 'theme' => 'primary', 
+		'body' => array(
+			'type' => 'box-body box-profile',
+			'items' => array(
+				0 => array( 
+					'tag' => array('avatar'),
+					'img' => '<center><img src="'.$defaulticon.'" width="100" height="100" class="img-circle" style="border-radius: 75px" alt="User Image" /></center>',
+					
+				),
+				
+				1 => array( 
+					'tag' => array('h3', 'profile-username text-center'),
+					'data' => array( 'text' => $business['title'] ),
+				),
+				
+				2 => array( 
+					'tag' => array('list', 'list-group list-group-unbordered'),
+					'data' => array(
+						'Mobile:' => $contacts[0],
+						'Email:' => $contacts[1],
+						'Website:' => $contacts[2],
+						as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
+					),
+				),
+				3 => '',			
+			),
+		),
+	);
+	
+	if ($business['userid'] == $userid)
+	{
+		$profile1['body']['items'][] = array( 
+			'tag' => array('link', 'btn btn-primary btn-block'),
+			'href' => $request.'/edit',
+			'label' => '<b>Edit This Business</b>',
+		);
+	}
+	else {
+		$profile1['body']['items'][] = array( 
+			'tag' => array('link', 'btn btn-primary btn-block'),
+			'href' => '#',
+			'label' => '<b>Follow</b>',
+		);
+	}
+
+	$profile2 = array( 'type' => 'box', 'theme' => 'information', 'title' => 'About Us', 
+		'body' => array(
+			'type' => 'box-body',
+			'items' => array(
+				0 => array(
+					'tag' => array('strong'), 
+					'itag' => array('map-marker', 5), 
+					'data' => array( 'text' => 'Location' ),
+				),
+				1 => array(
+					'tag' => array('p', 'text-muted'), 
+					'data' => array( 'text' => $business['location'] ),
+				),
+				2 => '',
+				3 => array(
+					'tag' => array('strong'), 
+					'itag' => array('file-text-o', 5), 
+					'data' => array( 'text' => 'Description'),
+				),
+				4 => array(
+					'tag' => array('p', 'text-muted'), 
+					'data' => array( 'text' => $business['content']),
+				),
+			),
+		),
+	);
+	
+	$editcategoryid = as_post_text('edit');
+	if (!isset($editcategoryid))
+		$editcategoryid = as_get('edit');
+	if (!isset($editcategoryid))
+		$editcategoryid = as_get('addsub');
+	
+	$categories = as_db_select_with_pending(as_db_category_nav_selectspec($editcategoryid, true, false, true));
+	
+	// Check admin privileges (do late to allow one DB query)
+	//if (!as_admin_check_privileges($as_content)) return $as_content;
+		
+	// Work out the appropriate state for the page
+	
+	$editcategory = @$categories[$editcategoryid];
+	
+	if (isset($editcategory)) {
+		$parentid = as_get('addsub');
+		if (isset($parentid))
+			$editcategory = array('parentid' => $parentid);
+	
+	} else {
+		if (as_clicked('doaddcategory'))
+			$editcategory = array();
+	
+		elseif (as_clicked('dosavecategory')) {
+			$parentid = as_post_text('parent');
+			$editcategory = array('parentid' => strlen($parentid) ? $parentid : null);
+		}
+	}
+	
+	$setmissing = as_post_text('missing') || as_get('missing');
+	
+	$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editcategory['categoryid']);
+	
+	$hassubcategory = false;
+	foreach ($categories as $category) {
+		if (!strcmp($category['parentid'], $editcategoryid))
+			$hassubcategory = true;
+	}
+	
+	$savedoptions = false;
+	$securityexpired = false;
 
 	switch (as_request_part(2)) 
 	{
 		case 'edit':
 
 			break;
-
-		default:
-			$sincetime = as_time_to_string(as_opt('db_time') - $business['created']);
-			$joindate = as_when_to_html($business['created'], 0);
-			$contacts = explode('xx', $business['contact']);		
-			$profile1 = array( 'type' => 'box', 'theme' => 'primary', 
-				'body' => array(
-					'type' => 'box-body box-profile',
-					'items' => array(
-						0 => array( 
-							'tag' => array('avatar'),
-							'img' => '<center><img src="'.$defaulticon.'" width="100" height="100" class="img-circle" style="border-radius: 75px" alt="User Image" /></center>',
-							
-						),
-						
-						1 => array( 
-							'tag' => array('h3', 'profile-username text-center'),
-							'data' => array( 'text' => $business['title'] ),
-						),
-						
-						2 => array( 
-							'tag' => array('list', 'list-group list-group-unbordered'),
-							'data' => array(
-								'Mobile:' => $contacts[0],
-								'Email:' => $contacts[1],
-								'Website:' => $contacts[2],
-								as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
-							),
-						),
-						3 => '',			
-					),
-				),
-			);
-			
-			if ($business['userid'] == $userid)
-			{
-				$profile1['body']['items'][] = array( 
-					'tag' => array('link', 'btn btn-primary btn-block'),
-					'href' => $request.'/edit',
-					'label' => '<b>Edit This Business</b>',
-				);
-			}
-			else {
-				$profile1['body']['items'][] = array( 
-					'tag' => array('link', 'btn btn-primary btn-block'),
-					'href' => '#',
-					'label' => '<b>Follow</b>',
-				);
-			}
 		
-			$profile2 = array( 'type' => 'box', 'theme' => 'information', 'title' => 'About Us', 
-				'body' => array(
-					'type' => 'box-body',
-					'items' => array(
-						0 => array(
-							'tag' => array('strong'), 
-							'itag' => array('map-marker', 5), 
-							'data' => array( 'text' => 'Location' ),
-						),
-						1 => array(
-							'tag' => array('p', 'text-muted'), 
-							'data' => array( 'text' => $business['location'] ),
-						),
-						2 => '',
-						3 => array(
-							'tag' => array('strong'), 
-							'itag' => array('file-text-o', 5), 
-							'data' => array( 'text' => 'Description'),
-						),
-						4 => array(
-							'tag' => array('p', 'text-muted'), 
-							'data' => array( 'text' => $business['content']),
+		case 'newdept':
+		case 'editdept':
+			if ($setmissing) {
+				$formcontent = array(
+					'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
+			
+					'style' => 'tall',
+					'title' => 'Add a Category',
+			
+					'fields' => array(
+						'reassign' => array(
+							'label' => isset($editcategory)
+								? as_lang_html_sub('admin/category_no_sub_to', as_html($editcategory['title']))
+								: as_lang_html('admin/category_none_to'),
+							'loose' => true,
 						),
 					),
+			
+					'buttons' => array(
+						'save' => array(
+							'tags' => 'id="dosaveoptions"', // just used for as_recalc_click()
+							'label' => as_lang_html('main/save_button'),
+						),
+			
+						'cancel' => array(
+							'tags' => 'name="docancel"',
+							'label' => as_lang_html('main/cancel_button'),
+						),
+					),
+			
+					'hidden' => array(
+						'dosetmissing' => '1', // for IE
+						'edit' => @$editcategory['categoryid'],
+						'missing' => '1',
+						'code' => as_get_form_security_code('admin/categories'),
+					),
+				);
+			
+				as_set_up_category_field($as_content, $formcontent['fields']['reassign'], 'reassign',
+					$categories, @$editcategory['categoryid'], as_opt('allow_no_category'), as_opt('allow_no_sub_category'));
+			
+			
+			} elseif (isset($editcategory)) {
+				$iconoptions[''] = as_lang_html('admin/icon_none');
+				if ( isset($editcategory['icon']) && strlen($editcategory['icon'])){
+					$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' .as_get_media_html($editcategory['icon'], 35, 35) .
+						'</span> <input name="file" type="file">';
+					$iconvalue = $iconoptions['uploaded'];
+				} else {
+					$iconoptions['uploaded'] = '<input name="file" type="file">';
+					$iconvalue = $iconoptions[''];
+				}
+				
+				$formtitle = (isset($editcategory['categoryid']) ? 'Edit Category: '.$editcategory['title'] : 'Add a Category' );
+				
+				$formcontent = array(
+					'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
+					'type' => 'form',
+					'style' => 'tall',
+					'title' => $formtitle,
+			
+					'style' => 'tall',
+			
+					'ok' => as_get('saved') ? as_lang_html('admin/category_saved') : (as_get('added') ? as_lang_html('admin/category_added') : null),
+			
+					'fields' => array(
+						'name' => array(
+							'id' => 'name_display',
+							'tags' => 'name="name" id="name"',
+							'label' => as_lang_html(count($categories) ? 'admin/category_name' : 'admin/category_name_first'),
+							'value' => as_html(isset($inname) ? $inname : @$editcategory['title']),
+							'error' => as_html(@$errors['name']),
+						),
+			
+						'items' => array(),
+			
+						'delete' => array(),
+			
+						'reassign' => array(),
+			
+						'slug' => array(
+							'id' => 'slug_display',
+							'tags' => 'name="slug"',
+							'label' => as_lang_html('admin/category_slug'),
+							'value' => as_html(isset($inslug) ? $inslug : @$editcategory['tags']),
+							'error' => as_html(@$errors['slug']),
+						),
+						
+						'posticon' => array(
+							'type' => 'select-radio',
+							'label' => as_lang_html('admin/category_icon'),
+							'tags' => 'name="posticon"',
+							'options' => $iconoptions,
+							'value' => $iconvalue,
+							'error' => as_html(@$errors['posticon']),
+						),
+						
+						'content' => array(
+							'id' => 'content_display',
+							'tags' => 'name="content"',
+							'label' => as_lang_html('admin/category_description'),
+							'value' => as_html(isset($incontent) ? $incontent : @$editcategory['content']),
+							'error' => as_html(@$errors['content']),
+							'rows' => 2,
+						),
+					),
+			
+					'buttons' => array(
+						'save' => array(
+							'tags' => 'id="dosaveoptions"', // just used for as_recalc_click
+							'label' => as_lang_html(isset($editcategory['categoryid']) ? 'main/save_button' : 'admin/add_category_button'),
+						),
+			
+						'cancel' => array(
+							'tags' => 'name="docancel"',
+							'label' => as_lang_html('main/cancel_button'),
+						),
+					),
+			
+					'hidden' => array(
+						'dosavecategory' => '1', // for IE
+						'edit' => @$editcategory['categoryid'],
+						'parent' => @$editcategory['parentid'],
+						'setparent' => (int)$setparent,
+						'code' => as_get_form_security_code('admin/categories'),
+					),
+				);
+			
+			
+				if ($setparent) {
+					unset($formcontent['fields']['delete']);
+					unset($formcontent['fields']['reassign']);
+					unset($formcontent['fields']['items']);
+					unset($formcontent['fields']['content']);
+			
+					$formcontent['fields']['parent'] = array(
+						'label' => as_lang_html('admin/category_parent'),
+					);
+			
+					$childdepth = as_db_category_child_depth($editcategory['categoryid']);
+			
+					as_set_up_category_field($as_content, $formcontent['fields']['parent'], 'parent',
+						isset($incategories) ? $incategories : $categories, isset($inparentid) ? $inparentid : @$editcategory['parentid'],
+						true, true, AS_CATEGORY_DEPTH - 1 - $childdepth, @$editcategory['categoryid']);
+			
+					$formcontent['fields']['parent']['options'][''] = as_lang_html('admin/category_top_level');
+			
+					@$formcontent['fields']['parent']['note'] .= as_lang_html_sub('admin/category_max_depth_x', AS_CATEGORY_DEPTH);
+			
+				} elseif (isset($editcategory['categoryid'])) { // existing category
+					if ($hassubcategory) {
+						$formcontent['fields']['name']['note'] = as_lang_html('admin/category_no_delete_subs');
+						unset($formcontent['fields']['delete']);
+						unset($formcontent['fields']['reassign']);
+			
+					} else {
+						$formcontent['fields']['delete'] = array(
+							'tags' => 'name="dodelete" id="dodelete"',
+							'label' =>
+								'<span id="reassign_shown">' . as_lang_html('admin/delete_category_reassign') . '</span>' .
+								'<span id="reassign_hidden" style="display:none;">' . as_lang_html('admin/delete_category') . '</span>',
+							'value' => 0,
+							'type' => 'checkbox',
+						);
+			
+						$formcontent['fields']['reassign'] = array(
+							'id' => 'reassign_display',
+							'tags' => 'name="reassign"',
+						);
+			
+						as_set_up_category_field($as_content, $formcontent['fields']['reassign'], 'reassign',
+							$categories, $editcategory['parentid'], true, true, null, $editcategory['categoryid']);
+					}
+			
+					$formcontent['fields']['items'] = array(
+						'label' => as_lang_html('admin/total_qs'),
+						'type' => 'static',
+						'value' => '<a href="' . as_path_html('items/' . as_category_path_request($categories, $editcategory['categoryid'])) . '">' .
+							($editcategory['pcount'] == 1
+								? as_lang_html_sub('main/1_article', '1', '1')
+								: as_lang_html_sub('main/x_articles', as_format_number($editcategory['pcount']))
+							) . '</a>',
+					);
+			
+					if ($hassubcategory && !as_opt('allow_no_sub_category')) {
+						$nosubcount = as_db_count_categoryid_qs($editcategory['categoryid']);
+			
+						if ($nosubcount) {
+							$formcontent['fields']['items']['error'] =
+								strtr(as_lang_html('admin/category_no_sub_error'), array(
+									'^q' => as_format_number($nosubcount),
+									'^1' => '<a href="' . as_path_html(as_request(), array('edit' => $editcategory['categoryid'], 'missing' => 1)) . '">',
+									'^2' => '</a>',
+								));
+						}
+					}
+			
+					as_set_display_rules($as_content, array(
+						'position_display' => '!dodelete',
+						'slug_display' => '!dodelete',
+						'content_display' => '!dodelete',
+						'parent_display' => '!dodelete',
+						'children_display' => '!dodelete',
+						'reassign_display' => 'dodelete',
+						'reassign_shown' => 'dodelete',
+						'reassign_hidden' => '!dodelete',
+					));
+			
+				} else { // new category
+					unset($formcontent['fields']['delete']);
+					unset($formcontent['fields']['reassign']);
+					unset($formcontent['fields']['slug']);
+					unset($formcontent['fields']['items']);
+			
+					$as_content['focusid'] = 'name';
+				}
+			
+				if (!$setparent) {
+					$pathhtml = as_category_path_html($categories, @$editcategory['parentid']);
+			
+					if (count($categories)) {
+						$formcontent['fields']['parent'] = array(
+							'id' => 'parent_display',
+							'label' => as_lang_html('admin/category_parent'),
+							'type' => 'static',
+							'value' => (strlen($pathhtml) ? $pathhtml : as_lang_html('admin/category_top_level')),
+						);
+			
+						$formcontent['fields']['parent']['value'] =
+							'<a href="' . as_path_html(as_request(), array('edit' => @$editcategory['parentid'])) . '">' .
+							$formcontent['fields']['parent']['value'] . '</a>';
+			
+						if (isset($editcategory['categoryid'])) {
+							$formcontent['fields']['parent']['value'] .= ' - ' .
+								'<a href="' . as_path_html(as_request(), array('edit' => $editcategory['categoryid'], 'setparent' => 1)) .
+								'" style="white-space: nowrap;">' . as_lang_html('admin/category_move_parent') . '</a>';
+						}
+					}
+			
+					$positionoptions = array();
+			
+					$previous = null;
+					$passedself = false;
+			
+					foreach ($categories as $key => $category) {
+						if (!strcmp($category['parentid'], @$editcategory['parentid'])) {
+							if (isset($previous))
+								$positionhtml = as_lang_html_sub('admin/after_x', as_html($passedself ? $category['title'] : $previous['title']));
+							else
+								$positionhtml = as_lang_html('admin/first');
+			
+							$positionoptions[$category['position']] = $positionhtml;
+			
+							if (!strcmp($category['categoryid'], @$editcategory['categoryid']))
+								$passedself = true;
+			
+							$previous = $category;
+						}
+					}
+			
+					if (isset($editcategory['position']))
+						$positionvalue = $positionoptions[$editcategory['position']];
+			
+					else {
+						$positionvalue = isset($previous) ? as_lang_html_sub('admin/after_x', as_html($previous['title'])) : as_lang_html('admin/first');
+						$positionoptions[1 + @max(array_keys($positionoptions))] = $positionvalue;
+					}
+			
+					$formcontent['fields']['position'] = array(
+						'id' => 'position_display',
+						'tags' => 'name="position"',
+						'label' => as_lang_html('admin/position'),
+						'type' => 'select',
+						'options' => $positionoptions,
+						'value' => $positionvalue,
+					);
+			
+					if (isset($editcategory['categoryid'])) {
+						$catdepth = count(as_category_path($categories, $editcategory['categoryid']));
+			
+						if ($catdepth < AS_CATEGORY_DEPTH) {
+							$childrenhtml = '';
+			
+							foreach ($categories as $category) {
+								if (!strcmp($category['parentid'], $editcategory['categoryid'])) {
+									$childrenhtml .= (strlen($childrenhtml) ? ', ' : '') .
+										'<a href="' . as_path_html(as_request(), array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) . '</a>' .
+										' (' . $category['pcount'] . ')';
+								}
+							}
+			
+							if (!strlen($childrenhtml))
+								$childrenhtml = as_lang_html('admin/category_no_subs');
+			
+							$childrenhtml .= ' - <a href="' . as_path_html(as_request(), array('addsub' => $editcategory['categoryid'])) .
+								'" style="white-space: nowrap;"><b>' . as_lang_html('admin/category_add_sub') . '</b></a>';
+			
+							$formcontent['fields']['children'] = array(
+								'id' => 'children_display',
+								'label' => as_lang_html('admin/category_subs'),
+								'type' => 'static',
+								'value' => $childrenhtml,
+							);
+						} else {
+							$formcontent['fields']['name']['note'] = as_lang_html_sub('admin/category_no_add_subs_x', AS_CATEGORY_DEPTH);
+						}
+			
+					}
+				}
+			
+			} else {
+				$formcontent = array(
+					'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
+					'title' => 'Recent Categories',
+					'type' => 'form',
+					'style' => 'tall',
+					'ok' => $savedoptions ? as_lang_html('admin/options_saved') : null,
+			
+					'style' => 'tall',
+			
+					'fields' => array(
+						'intro' => array(
+							'label' => as_lang_html('admin/categories_introduction'),
+							'type' => 'static',
+						),
+					),
+					
+					'table' => array( 'id' => 'allcategories', 'headers' => array('', 'Title', 'Items') ),
+			
+					'tools' => array(
+						'add' => array(
+							'type' => 'submit', 
+							'tags' => 'name="doaddcategory"',
+							'label' => as_lang_html('admin/add_category_button'),
+						),
+					),
+					
+					'hidden' => array(
+						'code' => as_get_form_security_code('admin/categories'),
+					),
+				);
+			
+				if (count($categories)) {
+					unset($formcontent['fields']['intro']);
+			
+					$navcategoryhtml = '';
+					$k = 1;
+					foreach ($categories as $category) {
+						if (!isset($category['parentid'])) {
+							$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($category['pcount']));
+							$formcontent['table']['rows'][] = array(
+								'onclick' => ' title="Click on this item to edit or view"',
+								'fields' => array(
+									'id' => array( 'data' => $k),
+									'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
+									'count' => array( 'data' => ($count)),
+								),
+							);
+						}
+						$k++;
+					}
+			
+				} else
+					unset($formcontent['buttons']['save']);
+			}
+			
+			if (as_get('recalc')) {
+				$formcontent['ok'] = '<span id="recalc_ok">' . as_lang_html('admin/recalc_categories') . '</span>';
+				$formcontent['hidden']['code_recalc'] = as_get_form_security_code('admin/recalc');
+			
+				$as_content['script_rel'][] = 'as-content/as-admin.js?' . AS_VERSION;
+				$as_content['script_var']['as_warning_recalc'] = as_lang('admin/stop_recalc_warning');
+			
+				$as_content['script_onloads'][] = array(
+					"as_recalc_click('dorecalccategories', document.getElementById('dosaveoptions'), null, 'recalc_ok');"
+				);
+			}
+			$as_content['row_view'][] = array(
+				'colms' => array(
+					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($formcontent) ),
 				),
 			);
-			
+			break;
+
+		default:			
 			$posts[] = array(
 				'type' => 'posts',
 				'class' => 'post clearfix',
@@ -419,9 +846,15 @@ else {
 			
 			$item4 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
 				'updates' => array('bg-yellow', 'NEW'), 'title' => 'Action 3', 'icon' => 'cog', 'link' => '#');
-	
+			
+			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 'title' => 'You have ' . $bzcount .' Businesses, You may add more', 
+				'tools' => array(
+					'add' => array( 'type' => 'link', 'label' => 'NEW BUSINESS',
+					'url' => $request.'business/new', 'class' => 'btn btn-primary btn-block' )
+				),
+			);
+				
 			if ($bzcount){
-				$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 'title' => 'You have ' . $bzcount .' Businesses, You may add more' );
 				
 				foreach ($businesses as $business => $biz){
 					$dashlist['items'][$biz['businessid']] = array('img' => $defaulticon, 'label' => $biz['title'], 'numbers' => '1 User', 
