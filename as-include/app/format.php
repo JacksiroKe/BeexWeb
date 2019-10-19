@@ -257,6 +257,61 @@ function as_category_path_request($navcategories, $categoryid)
 
 
 /**
+ * Given $navdepartments retrieved for $departid from the database (using as_db_department_nav_selectspec(...)),
+ * return an array of elements from $navdepartments for the hierarchy down to $departid.
+ * @param $navdepartments
+ * @param $departid
+ * @return array
+ */
+function as_department_path($navdepartments, $departid)
+{
+	$updepartments = array();
+
+	for ($updepartment = @$navdepartments[$departid]; isset($updepartment); $updepartment = @$navdepartments[$updepartment['parentid']])
+		$updepartments[$updepartment['departid']] = $updepartment;
+
+	return array_reverse($updepartments, true);
+}
+
+
+/**
+ * Given $navdepartments retrieved for $departid from the database (using as_db_department_nav_selectspec(...)),
+ * return some HTML that shows the department hierarchy down to $departid.
+ * @param $navdepartments
+ * @param $departid
+ * @return string
+ */
+function as_department_path_html($navdepartments, $departid)
+{
+	$departments = as_department_path($navdepartments, $departid);
+
+	$html = '';
+	foreach ($departments as $department)
+		$html .= (strlen($html) ? ' / ' : '') . as_html($department['title']);
+
+	return $html;
+}
+
+
+/**
+ * Given $navdepartments retrieved for $departid from the database (using as_db_department_nav_selectspec(...)),
+ * return a APS request string that represents the department hierarchy down to $departid.
+ * @param $navdepartments
+ * @param $departid
+ * @return string
+ */
+function as_department_path_request($navdepartments, $departid)
+{
+	$departments = as_department_path($navdepartments, $departid);
+
+	$request = '';
+	foreach ($departments as $department)
+		$request .= (strlen($request) ? '/' : '') . $department['tags'];
+
+	return $request;
+}
+
+/**
  * Return HTML to use for $ip address, which links to appropriate page with $anchorhtml
  * @param $ip
  * @param null $anchorhtml

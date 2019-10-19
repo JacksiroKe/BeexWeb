@@ -84,6 +84,9 @@ return array(
 	'date_month_11' => 'Nov',
 	'date_month_12' => 'Dec',
 	'date_year_digits' => 4, // 2 or 4
+	'department_name_first' => 'Name of your first Department',
+	'department_icon' => 'Icon for this Department',
+	'department_description' => 'Description for this Department',
 	'edited' => 'edited',
 	'email_error' => 'An error occurred trying to send the email.',
 	'field_required' => 'Please enter something in this field',

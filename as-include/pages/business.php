@@ -58,9 +58,9 @@ if (as_clicked('doregister')) {
 				// register and redirect
 				as_limits_increment(null, AS_LIMIT_BUSINESSES);
 
-				$businessid = as_create_new_business($in['type'], $in['department'], $in['location'], $in['contact'], $in['title'], $in['username'], $in['content'], $in['icon'], $in['tags'], $userid);		
+				$departid = as_create_new_business($in['type'], $in['department'], $in['location'], $in['contact'], $in['title'], $in['username'], $in['content'], $in['icon'], $in['tags'], $userid);		
 
-				as_redirect('business/' . $businessid );
+				as_redirect('business/' . $departid );
 			}
 		}
 
@@ -68,6 +68,7 @@ if (as_clicked('doregister')) {
 		$pageerror = as_lang('users/signup_limit');
 }
 if (is_numeric($request)) {
+	require_once AS_INCLUDE_DIR . 'db/post-create.php';
 	$business = as_db_select_with_pending(as_db_business_selectspec($userid, $request));
 	$as_content['title'] = $business['title'].' <small>Business</small>';
 	$sincetime = as_time_to_string(as_opt('db_time') - $business['created']);
@@ -146,12 +147,150 @@ if (is_numeric($request)) {
 	);
 	
 	$editdepartmentid = as_post_text('edit');
-	if (!isset($editdepartmentid))
-		$editdepartmentid = as_get('edit');
-	if (!isset($editdepartmentid))
-		$editdepartmentid = as_get('addsub');
+	if (!isset($editdepartmentid)) $editdepartmentid = as_get('edit');
+	if (!isset($editdepartmentid)) $editdepartmentid = as_get('addsub');
 	
-	$departments = as_db_select_with_pending(as_db_category_nav_selectspec($editdepartmentid, true, false, true));
+	// Process saving an old or new department
+
+	if (as_clicked('docancel')) {
+		if ($setmissing || $setparent)
+			as_redirect(as_request(), array('edit' => $editdepartment['departmentid']));
+		elseif (isset($editdepartment['departmentid']))
+			as_redirect(as_request());
+		else
+			as_redirect(as_request(), array('edit' => @$editdepartment['parentid']));
+
+	} elseif (as_clicked('dosetmissing')) {
+		if (!as_check_form_security_code('admin/departments', as_post_text('code')))
+			$securityexpired = true;
+
+		else {
+			$inreassign = as_get_department_field_value('reassign');
+			as_db_department_reassign($editdepartment['departmentid'], $inreassign);
+			as_redirect(as_request(), array('recalc' => 1, 'edit' => $editdepartment['departmentid']));
+		}
+
+	} elseif (as_clicked('dosavedepartment')) {
+		if (!as_check_form_security_code('admin/departments', as_post_text('code'))) $securityexpired = true;
+
+		elseif (as_post_text('dodelete')) {
+			if (!$hassubdepartment) {
+				$inreassign = as_get_department_field_value('reassign');
+				as_db_department_reassign($editdepartment['departmentid'], $inreassign);
+				as_db_department_delete($editdepartment['departmentid']);
+				as_redirect(as_request(), array('recalc' => 1, 'edit' => $editdepartment['parentid']));
+			}
+
+		} else {
+			require_once AS_INCLUDE_DIR . 'util/string.php';
+
+			$inname = as_post_text('name');
+			$incontent = as_post_text('content');
+			$inparentid = $setparent ? as_get_department_field_value('parent') : $editdepartment['parentid'];
+			$inposition = as_post_text('position');
+			$errors = array();
+
+			// Check the parent ID
+
+			$indepartments = as_db_select_with_pending(as_db_department_nav_selectspec($inparentid, true));
+
+			// Verify the name is legitimate for that parent ID
+
+			if (empty($inname)) $errors['name'] = as_lang('main/field_required');
+			elseif (as_strlen($inname) > AS_DB_MAX_CAT_PAGE_TITLE_LENGTH) $errors['name'] = as_lang_sub('main/max_length_x', AS_DB_MAX_CAT_PAGE_TITLE_LENGTH);
+			else {
+				foreach ($indepartments as $department) {
+					if (!strcmp($department['parentid'], $inparentid) &&
+						strcmp($department['departmentid'], @$editdepartment['departmentid']) &&
+						as_strtolower($department['title']) == as_strtolower($inname)
+					) {
+						$errors['name'] = as_lang('main/department_already_used');
+					}
+				}
+			}
+
+			// Verify the slug is legitimate for that parent ID
+
+			for ($attempt = 0; $attempt < 100; $attempt++) {
+				switch ($attempt) {
+					case 0:
+						$inslug = as_post_text('slug');
+						if (!isset($inslug)) $inslug = implode('-', as_string_to_words($inname));
+						break;
+
+					case 1:
+						$inslug = as_lang_sub('main/department_default_slug', $inslug);
+						break;
+
+					default:
+						$inslug = as_lang_sub('main/department_default_slug', $attempt - 1);
+						break;
+				}
+
+				$matchdepartmentid = as_db_department_slug_to_id($inparentid, $inslug); // query against DB since MySQL ignores accents, etc...
+
+				if (!isset($inparentid)) $matchpage = as_db_single_select(as_db_page_full_selectspec($inslug, false));
+				else $matchpage = null;
+
+				if (empty($inslug)) $errors['slug'] = as_lang('main/field_required');
+				elseif (as_strlen($inslug) > AS_DB_MAX_CAT_PAGE_TAGS_LENGTH) $errors['slug'] = as_lang_sub('main/max_length_x', AS_DB_MAX_CAT_PAGE_TAGS_LENGTH);
+				elseif (preg_match('/[\\+\\/]/', $inslug)) $errors['slug'] = as_lang_sub('admin/slug_bad_chars', '+ /');
+				elseif (!isset($inparentid) && as_admin_is_slug_reserved($inslug)) $errors['slug'] = as_lang('admin/slug_reserved');
+				elseif (isset($matchdepartmentid) && strcmp($matchdepartmentid, @$editdepartment['departmentid'])) 
+					$errors['slug'] = as_lang('main/department_already_used');
+				elseif (isset($matchpage)) $errors['slug'] = as_lang('admin/page_already_used');
+				else unset($errors['slug']);
+
+				if (isset($editdepartment['departmentid']) || !isset($errors['slug'])) break;
+			}
+			
+			if (is_array(@$_FILES["file"])) {
+				$iconfileerror = $_FILES["file"]['error'];
+				if ($iconfileerror === 1) $errors['posticon'] = as_lang('main/file_upload_limit_exceeded');
+				elseif ($iconfileerror === 0 && $_FILES["file"]['size'] > 0) {
+					require_once AS_INCLUDE_DIR . 'app/limits.php';
+
+					$toobig = as_image_file_too_big($_FILES["file"]['tmp_name'], 500);
+
+					if ($toobig) $errors['posticon'] = as_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
+				}
+			}
+			
+			// Perform appropriate database action
+
+			if (empty($errors)) {
+				$posticon = as_upload_file($_FILES["file"], 'department.jpg', 'icon');
+				
+				if (isset($editdepartment['departmentid'])) { // changing existing department
+					as_db_department_rename($editdepartment['departmentid'], $inname, $inslug);
+					
+					$recalc = false;
+
+					if ($setparent) {
+						as_db_department_set_parent($editdepartment['departmentid'], $inparentid);
+						$recalc = true;
+					} else {
+						as_db_department_set_content($editdepartment['departmentid'], $incontent, $posticon);
+						as_db_department_set_position($editdepartment['departmentid'], $inposition);
+						$recalc = $hassubdepartment && $inslug !== $editdepartment['tags'];
+					}
+					
+					as_redirect(as_request(), array('edit' => $editdepartment['departmentid'], 'saved' => true, 'recalc' => (int)$recalc));
+
+				} else { // creating a new one
+					$departmentid = as_db_department_create($inparentid, $inname, $inslug);
+					
+					as_db_department_set_content($departmentid, $incontent, $posticon);
+
+					if (isset($inposition)) as_db_department_set_position($departmentid, $inposition);
+
+					as_redirect(as_request(), array('edit' => $inparentid, 'added' => true));
+				}
+			}
+		}
+	}
+
+	$departments = as_db_select_with_pending(as_db_department_nav_selectspec($editdepartmentid, true, false, true));
 	
 	// Check admin privileges (do late to allow one DB query)
 	//if (!as_admin_check_privileges($as_content)) return $as_content;
@@ -177,7 +316,7 @@ if (is_numeric($request)) {
 	
 	$setmissing = as_post_text('missing') || as_get('missing');
 	
-	$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editdepartment['businessid']);
+	$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editdepartment['departid']);
 	
 	$hassubdepartment = false;
 	foreach ($departments as $department) {
@@ -226,14 +365,14 @@ if (is_numeric($request)) {
 				
 						'hidden' => array(
 							'dosetmissing' => '1', // for IE
-							'edit' => @$editdepartment['businessid'],
+							'edit' => @$editdepartment['departid'],
 							'missing' => '1',
 							'code' => as_get_form_security_code('main/departments'),
 						),
 					);
 				
-					as_set_up_category_field($as_content, $formcontent['fields']['reassign'], 'reassign',
-						$departments, @$editdepartment['businessid'], as_opt('allow_no_department'), as_opt('allow_no_sub_department'));
+					as_set_up_department_field($as_content, $formcontent['fields']['reassign'], 'reassign',
+						$departments, @$editdepartment['departid'], as_opt('allow_no_department'), as_opt('allow_no_sub_department'));
 				
 				
 				} elseif (isset($editdepartment)) {
@@ -247,7 +386,7 @@ if (is_numeric($request)) {
 						$iconvalue = $iconoptions[''];
 					}
 					
-					$formtitle = (isset($editdepartment['businessid']) ? 'Edit department: '.$editdepartment['title'] : 'Add a Department to this Business' );
+					$formtitle = (isset($editdepartment['departid']) ? 'Edit department: '.$editdepartment['title'] : 'Add a Department to this Business' );
 					
 					$formcontent = array(
 						'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
@@ -304,7 +443,7 @@ if (is_numeric($request)) {
 						'buttons' => array(
 							'save' => array(
 								'tags' => 'id="dosaveoptions"', // just used for as_recalc_click
-								'label' => as_lang_html(isset($editdepartment['businessid']) ? 'main/save_button' : 'admin/add_category_button'),
+								'label' => as_lang_html(isset($editdepartment['departid']) ? 'main/save_button' : 'admin/add_department_button'),
 							),
 				
 							'cancel' => array(
@@ -315,7 +454,7 @@ if (is_numeric($request)) {
 				
 						'hidden' => array(
 							'dosavedepartment' => '1', // for IE
-							'edit' => @$editdepartment['businessid'],
+							'edit' => @$editdepartment['departid'],
 							'parent' => @$editdepartment['parentid'],
 							'setparent' => (int)$setparent,
 							'code' => as_get_form_security_code('main/departments'),
@@ -333,17 +472,17 @@ if (is_numeric($request)) {
 							'label' => as_lang_html('main/department_parent'),
 						);
 				
-						$childdepth = as_db_category_child_depth($editdepartment['businessid']);
+						$childdepth = as_db_department_child_depth($editdepartment['departid']);
 				
-						as_set_up_category_field($as_content, $formcontent['fields']['parent'], 'parent',
-							isset($incategories) ? $incategories : $departments, isset($inparentid) ? $inparentid : @$editdepartment['parentid'],
-							true, true, AS_category_DEPTH - 1 - $childdepth, @$editdepartment['businessid']);
+						as_set_up_department_field($as_content, $formcontent['fields']['parent'], 'parent',
+							isset($indepartments) ? $indepartments : $departments, isset($inparentid) ? $inparentid : @$editdepartment['parentid'],
+							true, true, AS_department_DEPTH - 1 - $childdepth, @$editdepartment['departid']);
 				
 						$formcontent['fields']['parent']['options'][''] = as_lang_html('main/department_top_level');
 				
-						@$formcontent['fields']['parent']['note'] .= as_lang_html_sub('main/department_max_depth_x', AS_category_DEPTH);
+						@$formcontent['fields']['parent']['note'] .= as_lang_html_sub('main/department_max_depth_x', AS_department_DEPTH);
 				
-					} elseif (isset($editdepartment['businessid'])) { // existing department
+					} elseif (isset($editdepartment['departid'])) { // existing department
 						if ($hassubdepartment) {
 							$formcontent['fields']['name']['note'] = as_lang_html('main/department_no_delete_subs');
 							unset($formcontent['fields']['delete']);
@@ -353,7 +492,7 @@ if (is_numeric($request)) {
 							$formcontent['fields']['delete'] = array(
 								'tags' => 'name="dodelete" id="dodelete"',
 								'label' =>
-									'<span id="reassign_shown">' . as_lang_html('admin/delete_category_reassign') . '</span>' .
+									'<span id="reassign_shown">' . as_lang_html('admin/delete_department_reassign') . '</span>' .
 									'<span id="reassign_hidden" style="display:none;">' . as_lang_html('admin/delete_department') . '</span>',
 								'value' => 0,
 								'type' => 'checkbox',
@@ -364,14 +503,14 @@ if (is_numeric($request)) {
 								'tags' => 'name="reassign"',
 							);
 				
-							as_set_up_category_field($as_content, $formcontent['fields']['reassign'], 'reassign',
-								$departments, $editdepartment['parentid'], true, true, null, $editdepartment['businessid']);
+							as_set_up_department_field($as_content, $formcontent['fields']['reassign'], 'reassign',
+								$departments, $editdepartment['parentid'], true, true, null, $editdepartment['departid']);
 						}
 				
 						$formcontent['fields']['items'] = array(
 							'label' => as_lang_html('admin/total_qs'),
 							'type' => 'static',
-							'value' => '<a href="' . as_path_html('items/' . as_category_path_request($departments, $editdepartment['businessid'])) . '">' .
+							'value' => '<a href="' . as_path_html('items/' . as_department_path_request($departments, $editdepartment['departid'])) . '">' .
 								($editdepartment['pcount'] == 1
 									? as_lang_html_sub('main/1_article', '1', '1')
 									: as_lang_html_sub('main/x_articles', as_format_number($editdepartment['pcount']))
@@ -379,13 +518,13 @@ if (is_numeric($request)) {
 						);
 				
 						if ($hassubdepartment && !as_opt('allow_no_sub_department')) {
-							$nosubcount = as_db_count_departmentid_qs($editdepartment['businessid']);
+							$nosubcount = as_db_count_departmentid_qs($editdepartment['departid']);
 				
 							if ($nosubcount) {
 								$formcontent['fields']['items']['error'] =
 									strtr(as_lang_html('main/department_no_sub_error'), array(
 										'^q' => as_format_number($nosubcount),
-										'^1' => '<a href="' . as_path_html(as_request(), array('edit' => $editdepartment['businessid'], 'missing' => 1)) . '">',
+										'^1' => '<a href="' . as_path_html(as_request(), array('edit' => $editdepartment['departid'], 'missing' => 1)) . '">',
 										'^2' => '</a>',
 									));
 							}
@@ -412,7 +551,7 @@ if (is_numeric($request)) {
 					}
 				
 					if (!$setparent) {
-						$pathhtml = as_category_path_html($departments, @$editdepartment['parentid']);
+						$pathhtml = as_department_path_html($departments, @$editdepartment['parentid']);
 				
 						if (count($departments)) {
 							$formcontent['fields']['parent'] = array(
@@ -426,9 +565,9 @@ if (is_numeric($request)) {
 								'<a href="' . as_path_html(as_request(), array('edit' => @$editdepartment['parentid'])) . '">' .
 								$formcontent['fields']['parent']['value'] . '</a>';
 				
-							if (isset($editdepartment['businessid'])) {
+							if (isset($editdepartment['departid'])) {
 								$formcontent['fields']['parent']['value'] .= ' - ' .
-									'<a href="' . as_path_html(as_request(), array('edit' => $editdepartment['businessid'], 'setparent' => 1)) .
+									'<a href="' . as_path_html(as_request(), array('edit' => $editdepartment['departid'], 'setparent' => 1)) .
 									'" style="white-space: nowrap;">' . as_lang_html('main/department_move_parent') . '</a>';
 							}
 						}
@@ -447,7 +586,7 @@ if (is_numeric($request)) {
 				
 								$positionoptions[$department['position']] = $positionhtml;
 				
-								if (!strcmp($department['businessid'], @$editdepartment['businessid']))
+								if (!strcmp($department['departid'], @$editdepartment['departid']))
 									$passedself = true;
 				
 								$previous = $department;
@@ -471,16 +610,16 @@ if (is_numeric($request)) {
 							'value' => $positionvalue,
 						);
 				
-						if (isset($editdepartment['businessid'])) {
-							$catdepth = count(as_category_path($departments, $editdepartment['businessid']));
+						if (isset($editdepartment['departid'])) {
+							$catdepth = count(as_department_path($departments, $editdepartment['departid']));
 				
-							if ($catdepth < AS_category_DEPTH) {
+							if ($catdepth < AS_department_DEPTH) {
 								$childrenhtml = '';
 				
 								foreach ($departments as $department) {
-									if (!strcmp($department['parentid'], $editdepartment['businessid'])) {
+									if (!strcmp($department['parentid'], $editdepartment['departid'])) {
 										$childrenhtml .= (strlen($childrenhtml) ? ', ' : '') .
-											'<a href="' . as_path_html(as_request(), array('edit' => $department['businessid'])) . '">' . as_html($department['title']) . '</a>' .
+											'<a href="' . as_path_html(as_request(), array('edit' => $department['departid'])) . '">' . as_html($department['title']) . '</a>' .
 											' (' . $department['pcount'] . ')';
 									}
 								}
@@ -488,7 +627,7 @@ if (is_numeric($request)) {
 								if (!strlen($childrenhtml))
 									$childrenhtml = as_lang_html('main/department_no_subs');
 				
-								$childrenhtml .= ' - <a href="' . as_path_html(as_request(), array('addsub' => $editdepartment['businessid'])) .
+								$childrenhtml .= ' - <a href="' . as_path_html(as_request(), array('addsub' => $editdepartment['departid'])) .
 									'" style="white-space: nowrap;"><b>' . as_lang_html('main/department_add_sub') . '</b></a>';
 				
 								$formcontent['fields']['children'] = array(
@@ -498,7 +637,7 @@ if (is_numeric($request)) {
 									'value' => $childrenhtml,
 								);
 							} else {
-								$formcontent['fields']['name']['note'] = as_lang_html_sub('main/department_no_add_subs_x', AS_category_DEPTH);
+								$formcontent['fields']['name']['note'] = as_lang_html_sub('main/department_no_add_subs_x', AS_department_DEPTH);
 							}
 				
 						}
@@ -521,7 +660,7 @@ if (is_numeric($request)) {
 							),
 						),*/
 						
-						'table' => array( 'id' => 'allcategories', 'headers' => array('', 'Title', 'Items') ),
+						'table' => array( 'id' => 'alldepartments', 'headers' => array('', 'Title', 'Items') ),
 				
 						'tools' => array(
 							'add' => array(
@@ -555,7 +694,7 @@ if (is_numeric($request)) {
 									'onclick' => ' title="Click on this item to edit or view"',
 									'fields' => array(
 										'id' => array( 'data' => $k),
-										'title' => array( 'data' => as_get_media_html($department['icon'], 20, 20) .'<a href="' . as_path_html('main/departments', array('edit' => $department['businessid'])) . '">' . as_html($department['title']) .'</a>' ),
+										'title' => array( 'data' => as_get_media_html($department['icon'], 20, 20) .'<a href="' . as_path_html('main/departments', array('edit' => $department['departid'])) . '">' . as_html($department['title']) .'</a>' ),
 										'count' => array( 'data' => ($count)),
 									),
 								);
@@ -568,14 +707,14 @@ if (is_numeric($request)) {
 				}
 				
 				if (as_get('recalc')) {
-					$formcontent['ok'] = '<span id="recalc_ok">' . as_lang_html('admin/recalc_categories') . '</span>';
+					$formcontent['ok'] = '<span id="recalc_ok">' . as_lang_html('admin/recalc_departments') . '</span>';
 					$formcontent['hidden']['code_recalc'] = as_get_form_security_code('admin/recalc');
 				
 					$as_content['script_rel'][] = 'as-content/as-admin.js?' . AS_VERSION;
 					$as_content['script_var']['as_warning_recalc'] = as_lang('admin/stop_recalc_warning');
 				
 					$as_content['script_onloads'][] = array(
-						"as_recalc_click('dorecalccategories', document.getElementById('dosaveoptions'), null, 'recalc_ok');"
+						"as_recalc_click('dorecalcdepartments', document.getElementById('dosaveoptions'), null, 'recalc_ok');"
 					);
 				}
 				
@@ -673,8 +812,8 @@ if (is_numeric($request)) {
 				
 				/*if ($bzcount){
 					foreach ($businesses as $business => $biz){
-						$dashlist['items'][$biz['businessid']] = array('img' => $defaulticon, 'label' => $biz['title'], 'numbers' => '1 User', 
-						'description' => $biz['content'], 'link' => 'business/'.$biz['businessid'],
+						$dashlist['items'][$biz['departid']] = array('img' => $defaulticon, 'label' => $biz['title'], 'numbers' => '1 User', 
+						'description' => $biz['content'], 'link' => 'business/'.$biz['departid'],
 							'infors' => array(
 								'depts' => array('icount' => 3, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
 								'users' => array('icount' => 10, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
