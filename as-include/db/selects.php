@@ -682,7 +682,7 @@ function as_db_business_list($userid)
 {
 	return array(
 		'columns' => array('businessid', 'type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', 'userid', 'created'),
-		'source' => '^businesses WHERE userid=$',
+		'source' => '^businesses WHERE userid=#',
 		'arguments' => array($userid),
 		'sortasc' => 'title',
 	);
@@ -693,22 +693,13 @@ function as_db_business_selectspec($loggedinuserid, $businessid)
 	$selectspec['columns'] = array('businessid', '^businesses.type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', '^businesses.userid', 'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)');
 		
 	$selectspec['source'] = '^businesses LEFT JOIN ^users ON ^users.userid=^businesses.userid';
-	$selectspec['source'] .= " WHERE ^businesses.businessid=$";	
+	$selectspec['source'] .= " WHERE ^businesses.businessid=#";	
 	$selectspec['arguments'][] = $businessid;
 	$selectspec['single'] = true;
 
 	return $selectspec;
 }
 
-function as_db_business_departmentsx($businessid)
-{
-	return array(
-		'columns' => array('businessid', 'type', 'categoryid', 'location', 'contact', 'title', 'username', 'content', 'icon', 'tags', 'userid', 'created'),
-		'source' => '^businesses WHERE businessid=$',
-		'arguments' => array($businessid),
-		'sortasc' => 'title',
-	);
-}
 /**
  * Return the selectspec to retrieve ($full or not) info on the departments which "surround" the central category specified
  * by $slugsorid, $isid and $ispostid. The "surrounding" departments include all categories (even unrelated) at the
@@ -723,10 +714,6 @@ function as_db_business_departmentsx($businessid)
  */
 function as_db_business_departments($businessid, $slugsorid, $isid, $ispostid = false, $full = false)
 {
-	/*if ($businessid) $identifiersql = 'departid=#' . $businessid;
-	else {
-		
-	}*/
 	if ($isid) {
 		if ($ispostid) {
 			$identifiersql = 'departid=(SELECT departid FROM ^posts WHERE postid=#)';
@@ -765,7 +752,7 @@ function as_db_business_departments($businessid, $slugsorid, $isid, $ispostid = 
 
 	$selectspec = array(
 		'columns' => $columns,
-		'source' => '^departments JOIN (' . implode(' UNION ', $parentselects) . ') y ON ^departments.parentid<=>parentkey' .
+		'source' => '^departments WHERE ^departments.businessid='.$businessid.' JOIN (' . implode(' UNION ', $parentselects) . ') y ON ^departments.parentid<=>parentkey' .
 			($full ? ' LEFT JOIN ^departments AS child ON child.parentid=^departments.departid GROUP BY ^departments.departid' : '') .
 			' ORDER BY ^departments.position',
 		'arguments' => array($slugsorid, $slugsorid, $slugsorid, $slugsorid),
@@ -1390,7 +1377,7 @@ function as_db_slugs_to_category_id_selectspec($slugs)
  * @param bool $full
  * @return array
  */
-function as_db_department_nav_selectspec($slugsorid, $isid, $ispostid = false, $full = false)
+function as_db_department_nav_selectspec($businessid, $slugsorid, $isid, $ispostid = false, $full = false)
 {
 	if ($isid) {
 		if ($ispostid) {
@@ -1402,6 +1389,8 @@ function as_db_department_nav_selectspec($slugsorid, $isid, $ispostid = false, $
 		$identifiersql = 'backpath=$';
 		$slugsorid = as_db_slugs_to_backpath($slugsorid);
 	}
+
+	//$identifiersql = 'businessid= ' .$businessid. ' AND ' . $identifiersql;
 
 	$parentselects = array( // requires AS_CATEGORY_DEPTH=4
 		'SELECT NULL AS parentkey', // top level

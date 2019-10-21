@@ -68,6 +68,7 @@ if (as_clicked('doregister')) {
 		$pageerror = as_lang('users/signup_limit');
 }
 if (is_numeric($request)) {
+	require_once AS_INCLUDE_DIR . 'db/admin.php';
 	require_once AS_INCLUDE_DIR . 'db/post-create.php';
 	
 	// Get relevant list of departments
@@ -78,7 +79,7 @@ if (is_numeric($request)) {
 
 	list($business, $departments) = as_db_select_with_pending(
 		as_db_business_selectspec($userid, $request),
-		as_db_department_nav_selectspec($editdepartid, true, false, true)
+		as_db_department_nav_selectspec($request, $editdepartid, true, false, true)
 	);
 
 	$as_content['title'] = $business['title'].' <small>Business</small>';
@@ -92,7 +93,6 @@ if (is_numeric($request)) {
 				0 => array( 
 					'tag' => array('avatar'),
 					'img' => '<center><img src="'.$defaulticon.'" width="100" height="100" class="img-circle" style="border-radius: 75px" alt="User Image" /></center>',
-					
 				),
 				
 				1 => array( 
@@ -250,7 +250,7 @@ if (is_numeric($request)) {
 
 			// Check the parent ID
 
-			$indepartments = as_db_select_with_pending(as_db_department_nav_selectspec($inparentid, true));
+			$indepartments = as_db_select_with_pending(as_db_department_nav_selectspec($request, $inparentid, true));
 
 			// Verify the name is legitimate for that parent ID
 
@@ -342,7 +342,7 @@ if (is_numeric($request)) {
 					as_redirect(as_request(), array('edit' => $editdepartment['departid'], 'saved' => true, 'recalc' => (int)$recalc));
 
 				} else { // creating a new one
-					$departid = as_db_department_create($inparentid, $inname, $inslug);
+					$departid = as_db_department_create($request, $inparentid, $inname, $inslug);
 					
 					as_db_department_set_content($departid, $incontent, $posticon);
 
@@ -849,11 +849,13 @@ else {
 			if ($bzcount){
 				
 				foreach ($businesses as $business => $biz){
+					//$bizdeparts = as_db_select_with_pending(as_db_department_nav_selectspec($biz['businessid'], 1, true, false, true));
+
 					$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 'label' => $biz['title'], 'numbers' => '1 User', 
 					'description' => $biz['content'], 'link' => 'business/'.$biz['businessid'],
 						'infors' => array(
-							'depts' => array('icount' => 3, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
-							'users' => array('icount' => 10, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
+							'depts' => array('icount' => 0, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
+							'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
 						),
 					);
 				}

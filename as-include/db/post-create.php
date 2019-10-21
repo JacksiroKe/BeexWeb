@@ -100,19 +100,19 @@ function as_db_department_child_depth($departid)
 
 
 /**
- * Create a new department with $parentid, $title (=name) and $tags (=slug) in the database
+ * Create a new department with $businessid, $parentid, $title (=name) and $tags (=slug) in the database
  * @param $parentid
  * @param $title
  * @param $tags
  * @return mixed
  */
-function as_db_department_create($parentid, $title, $tags)
+function as_db_department_create($businessid, $parentid, $title, $tags)
 {
 	$lastpos = as_db_department_last_pos($parentid);
 
 	as_db_query_sub(
-		'INSERT INTO ^departments (parentid, title, tags, position) VALUES (#, $, $, #)',
-		$parentid, $title, $tags, 1 + $lastpos
+		'INSERT INTO ^departments (businessid, parentid, title, tags, position) VALUES (#, #, $, $, #)',
+		$businessid, $parentid, $title, $tags, 1 + $lastpos
 	);
 
 	$departid = as_db_last_insert_id();
