@@ -43,6 +43,55 @@ function as_combine_notify_email($userid, $notify, $email)
 	return $notify ? (empty($email) ? (isset($userid) ? '@' : null) : $email) : null;
 }
 
+/**
+ * Create a new business (application level) with $type, $location, $contact, $title, $username, $content, $icon, $tags and $userid.
+ * Set $confirmed to true if the email address has been confirmed elsewhere.
+ * Handles user points, notification and optional email confirmation.
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param int $level
+ * @param bool $confirmed
+ * @return mixed
+ */
+function as_create_new_business($type, $location, $contact, $title, $username, $content, $icon, $tags, $userid)
+{
+	require_once AS_INCLUDE_DIR . 'db/users.php';
+	require_once AS_INCLUDE_DIR . 'app/options.php';
+	require_once AS_INCLUDE_DIR . 'app/emails.php';
+
+	$businessid = as_db_business_create($type, $title, $contact, $location, $username, $content, $icon, $tags, $userid);
+	/*as_send_notification($userid, $firstname.' '.$lastname, $email, $handle, as_lang('emails/welcome_subject'), as_lang('emails/welcome_body'), array(
+		'^password' => isset($password) ? as_lang('main/hidden') : as_lang('users/password_to_set'),
+		'^url' => as_opt('site_url'),
+		'^custom' => strlen($custom) ? ($custom . "\n\n") : '',
+		'^confirm' => $confirm,
+	));*/
+
+	return $businessid;
+}
+
+/**
+ * Create a new business (application level) with $type, $location, $contact, $title, $username, $content, $icon, $tags and $userid.
+ * Set $confirmed to true if the email address has been confirmed elsewhere.
+ * Handles user points, notification and optional email confirmation.
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param int $level
+ * @param bool $confirmed
+ * @return mixed
+ */
+function as_create_new_department($businessid, $parentid, $title, $content, $icon, $userid)
+{
+	require_once AS_INCLUDE_DIR . 'db/users.php';
+	require_once AS_INCLUDE_DIR . 'app/options.php';
+	require_once AS_INCLUDE_DIR . 'app/emails.php';
+
+	$businessid = as_db_department_create($businessid, $parentid, $title, $content, $icon, $userid);
+	return $businessid;
+}
+
 
 /**
  * Add a item (application level) - create record, update appropriate counts, index it, send notifications.

@@ -147,19 +147,23 @@ function as_db_table_definitions()
 			'PRIMARY KEY (customerid)',
 		),
 
-		'businesses' => array(//type, categoryid, location, contact, title, username, content, icon, tags, userid, created
+		'businesses' => array(//businessid, type, title, contact, location, username, content, icon, images, tags, userid, created
 			'businessid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('PUBLIC', 'PRIVATE') NOT NULL",
-			'categoryid' => 'INT UNSIGNED', // this is the canonical final category id
 			'title' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ')',
 			'contact' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'location' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'username' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'content' => 'VARCHAR(' . AS_DB_MAX_CONTENT_LENGTH . ')',
-			'icon' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // category name
+			'icon' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // business icon
 			'images' => 'VARCHAR(' . AS_DB_MAX_OTHER_LENGTH . ')', // string of tags separated by commas
 			'tags' => 'VARCHAR(' . AS_DB_MAX_TAGS_LENGTH . ')', // string of tags separated by commas
 			'userid' => $useridcoltype, // which user created it
+			'managers' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra1' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra2' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra3' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'created' => 'DATETIME NOT NULL',
 			'updated' => 'DATETIME', // time of last update
 			'updatetype' => 'CHAR(1) CHARACTER SET ascii', // see /as-include/app/updates.php
@@ -174,25 +178,24 @@ function as_db_table_definitions()
 			'PRIMARY KEY (businessid)',
 		),
 
-		'departments' => array(
+		'businessdepts' => array(//departid, businessid, parentid, title, icon, content, userid, managers, users, extra, created
 			'departid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'businessid' => 'INT UNSIGNED',
 			'parentid' => 'INT UNSIGNED',
-			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // category name
-			'icon' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'', // category name
-			'tags' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . ') NOT NULL', // slug (url fragment) used to identify category
-			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ') NOT NULL DEFAULT \'\'', // description of category 
-			'userid' => $useridcoltype,
-			'userid1' => $useridcoltype,
-			'userid2' => $useridcoltype,
-			'userid3' => $useridcoltype,
-			'position' => 'SMALLINT UNSIGNED NOT NULL',
-			// full slug path for category, with forward slash separators, in reverse order to make index from effective
-			'backpath' => 'VARCHAR(' . (AS_CATEGORY_DEPTH * (AS_DB_MAX_CAT_PAGE_TAGS_LENGTH + 1)) . ') NOT NULL DEFAULT \'\'',
+			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // department name
+			'icon' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'', // department icon
+			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ') NOT NULL DEFAULT \'\'', // description of department 
+			'userid' => $useridcoltype, // which user created it
+			'managers' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'users' => 'INT UNSIGNED NOT NULL DEFAULT 1',
+			'extra' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra1' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra2' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra3' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'created' => 'DATETIME NOT NULL',
+			'updated' => 'DATETIME', // time of last update
 			'PRIMARY KEY (departid)',
-			'UNIQUE parentid (parentid, tags)',
-			'UNIQUE parentid_2 (parentid, position)',
-			'KEY backpath (backpath(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . '))',
 		),
 
 		'suppliers' => array(

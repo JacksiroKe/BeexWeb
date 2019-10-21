@@ -167,36 +167,6 @@ function as_password_validate($password, $olduser = null)
 }
 
 /**
- * Create a new business (application level) with $email, $password, $handle and $level.
- * Set $confirmed to true if the email address has been confirmed elsewhere.
- * Handles user points, notification and optional email confirmation.
- * @param $email
- * @param $password
- * @param $handle
- * @param int $level
- * @param bool $confirmed
- * @return mixed
- */
-function as_create_new_business($type, $categoryid, $location, $contact, $title, $username, $content, $icon, $tags, $userid)
-{
-	require_once AS_INCLUDE_DIR . 'db/users.php';
-	require_once AS_INCLUDE_DIR . 'app/options.php';
-	require_once AS_INCLUDE_DIR . 'app/emails.php';
-
-	$businessid = as_db_business_create($type, $categoryid, $location, $contact, $title, $username, $content, $icon, $tags, $userid);
-	
-	/*as_send_notification($userid, $firstname.' '.$lastname, $email, $handle, as_lang('emails/welcome_subject'), as_lang('emails/welcome_body'), array(
-		'^password' => isset($password) ? as_lang('main/hidden') : as_lang('users/password_to_set'),
-		'^url' => as_opt('site_url'),
-		'^custom' => strlen($custom) ? ($custom . "\n\n") : '',
-		'^confirm' => $confirm,
-	));*/
-
-	return $businessid;
-}
-
-
-/**
  * Create a new supplier (application level) with $email, $password, $handle and $level.
  * Set $confirmed to true if the email address has been confirmed elsewhere.
  * Handles user points, notification and optional email confirmation.

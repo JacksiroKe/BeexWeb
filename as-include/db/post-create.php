@@ -26,6 +26,35 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
 
 
 /**
+ * Create a new business in the database with type, categoryid, location, contact, title, username, content, icon, tags, userid, created
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param $level
+ * @param $ip
+ * @return mixed
+ */
+function as_db_business_create($type, $title, $contact, $location, $username, $content, $icon, $tags, $userid)
+{
+	as_db_query_sub(
+			'INSERT INTO ^businesses (type, title, contact, location, username, content, icon, tags, userid, created) ' .
+			'VALUES ($, $, $, $, $, $, $, $, #, NOW())',
+			$type, $title, $contact, $location, $username, $content, $icon, $tags, $userid
+		);
+	return as_db_last_insert_id();
+}
+
+function as_db_department_create($businessid, $parentid, $title, $content, $icon, $userid)
+{
+	as_db_query_sub(
+			'INSERT INTO ^businessdepts (businessid, parentid, title, content, icon, userid, created) ' .
+			'VALUES (#, #, $, $, $, #, NOW())',
+			$businessid, $parentid, $title, $content, $icon, $userid
+		);
+	return as_db_last_insert_id();
+}
+
+/**
  * Create a new post in the database and return its ID (based on auto-incrementing)
  * @param $type
  * @param $parentid
@@ -59,221 +88,6 @@ function as_db_order_create($userid, $cookieid, $ip, $itemid, $quantity, $addres
 		'VALUES (#, #, UNHEX($), #, #, $, NOW())',
 		$itemid, $userid, $cookieid, bin2hex(@inet_pton($ip)), $quantity, $address
 	);
-}
-
-/**
- * Return the maximum position of the departments with $parentid
- * @param $parentid
- * @return mixed|null
- */
-function as_db_department_last_pos($parentid)
-{
-	return as_db_read_one_value(as_db_query_sub(
-		'SELECT COALESCE(MAX(position), 0) FROM ^departments WHERE parentid<=>#',
-		$parentid
-	));
-}
-
-
-/**
- * Return how many levels of subdepartment there are below $departid
- * @param $departid
- * @return int
- */
-function as_db_department_child_depth($departid)
-{
-	// This is potentially a very slow query since it counts all the multi-generational offspring of a particular department
-	// But it's only used for admin purposes when moving a department around so I don't think it's worth making more efficient
-	// (Incidentally, this could be done by keeping a count for every department of how many generations of offspring it has.)
-
-	$result = as_db_read_one_assoc(as_db_query_sub(
-		'SELECT COUNT(child1.departid) AS count1, COUNT(child2.departid) AS count2, COUNT(child3.departid) AS count3 FROM ^departments AS child1 LEFT JOIN ^departments AS child2 ON child2.parentid=child1.departid LEFT JOIN ^departments AS child3 ON child3.parentid=child2.departid WHERE child1.parentid=#;', // requires AS_department_DEPTH=4
-		$departid
-	));
-
-	for ($depth = AS_department_DEPTH - 1; $depth >= 1; $depth--)
-		if ($result['count' . $depth])
-			return $depth;
-
-	return 0;
-}
-
-
-/**
- * Create a new department with $businessid, $parentid, $title (=name) and $tags (=slug) in the database
- * @param $parentid
- * @param $title
- * @param $tags
- * @return mixed
- */
-function as_db_department_create($businessid, $parentid, $title, $tags)
-{
-	$lastpos = as_db_department_last_pos($parentid);
-
-	as_db_query_sub(
-		'INSERT INTO ^departments (businessid, parentid, title, tags, position) VALUES (#, #, $, $, #)',
-		$businessid, $parentid, $title, $tags, 1 + $lastpos
-	);
-
-	$departid = as_db_last_insert_id();
-
-	as_db_departments_recalc_backpaths($departid);
-
-	return $departid;
-}
-
-/**
- * Recalculate the backpath columns for all departments from $firstdepartid to $lastdepartid (if specified)
- * @param $firstdepartid
- * @param $lastdepartid
- */
-function as_db_departments_recalc_backpaths($firstdepartid, $lastdepartid = null)
-{
-	if (!isset($lastdepartid))
-		$lastdepartid = $firstdepartid;
-
-	as_db_query_sub(
-		"UPDATE ^departments AS x, (SELECT cat1.departid, CONCAT_WS('/', cat1.tags, cat2.tags, cat3.tags, cat4.tags) AS backpath FROM ^departments AS cat1 LEFT JOIN ^departments AS cat2 ON cat1.parentid=cat2.departid LEFT JOIN ^departments AS cat3 ON cat2.parentid=cat3.departid LEFT JOIN ^departments AS cat4 ON cat3.parentid=cat4.departid WHERE cat1.departid BETWEEN # AND #) AS a SET x.backpath=a.backpath WHERE x.departid=a.departid",
-		$firstdepartid, $lastdepartid // requires AS_department_DEPTH=4
-	);
-}
-
-
-/**
- * Set the name of $departid to $title and its slug to $tags in the database
- * @param $departid
- * @param $title
- * @param $tags
- */
-function as_db_department_rename($departid, $title, $tags)
-{
-	as_db_query_sub(
-		'UPDATE ^departments SET title=$, tags=$ WHERE departid=#',
-		$title, $tags, $departid
-	);
-
-	as_db_departments_recalc_backpaths($departid); // may also require recalculation of its offspring's backpaths
-}
-
-/**
- * Recalculate the full category path (i.e. columns catidpath1/2/3) for posts from $firstpostid to $lastpostid (if specified)
- * @param $firstpostid
- * @param $lastpostid
- */
-function as_db_posts_calc_category_path($firstpostid, $lastpostid = null)
-{
-	if (!isset($lastpostid))
-		$lastpostid = $firstpostid;
-
-	as_db_query_sub(
-		"UPDATE ^posts AS x, (SELECT ^posts.postid, " .
-		"COALESCE(parent2.parentid, parent1.parentid, parent0.parentid, parent0.categoryid) AS catidpath1, " .
-		"IF (parent2.parentid IS NOT NULL, parent1.parentid, IF (parent1.parentid IS NOT NULL, parent0.parentid, IF (parent0.parentid IS NOT NULL, parent0.categoryid, NULL))) AS catidpath2, " .
-		"IF (parent2.parentid IS NOT NULL, parent0.parentid, IF (parent1.parentid IS NOT NULL, parent0.categoryid, NULL)) AS catidpath3 " .
-		"FROM ^posts LEFT JOIN ^categories AS parent0 ON ^posts.categoryid=parent0.categoryid LEFT JOIN ^categories AS parent1 ON parent0.parentid=parent1.categoryid LEFT JOIN ^categories AS parent2 ON parent1.parentid=parent2.categoryid WHERE ^posts.postid BETWEEN # AND #) AS a SET x.catidpath1=a.catidpath1, x.catidpath2=a.catidpath2, x.catidpath3=a.catidpath3 WHERE x.postid=a.postid",
-		$firstpostid, $lastpostid
-	); // requires AS_CATEGORY_DEPTH=4
-}
-
-
-/**
- * Set the content (=description) of $departid to $content
- * @param $departid
- * @param $content
- */
-function as_db_department_set_content($departid, $content, $icon = null)
-{
-	as_db_query_sub(
-		'UPDATE ^departments SET content=$, icon=$ WHERE departid=#',
-		$content, $icon, $departid
-	);
-}
-
-
-/**
- * Return the parentid of $departid
- * @param $departid
- * @return mixed|null
- */
-function as_db_department_get_parent($departid)
-{
-	return as_db_read_one_value(as_db_query_sub(
-		'SELECT parentid FROM ^departments WHERE departid=#',
-		$departid
-	));
-}
-
-
-/**
- * Move the department $departid into position $newposition under its parent
- * @param $departid
- * @param $newposition
- */
-function as_db_department_set_position($departid, $newposition)
-{
-	as_db_ordered_move('departments', 'departid', $departid, $newposition,
-		as_db_apply_sub('parentid<=>#', array(as_db_department_get_parent($departid))));
-}
-
-
-/**
- * Set the parent of $departid to $newparentid, placing it in last position (doesn't do necessary recalculations)
- * @param $departid
- * @param $newparentid
- */
-function as_db_department_set_parent($departid, $newparentid)
-{
-	$oldparentid = as_db_department_get_parent($departid);
-
-	if (strcmp($oldparentid, $newparentid)) { // if we're changing parent, move to end of old parent, then end of new parent
-		$lastpos = as_db_department_last_pos($oldparentid);
-
-		as_db_ordered_move('departments', 'departid', $departid, $lastpos, as_db_apply_sub('parentid<=>#', array($oldparentid)));
-
-		$lastpos = as_db_department_last_pos($newparentid);
-
-		as_db_query_sub(
-			'UPDATE ^departments SET parentid=#, position=# WHERE departid=#',
-			$newparentid, 1 + $lastpos, $departid
-		);
-	}
-}
-
-
-/**
- * Change the departid of any posts with (exact) $departid to $reassignid
- * @param $departid
- * @param $reassignid
- */
-function as_db_department_reassign($departid, $reassignid)
-{
-	as_db_query_sub('UPDATE ^departments SET departid=# WHERE departid<=>#', $reassignid, $departid);
-}
-
-
-/**
- * Delete the department $departid in the database
- * @param $departid
- */
-function as_db_department_delete($departid)
-{
-	as_db_ordered_delete('departments', 'departid', $departid,
-		as_db_apply_sub('parentid<=>#', array(as_db_department_get_parent($departid))));
-}
-
-
-/**
- * Return the departid for the department with parent $parentid and $slug
- * @param $parentid
- * @param $slug
- * @return mixed|null
- */
-function as_db_department_slug_to_id($parentid, $slug)
-{
-	return as_db_read_one_value(as_db_query_sub(
-		'SELECT departid FROM ^departments WHERE parentid<=># AND tags=$',
-		$parentid, $slug
-	), true);
 }
 
 /**
