@@ -1501,37 +1501,14 @@ class as_html_theme_base
 			$this->output('<div class="box box-'.$dashlist['theme'].'">');
 			
 			if (isset($dashlist['title'])) $this->box_title($dashlist);
-				
-			/*if (isset($box['body'])){
-				$this->output('<div class="box-body">');
-				switch ($box['body']['type']) {
-					case 'product':
-						$this->output('<ul class="products-list product-list-in-box">');
-						if (isset($box['body']['items']))
-						foreach ($box['body']['items'] as $bi => $item) {
-							$this->output('<li class="item">
-							<div class="product-img">
-							<img src="'.$item['img'].'" alt="Item Image">
-							</div>
-							<div class="product-info">
-							<a href="javascript:void(0)" class="product-title" style="font-size: 20px;">'.$item['label'].'
-							<span class="label label-warning pull-right">'.$item['numbers'].'</span></a>
-							<span class="product-description">'.$item['description'].'</span>
-							</div>
-							</li>');
-						}
-						$this->output('</ul>');
-						break;					
-				}
-				$this->output('</div>');
-			}*/
+			
 			if (isset($dashlist['items'])) {
 				$this->output('<div class="box-body">');
 				$this->output('<ul class="products-list product-list-in-box">');
 				
 				foreach ($dashlist['items'] as $bi => $item) {
 					$this->output('<li class="item">');
-					$this->output('<div class="product-img"><img src="'.$item['img'].'" alt="Item Image"></div>');
+					$this->output('<div class="product-img">'.$item['img'].'</div>');
 					$this->output('<div class="product-info">');
 					$this->output('<a href="'.$item['link'].'" class="product-title" style="font-size: 20px;">'.$item['label'].'</a>');
 					//$this->output('<span class="label label-warning pull-right">'.$item['numbers'].'</span>');
@@ -1674,6 +1651,7 @@ class as_html_theme_base
 		$this->form_fields($form, $columns);
 		$this->output('</div>');
 		if (isset($form['table'])) $this->table($form['table']);
+		else if (isset($form['dash'])) $this->dashlist_view($form['dash']);
 		$this->form_buttons($form, $columns);
 
 		$this->form_hidden($form);

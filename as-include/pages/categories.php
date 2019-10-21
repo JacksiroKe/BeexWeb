@@ -80,7 +80,6 @@ function as_category_nav_to_browse(&$navigation, $categories, $categoryid, $favo
 	}
 }
 
-
 // Prepare content for theme
 
 $as_content = as_content_prepare(false, array_keys(as_category_path($categories, $categoryid)));
