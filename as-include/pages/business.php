@@ -134,10 +134,10 @@ if (is_numeric($request)) {
 	$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editdepartment['departid']);
 
 	$hassubdepartment = false;
-	foreach ($departments as $department) {
+	/*foreach ($departments as $department) {
 		if (!strcmp($department['parentid'], $editdepartid))
 			$hassubdepartment = true;
-	}
+	}*/
 
 	$as_content['title'] = $business['title'].' <small>Business</small>';
 	$sincetime = as_time_to_string(as_opt('db_time') - $business['created']);
@@ -149,7 +149,7 @@ if (is_numeric($request)) {
 			'items' => array(
 				0 => array( 
 					'tag' => array('avatar'),
-					'img' => '<center><img src="'.$defaulticon.'" width="100" height="100" class="img-circle" style="border-radius: 75px" alt="User Image" /></center>',
+					'img' => '<center>'.as_get_media_html($defaulticon, 200, 200).'</center>',
 				),
 				
 				1 => array( 
@@ -441,8 +441,6 @@ else {
 			$as_content['title'] = 'Your Businesses <small>Dashboard</small>';
 			
 			$businesses = as_db_select_with_pending(as_db_business_list($userid));
-			
-			$bzcount = count($businesses);
 			//url, updates,img, icon, label
 			$item1 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
 				'updates' => array('bg-green', 'NEW'), 'title' => 'New Business', 'icon' => 'plus', 'link' => 'business/register');
@@ -456,14 +454,14 @@ else {
 			$item4 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
 				'updates' => array('bg-yellow', 'NEW'), 'title' => 'Action 3', 'icon' => 'cog', 'link' => '#');
 			
-			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 'title' => 'You have ' . $bzcount .' Businesses, You may add more', 
+			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 'title' => 'You have ' . count($businesses) .' Businesses, You may add more', 
 				'tools' => array(
 					'add' => array( 'type' => 'link', 'label' => 'NEW BUSINESS',
 					'url' => $request.'business/register', 'class' => 'btn btn-primary btn-block' )
 				),
 			);
 				
-			if ($bzcount){
+			if (count($businesses)){
 				
 				foreach ($businesses as $business => $biz){
 					//$bizdeparts = as_db_select_with_pending(as_db_department_nav_selectspec($biz['businessid'], 1, true, false, true));
