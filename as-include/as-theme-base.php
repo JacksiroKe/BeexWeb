@@ -1103,6 +1103,12 @@ class as_html_theme_base
 	public function box_title($box)
 	{
 		$this->output('<div class="box-header with-border">');
+		if (isset($box['icon'])) {
+			if (isset($box['icon']['url'])) $this->output('<a href="'.$box['icon']['url'].'" class="'.$box['icon']['class'].'">');
+			$this->output('<i class="fa fa-'.$box['icon']['fa'].'"></i>');
+			if (isset($box['icon']['label'])) $this->output($box['icon']['label']);
+			if (isset($box['icon']['url'])) $this->output('</a>');
+		}
 		$this->output('<h3 class="box-title">'.$box['title'].'</h3>');
 		if (isset($box['tools'])) {					
 			$this->output('<div class="box-tools">');
@@ -1202,44 +1208,45 @@ class as_html_theme_base
 	public function column_view($content)
 	{	
 		foreach ($content as $ci => $c_item) {
-			switch ($c_item['type'])
-			{
-				case 'box':
-					$this->box_view($c_item);
-					break;
-					
-				case 'list':
-					$this->list_view($c_item);
-					break;
+			if (isset($c_item['type']))
+				switch ($c_item['type'])
+				{
+					case 'box':
+						$this->box_view($c_item);
+						break;
 						
-				case 'dashlist':
-					$this->dashlist_view($c_item);
-					break;
-					
-				case 'small-box':
-					$this->smallbox_view($c_item);
-					break;
-					
-				case 'btn-app':
-					$this->btnapp_view($c_item);
-					break;
-				
-				case 'nav-tabs-custom':
-					$this->tabs_view($c_item);
-					break;
-					
-				case 'form':
-					$this->form($c_item);
-					break;
-					
-				case 'table':
-					$this->table($c_item);
-					break;
+					case 'list':
+						$this->list_view($c_item);
+						break;
+							
+					case 'dashlist':
+						$this->dashlist_view($c_item);
+						break;
 						
-				case 'carousel':
-					$this->carousel($c_item);
-					break;
-			}
+					case 'small-box':
+						$this->smallbox_view($c_item);
+						break;
+						
+					case 'btn-app':
+						$this->btnapp_view($c_item);
+						break;
+					
+					case 'nav-tabs-custom':
+						$this->tabs_view($c_item);
+						break;
+						
+					case 'form':
+						$this->form($c_item);
+						break;
+						
+					case 'table':
+						$this->table($c_item);
+						break;
+							
+					case 'carousel':
+						$this->carousel($c_item);
+						break;
+				}
 		}
 	}
 

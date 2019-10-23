@@ -680,7 +680,8 @@ function as_db_posts_basetype_selectspec($postids)
 function as_db_business_list($userid)
 {
 	return array(
-		'columns' => array('businessid', 'type', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', 'userid', 'created'),
+		'columns' => array('businessid', 'bstype', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', 
+			'departments' => '(SELECT COUNT(*) FROM ^businessdepts WHERE businessid = ^businesses.businessid)', 'userid', 'created'),
 		'source' => '^businesses WHERE userid=#',
 		'arguments' => array($userid),
 		'sortasc' => 'title',
@@ -689,7 +690,7 @@ function as_db_business_list($userid)
 		
 function as_db_business_selectspec($loggedinuserid, $businessid)
 {
-	$selectspec['columns'] = array('businessid', '^businesses.type', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', '^businesses.userid', 'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)');
+	$selectspec['columns'] = array('businessid', 'bstype', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', '^businesses.userid', 'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)');
 		
 	$selectspec['source'] = '^businesses LEFT JOIN ^users ON ^users.userid=^businesses.userid';
 	$selectspec['source'] .= " WHERE ^businesses.businessid=#";	
@@ -702,12 +703,38 @@ function as_db_business_selectspec($loggedinuserid, $businessid)
 function as_db_departments_list($businessid)
 {
 	return array(
-		'columns' => array('departid', 'businessid', 'parentid', 'title', 'icon', 'content', 'userid', 'managers', 'users', 'extra', 'created'),
+		'columns' => array('departid', 'depttype', 'businessid', 'parentid', 'title', 'icon', 'content', '^businessdepts.userid', 'managers', 'users', 'extra', 'created' => 'UNIX_TIMESTAMP(^businessdepts.created)', 'updated' => 'UNIX_TIMESTAMP(^businessdepts.updated)',
+			'sections' => '(SELECT COUNT(*) FROM ^businessdepts WHERE ^businessdepts.parentid = ^businessdepts.departid)'),
 		'source' => '^businessdepts WHERE businessid=#',
 		'arguments' => array($businessid),
 		'sortasc' => 'title',
 	);
 }
+		
+function as_db_department_selectspec($loggedinuserid, $departid)
+{
+	$selectspec['columns'] = array('departid', 'depttype', 'businessid', 'parentid', 'title', 'icon', 'content', '^businessdepts.userid', 'managers', 'users', 'extra', 'created' => 'UNIX_TIMESTAMP(^businessdepts.created)', 'updated' => 'UNIX_TIMESTAMP(^businessdepts.updated)',
+	'sections' => '(SELECT COUNT(*) FROM ^businessdepts WHERE ^businessdepts.parentid = ^businessdepts.departid)');
+		
+	$selectspec['source'] = '^businessdepts LEFT JOIN ^users ON ^users.userid=^businessdepts.userid';
+	$selectspec['source'] .= " WHERE ^businessdepts.departid=#";	
+	$selectspec['arguments'][] = $departid;
+	$selectspec['single'] = true;
+
+	return $selectspec;
+}
+
+/**
+ * Return number of rows in the database
+ */
+function as_db_count_rows($table, $sqlqry = null)
+{
+	if ($sqlqry) $sqlqry = ' WHERE ' . $sqlqry;
+	return as_db_read_one_value(as_db_query_sub(
+		"SELECT COUNT(*) FROM ^' . $table . $sqlqry . '"
+	));
+}
+
 
 /**
  * Return the selectspec to retrieve the basetype for the posts in $postids, as an array mapping postid => basetype

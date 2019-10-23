@@ -82,13 +82,76 @@ function as_create_new_business($type, $location, $contact, $title, $username, $
  * @param bool $confirmed
  * @return mixed
  */
-function as_create_new_department($businessid, $parentid, $title, $content, $icon, $userid)
+function as_create_new_department($business, $type, $title, $content, $icon, $userid)
 {
 	require_once AS_INCLUDE_DIR . 'db/users.php';
 	require_once AS_INCLUDE_DIR . 'app/options.php';
 	require_once AS_INCLUDE_DIR . 'app/emails.php';
+	
+	if (empty($title)) {
+		switch ($type) {
+			case 'STK':
+				$title = 'Stock';
+				break;
 
-	$businessid = as_db_department_create($businessid, $parentid, $title, $content, $icon, $userid);
+			case 'SALE':
+				$title = 'Sales and Marketing';
+				break;
+
+			case 'FIN':
+				$title = 'Finance';
+				break;
+
+			case 'HR':
+				$title = 'Human and Resource';
+				break;
+
+			case 'CC':
+				$title = 'Customer Care';
+				break;
+			
+			case 'PROC':
+				$title = 'Procurement';
+				break;
+
+			default:
+				$title = $business . ' General';
+				break;
+		}
+	}
+	
+	if (empty($content)) {
+		switch ($type) {
+			case 'STK':
+				$content = 'This is ' . $business . '\'s Stock Management Department.';
+				break;
+
+			case 'SALE':
+				$content = 'This is ' . $business . '\'s Sales and Marketing Department.';
+				break;
+
+			case 'FIN':
+				$content = 'This is ' . $business . '\'s Finance Department.';
+				break;
+
+			case 'HR':
+				$content = 'This is ' . $business . '\'s Human and Resource Department.';
+				break;
+
+			case 'CC':
+				$content = 'This is ' . $business . '\'s Customer Care Department.';
+				break;
+			
+			case 'PROC':
+				$content = 'This is ' . $business . '\'s Procurement Department.';
+				break;
+
+			default:
+				$content = 'This a General Department for managing general matters at ' . $business;
+				break;
+		}
+	}
+	$businessid = as_db_department_create($type, $title, $content, $icon, $userid);
 	return $businessid;
 }
 

@@ -23,11 +23,30 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
 	exit;
 }
 
+$request = "";
+$rootpage = "business";
 $as_content = as_content_prepare();
-$request = as_request_part(1);
+$requestlower = strtolower(as_request());
+$requestparts = as_request_parts();
+
+if (isset($requestparts[1])) $request = strtolower($requestparts[1]);
+
 $userid = as_get_logged_in_userid();
+$departmentid = as_get('identifier');
+$department = as_db_select_with_pending( as_db_department_selectspec($userid, $departmentid));
+$depttypes = array(
+	'GEN' => as_lang('main/general') . ' ' . as_lang('main/department'),
+	'STK' => as_lang('main/stock') . ' ' . as_lang('main/department'),
+	'SALE' => as_lang('main/sale') . ' ' . as_lang('main/department'),
+	'FIN' => as_lang('main/finance') . ' ' . as_lang('main/department'),
+	'HR' => as_lang('main/human_resource') . ' ' . as_lang('main/department'),
+	'CC' => as_lang('main/customer_care') . ' ' . as_lang('main/department'),
+	'PROC' => as_lang('main/procurement') . ' ' . as_lang('main/department'),
+);
 
 $defaulticon ='appicon.png';
+$savedoptions = false;
+$securityexpired = false;
 		
 $in = array();
 
@@ -37,15 +56,15 @@ if (as_clicked('doregister')) {
 	if (as_user_limits_remaining(AS_LIMIT_BUSINESSES)) {
 		require_once AS_INCLUDE_DIR . 'app/post-create.php';
 		
-		$in['type'] = as_post_text('type');
-		$in['department'] = as_post_text('department');
-		$in['location'] = as_post_text('location');
-		$in['contact'] = as_post_text('phone')." xx ".as_post_text('email')." xx ".as_post_text('website');
-		$in['title'] = as_post_text('title');
-		$in['username'] = as_post_text('username');
-		$in['content'] = as_post_text('content');
-		$in['icon'] = as_post_text('icon');
-		$in['tags'] = as_post_text('tags');
+		$intype = as_post_text('type');
+		$indepartment = as_post_text('department');
+		$inlocation = as_post_text('location');
+		$incontact = as_post_text('phone')." xx ".as_post_text('email')." xx ".as_post_text('website');
+		$intitle = as_post_text('title');
+		$inusername = as_post_text('username');
+		$incontent = as_post_text('content');
+		$inicon = as_post_text('icon');
+		$intags = as_post_text('tags');
 
 		if (!as_check_form_security_code('business-new', as_post_text('code'))) {
 			$pageerror = as_lang_html('misc/form_security_again');
@@ -58,8 +77,8 @@ if (as_clicked('doregister')) {
 				// register and redirect
 				as_limits_increment(null, AS_LIMIT_BUSINESSES);
 
-				$departid = as_create_new_business($in['type'], $in['location'], $in['contact'], $in['title'], $in['username'], $in['content'], $in['icon'], $in['tags'], $userid);
-				as_redirect('business/' . $departid );
+				$departid = as_create_new_business($intype, $inlocation, $incontact, $intitle, $inusername, $incontent, $inicon, $intags, $userid);
+				as_redirect($rootpage . '/' . $departid );
 			}
 		}
 
@@ -72,63 +91,110 @@ if (is_numeric($request)) {
 		as_db_departments_list($request)
 	);
 
-	$editdepartment = @$departments[$editdepartid];
+	if (as_clicked('dodeletedept')) {
+		require_once AS_INCLUDE_DIR . 'app/post-update.php';
+		if (as_post_text('edit') !== null) as_db_department_delete(as_post_text('edit'));
+		as_redirect($rootpage . '/' . $request );
+	}
+	
+	else if (as_clicked('docancel')) {
+		if (as_post_text('edit') == null) as_redirect($rootpage . '/' . $request );
+		else as_redirect( $rootpage . '/' . $request.'/department', array('identifier' => as_post_text('edit')));
+	}
+	
+	else if (as_clicked('dosavedepartment')) {
+		require_once AS_INCLUDE_DIR . 'app/post-create.php';
+		require_once AS_INCLUDE_DIR . 'app/post-update.php';
 
-	if (isset($editdepartment)) {
-		$parentid = as_get('addsub');
-		if (isset($parentid))
-			$editdepartment = array('parentid' => $parentid);
+		$indettype = as_post_text('depttype');
+		$intitle = as_post_text('title');
+		$incontent = as_post_text('content');
+		$inparentid = as_post_text('parent');
 
-	} else {
-		if (as_clicked('dosavedepartment')) {
-			require_once AS_INCLUDE_DIR . 'app/post-create.php';
+		if (is_array(@$_FILES["file"])) {
+			$iconfileerror = $_FILES["file"]['error'];
+			if ($iconfileerror === 1) $errors['posticon'] = as_lang('main/file_upload_limit_exceeded');
+			elseif ($iconfileerror === 0 && $_FILES["file"]['size'] > 0) {
+				require_once AS_INCLUDE_DIR . 'app/limits.php';
 
-			$in['title'] = as_post_text('title');
-			$in['content'] = as_post_text('content');
-			$in['parentid'] = as_post_text('parent');
-			if (null !== as_post_text('parent')) $in['parentid'] = 0;
+				$toobig = as_image_file_too_big($_FILES["file"]['tmp_name'], 500);
 
-			$editdepartment = array('parentid' => strlen($parentid) ? $parentid : null);
-			if (is_array(@$_FILES["file"])) {
-				$iconfileerror = $_FILES["file"]['error'];
-				if ($iconfileerror === 1) $errors['posticon'] = as_lang('main/file_upload_limit_exceeded');
-				elseif ($iconfileerror === 0 && $_FILES["file"]['size'] > 0) {
-					require_once AS_INCLUDE_DIR . 'app/limits.php';
-
-					$toobig = as_image_file_too_big($_FILES["file"]['tmp_name'], 500);
-
-					if ($toobig) $errors['posticon'] = as_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
-				}
-			}
-			
-			// Perform appropriate database action
-			if (empty($errors)) {
-				$posticon = as_upload_file($_FILES["file"], 'department.jpg', 'icon');
-				
-				if (isset($editdepartment['departid'])) { // changing existing department
-					/*as_db_department_rename($editdepartment['departid'], $inname, $inslug);
-					
-					$recalc = false;
-
-					if ($setparent) {
-						as_db_department_set_parent($editdepartment['departid'], $inparentid);
-						$recalc = true;
-					} else {
-						as_db_department_set_content($editdepartment['departid'], $incontent, $posticon);
-						as_db_department_set_position($editdepartment['departid'], $inposition);
-						$recalc = $hassubdepartment && $inslug !== $editdepartment['tags'];
-					}
-					
-					as_redirect(as_request(), array('edit' => $editdepartment['departid'], 'saved' => true, 'recalc' => (int)$recalc));*/
-				} else { // creating a new one
-					$departid = as_db_department_create($request, $in['parentid'], $in['title'], $in['content'], $posticon, $userid);					
-					//as_redirect(as_request(), array('edit' => $in['parentid'], 'added' => true));
-					as_redirect('business/' . $request );
-				}
+				if ($toobig) $errors['posticon'] = as_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
 			}
 		}
+		
+		// Perform appropriate database action
+		if (empty($errors)) {
+			$posticon = as_upload_file($_FILES["file"], 'department.jpg', 'icon');
+			//$departmentid = as_post_text('edit');		
+			//if ($departmentid == null) 
+			if (isset($department['departid']))
+			{ 
+				// changing existing department
+				as_db_record_set('businessdepts', 'departid', $department['departid'], 'businessid', $request);
+				as_db_record_set('businessdepts', 'departid', $department['departid'], 'title', $intitle);
+				as_db_record_set('businessdepts', 'departid', $department['departid'], 'content', $incontent);
+				as_redirect( $rootpage . '/' . $request.'/department', array('identifier' => $department['departid']));
+
+			} else { 
+				// creating a new one
+				$departid = as_create_new_department($business['title'], $indettype, $intitle, $incontent, $posticon, $userid);
+				as_db_record_set('businessdepts', 'departid', $departid, 'businessid', $request);
+				
+				//as_redirect(as_request(), array('edit' => $inparentid, 'added' => true));
+				as_redirect($rootpage . '/' . $request );
+			}
+		}
+		else as_redirect($rootpage . '/' . $request );
 	}
 
+	else if (as_clicked('dosubdepartment')) {
+		require_once AS_INCLUDE_DIR . 'app/post-create.php';
+		require_once AS_INCLUDE_DIR . 'app/post-update.php';
+
+		$indettype = as_post_text('depttype');
+		$intitle = as_post_text('title');
+		$incontent = as_post_text('content');
+		$inparentid = as_post_text('parent');
+
+		if (is_array(@$_FILES["file"])) {
+			$iconfileerror = $_FILES["file"]['error'];
+			if ($iconfileerror === 1) $errors['posticon'] = as_lang('main/file_upload_limit_exceeded');
+			elseif ($iconfileerror === 0 && $_FILES["file"]['size'] > 0) {
+				require_once AS_INCLUDE_DIR . 'app/limits.php';
+
+				$toobig = as_image_file_too_big($_FILES["file"]['tmp_name'], 500);
+
+				if ($toobig) $errors['posticon'] = as_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
+			}
+		}
+		
+		// Perform appropriate database action
+		if (empty($errors)) {
+			$posticon = as_upload_file($_FILES["file"], 'department.jpg', 'icon');
+			//$departmentid = as_post_text('edit');		
+			//if ($departmentid == null) 
+			if (isset($department['departid']))
+			{ 
+				// changing existing department
+				if ($inparentid != null) as_db_record_set('businessdepts', 'departid', $department['departid'], 'parentid', $inparentid);
+				else as_db_record_set('businessdepts', 'departid', $department['departid'], 'businessid', $request);
+				as_db_record_set('businessdepts', 'departid', $department['departid'], 'title', $intitle);
+				as_db_record_set('businessdepts', 'departid', $department['departid'], 'content', $incontent);
+				as_redirect( $rootpage . '/' . $request.'/department', array('identifier' => $department['departid']));
+
+			} else { 
+				// creating a new one
+				$departid = as_create_new_department($business['title'], $indettype, $intitle, $incontent, $posticon, $userid);
+				if ($inparentid != null) as_db_record_set('businessdepts', 'departid', $departid, 'parentid', $inparentid);
+				else as_db_record_set('businessdepts', 'departid', $departid, 'businessid', $request);
+				
+				//as_redirect(as_request(), array('edit' => $inparentid, 'added' => true));
+				as_redirect($rootpage . '/' . $request );
+			}
+		}
+		else as_redirect($rootpage . '/' . $request );
+	}
 	$setmissing = as_post_text('missing') || as_get('missing');
 
 	$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editdepartment['departid']);
@@ -139,7 +205,7 @@ if (is_numeric($request)) {
 			$hassubdepartment = true;
 	}*/
 
-	$as_content['title'] = $business['title'].' <small>Business</small>';
+	$as_content['title'] = $business['title'].' <small>BUSINESS</small>';
 	$sincetime = as_time_to_string(as_opt('db_time') - $business['created']);
 	$joindate = as_when_to_html($business['created'], 0);
 	$contacts = explode('xx', $business['contact']);		
@@ -149,7 +215,7 @@ if (is_numeric($request)) {
 			'items' => array(
 				0 => array( 
 					'tag' => array('avatar'),
-					'img' => '<center>'.as_get_media_html($defaulticon, 200, 200).'</center>',
+					'img' => '<center>'.as_get_media_html($defaulticon, 300, 300).'</center>',
 				),
 				
 				1 => array( 
@@ -215,12 +281,12 @@ if (is_numeric($request)) {
 	);
 	
 	switch (as_request_part(2)) {
-		case 'new':
-		case 'edit':
-			$as_content['title'] = 'Department <small>Registration</small>';
+		case 'newdept':
+		case 'editdept':
+			$as_content['title'] = 'Department <small>REGISTRATION</small>';
 			$iconoptions[''] = as_lang_html('main/icon_none');
-			if ( isset($editdepartment['icon']) && strlen($editdepartment['icon'])){
-				$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' .as_get_media_html($editdepartment['icon'], 35, 35) .
+			if ( isset($department['icon']) && strlen($department['icon'])){
+				$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' .as_get_media_html($department['icon'], 35, 35) .
 					'</span> <input name="file" type="file">';
 				$iconvalue = $iconoptions['uploaded'];
 			} else {
@@ -228,7 +294,201 @@ if (is_numeric($request)) {
 				$iconvalue = $iconoptions[''];
 			}
 			
-			$formtitle = (isset($editdepartment['departid']) ? 'Edit Department in this Business: '.$editdepartment['title'] : 'Add a Department to this Business' );
+			if (isset($departmentid)) 
+			{
+				$as_content['title'] = '' . $department['title'].' <small>DEPARTMENT</small>';
+				$sincetime = as_time_to_string(as_opt('db_time') - $department['created']);
+				$joindate = as_when_to_html($department['created'], 0);
+				//$contacts = explode('xx', $business['contact']);		
+				$profile1 = array( 'type' => 'box', 'theme' => 'primary', 
+					'body' => array(
+						'type' => 'box-body box-profile',
+						'items' => array(
+							0 => array( 
+								'tag' => array('avatar'),
+								'img' => '<center>'. as_get_media_html($department['icon'], 300, 300) .'</center>',
+							),
+							
+							1 => array( 
+								'tag' => array('h3', 'profile-username text-center'),
+								'data' => array( 'text' => $department['title'] . '<br>DEPARTMENT' ),
+							),
+							
+							2 => array( 
+								'tag' => array('list', 'list-group list-group-unbordered'),
+								'data' => array(
+									//'Mobile:' => $contacts[0],
+									//'Email:' => $contacts[1],
+									//'Website:' => $contacts[2],
+									as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
+								),
+							),
+							3 => '',			
+							4 => array( 
+								'tag' => array('link', 'btn btn-primary btn-block'),
+								'href' => as_path_html($rootpage . '/' . $request.'/department', array('identifier' => $department['departid'])),
+								'label' => '<b>View This Department</b>',
+							),			
+						),
+					),
+				);
+				$profile2 = null;
+				$iconoptions[''] = as_lang_html('admin/icon_none');
+				if ( isset($department['icon']) && strlen($department['icon'])){
+					$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' . as_get_media_html($department['icon'], 35, 35) .
+						'</span> <input name="file" type="file">';
+					$iconvalue = $iconoptions['uploaded'];
+				} else {
+					$iconoptions['uploaded'] = '<input name="file" type="file">';
+					$iconvalue = $iconoptions[''];
+				}
+			}
+
+			$formtitle = (isset($department['departid']) ? 'Edit: '.$department['title'] . ' Department' : 'Add a Department to this Business' );
+			
+			$bodycontent = array(
+				'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
+				'title' => $formtitle,
+				'type' => 'form',
+				'style' => 'tall',
+
+				'ok' => as_get('saved') ? as_lang_html('main/department_saved') : (as_get('added') ? as_lang_html('main/department_added') : null),
+
+				'fields' => array(
+					'depttype' => array(
+						'label' => as_lang_html('main/select_dept_type'),
+						'tags' => 'name="depttype" id="depttype" dir="auto"',
+						'type' => 'select',
+						'options' => $depttypes,
+						'value' => as_html(isset($indepttype) ? $indepttype : @$department['depttype']),
+						'error' => as_html(@$errors['depttype']),
+					),
+
+					'title' => array(
+						'id' => 'name_display',
+						'tags' => 'name="title" id="title"',
+						'label' => as_lang_html(count($departments) ? 'main/department_name' : 'main/department_name_first') . ' (Optional)',
+						'value' => as_html(isset($intitle) ? $intitle : @$department['title']),
+						'error' => as_html(@$errors['title']),
+					),
+					
+					'posticon' => array(
+						'type' => 'select-radio',
+						'label' => as_lang_html('main/department_icon') . ' (Optional)',
+						'tags' => 'name="posticon"',
+						'options' => $iconoptions,
+						'value' => $iconvalue,
+						'error' => as_html(@$errors['posticon']),
+					),
+					
+					'content' => array(
+						'id' => 'content_display',
+						'tags' => 'name="content"',
+						'label' => as_lang_html('main/department_description') . ' (Optional)',
+						'value' => as_html(isset($incontent) ? $incontent : @$department['content']),
+						'error' => as_html(@$errors['content']),
+						'rows' => 2,
+					),
+				),
+
+				'buttons' => array(
+					'save' => array(
+						'tags' => 'id="dosaveoptions" name="dosavedepartment"', // just used for as_recalc_click
+						'label' => as_lang_html(isset($department['departid']) ? 'main/save_button' : 'main/add_a_department_button'),
+					),
+
+					'cancel' => array(
+						'tags' => 'name="docancel"',
+						'label' => as_lang_html('main/cancel_button'),
+					),
+				),
+
+				'hidden' => array(
+					'edit' => @$department['departid'],
+					'parent' => @$department['parentid'],
+					//'setparent' => (int)$setparent,
+					'code' => as_get_form_security_code('business-departments'),
+				),
+			);
+			if (isset($departmentid)) 
+			{
+				$bodycontent['buttons'][] = array(
+					'tags' => 'name="dodeletedept" onclick="return confirm(' . as_js(as_lang_html('main/delete_confirm')) . ');"', // just used for as_recalc_click
+					'label' => as_lang_html('main/delete_button'),
+				);
+			}
+			$as_content['row_view'][] = array(
+				'colms' => array(
+					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($bodycontent) ),
+				),
+			);
+			break;
+
+		case 'subdept':
+		case 'editsub':
+			$as_content['title'] = 'Sub-Department <small>REGISTRATION</small>';
+			$iconoptions[''] = as_lang_html('main/icon_none');
+			if ( isset($department['icon']) && strlen($department['icon'])){
+				$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' .as_get_media_html($department['icon'], 35, 35) .
+					'</span> <input name="file" type="file">';
+				$iconvalue = $iconoptions['uploaded'];
+			} else {
+				$iconoptions['uploaded'] = '<input name="file" type="file">';
+				$iconvalue = $iconoptions[''];
+			}
+			
+			if (isset($department['parentid'])) 
+			{
+				$as_content['title'] = '' . $department['title'].' <small>SUB-DEPARTMENT</small>';
+				$sincetime = as_time_to_string(as_opt('db_time') - $department['created']);
+				$joindate = as_when_to_html($department['created'], 0);
+				//$contacts = explode('xx', $business['contact']);		
+				$profile1 = array( 'type' => 'box', 'theme' => 'primary', 
+					'body' => array(
+						'type' => 'box-body box-profile',
+						'items' => array(
+							0 => array( 
+								'tag' => array('avatar'),
+								'img' => '<center>'. as_get_media_html($department['icon'], 300, 300) .'</center>',
+							),
+							
+							1 => array( 
+								'tag' => array('h3', 'profile-username text-center'),
+								'data' => array( 'text' => $department['title'] . '<br>SUB-DEPARTMENT' ),
+							),
+							
+							2 => array( 
+								'tag' => array('list', 'list-group list-group-unbordered'),
+								'data' => array(
+									//'Mobile:' => $contacts[0],
+									//'Email:' => $contacts[1],
+									//'Website:' => $contacts[2],
+									as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
+								),
+							),
+							3 => '',			
+							4 => array( 
+								'tag' => array('link', 'btn btn-primary btn-block'),
+								'href' => as_path_html($rootpage . '/' . $request.'/department', array('identifier' => $department['departid'])),
+								'label' => '<b>View This Department</b>',
+							),			
+						),
+					),
+				);
+				$profile2 = null;
+				$iconoptions[''] = as_lang_html('admin/icon_none');
+				if ( isset($department['icon']) && strlen($department['icon'])){
+					$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' . as_get_media_html($department['icon'], 35, 35) .
+						'</span> <input name="file" type="file">';
+					$iconvalue = $iconoptions['uploaded'];
+				} else {
+					$iconoptions['uploaded'] = '<input name="file" type="file">';
+					$iconvalue = $iconoptions[''];
+				}
+			}
+
+			$formtitle = (isset($department['parentid']) ? 'Edit: '.$department['title'] . ' Sub-Department' : 'Add a Sub-Department to the '.$department['title'] . '  Department' );
 			
 			$bodycontent = array(
 				'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
@@ -242,14 +502,14 @@ if (is_numeric($request)) {
 					'title' => array(
 						'id' => 'name_display',
 						'tags' => 'name="title" id="title"',
-						'label' => as_lang_html(count($departments) ? 'main/department_name' : 'main/department_name_first'),
-						'value' => as_html(isset($intitle) ? $intitle : @$editdepartment['title']),
+						'label' => as_lang_html(count($departments) ? 'main/department_name' : 'main/department_name_first') . ' (Optional)',
+						'value' => as_html(isset($intitle) ? $intitle : (isset($department['parentid']) ? @$department['title'] : '')),
 						'error' => as_html(@$errors['title']),
 					),
 					
 					'posticon' => array(
 						'type' => 'select-radio',
-						'label' => as_lang_html('main/department_icon'),
+						'label' => as_lang_html('main/department_icon') . ' (Optional)',
 						'tags' => 'name="posticon"',
 						'options' => $iconoptions,
 						'value' => $iconvalue,
@@ -259,8 +519,9 @@ if (is_numeric($request)) {
 					'content' => array(
 						'id' => 'content_display',
 						'tags' => 'name="content"',
-						'label' => as_lang_html('main/department_description'),
-						'value' => as_html(isset($incontent) ? $incontent : @$editdepartment['content']),
+						'label' => as_lang_html('main/department_description') . ' (Optional)',
+						//'value' => as_html(isset($incontent) ? $incontent : (isset($department['parentid']) ? $incontent : $department['content'] )),
+						'value' => as_html(isset($incontent) ? $incontent : (isset($department['parentid']) ? $department['content'] : '')),
 						'error' => as_html(@$errors['content']),
 						'rows' => 2,
 					),
@@ -268,8 +529,8 @@ if (is_numeric($request)) {
 
 				'buttons' => array(
 					'save' => array(
-						'tags' => 'id="dosaveoptions"', // just used for as_recalc_click
-						'label' => as_lang_html(isset($editdepartment['departid']) ? 'main/save_button' : 'main/add_a_department_button'),
+						'tags' => 'name="dosubdepartment"', // just used for as_recalc_click
+						'label' => as_lang_html(isset($department['parentid']) ? 'main/save_button' : 'main/add_a_department_button'),
 					),
 
 					'cancel' => array(
@@ -279,20 +540,143 @@ if (is_numeric($request)) {
 				),
 
 				'hidden' => array(
-					'dosavedepartment' => '1', // for IE
-					'edit' => @$editdepartment['departid'],
-					'parent' => @$editdepartment['parentid'],
-					'setparent' => (int)$setparent,
+					'edit' => @$department['departid'],
+					'parent' => @$department['parentid'],
+					//'setparent' => (int)$setparent,
 					'code' => as_get_form_security_code('business-departments'),
 				),
 			);
+			if (isset($departmentid)) 
+			{
+				$bodycontent['buttons'][] = array(
+					'tags' => 'name="dodeletedept" onclick="return confirm(' . as_js(as_lang_html('main/delete_confirm')) . ');"', // just used for as_recalc_click
+					'label' => as_lang_html('main/delete_button'),
+				);
+			}
+			$as_content['row_view'][] = array(
+				'colms' => array(
+					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($bodycontent) ),
+				),
+			);
+			break;
 
+		case 'department':
+			if (isset($departmentid)) 
+			{
+				$as_content['title'] = $department['title'].' <small>DEPARTMENT</small>';
+				$department = as_db_select_with_pending( as_db_department_selectspec($userid, $departmentid));
+				$sincetime = as_time_to_string(as_opt('db_time') - $department['created']);
+				$joindate = as_when_to_html($department['created'], 0);
+				//$contacts = explode('xx', $business['contact']);		
+				$profile1 = array( 'type' => 'box', 'theme' => 'primary', 
+					'body' => array(
+						'type' => 'box-body box-profile',
+						'items' => array(
+							0 => array( 
+								'tag' => array('avatar'),
+								'img' => '<center>'. as_get_media_html($department['icon'], 300, 300) .'</center>',
+							),
+							
+							1 => array( 
+								'tag' => array('h3', 'profile-username text-center'),
+								'data' => array( 'text' => $department['title'] . '<br>DEPARTMENT' ),
+							),
+							
+							2 => array( 
+								'tag' => array('list', 'list-group list-group-unbordered'),
+								'data' => array(
+									//'Mobile:' => $contacts[0],
+									as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
+								),
+							),
+							3 => '',			
+						),
+					),
+				);
+				$profile2 = null;
+
+				if ($department['userid'] == $userid)
+				{
+					$profile1['body']['items'][] = array( 
+						'tag' => array('link', 'btn btn-primary btn-block'),
+						'href' => as_path_html($rootpage . '/' . $request.'/editdept', array('identifier' => $department['departid'])),
+						'label' => '<b>Edit This Department</b>',
+					);
+				}
+				else {
+					$profile1['body']['items'][] = array( 
+						'tag' => array('link', 'btn btn-primary btn-block'),
+						'href' => '#',
+						'label' => '<b>Follow</b>',
+					);
+				}
+				
+				$bodycontent = array(
+					'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
+					'title' => 'This Department has ' . count($departments) .' Sub-Departments, You may add more',
+					'type' => 'form',
+					'style' => 'tall',
+					'ok' => $savedoptions ? as_lang_html('main/options_saved') : null,
+			
+					'style' => 'tall',
+			
+					'dash' => array( 'theme' => 'primary'),
+
+					'icon' => array(
+						'fa' => 'arrow-left',
+						'url' => as_path_html($rootpage . '/' . $request),
+						'class' => 'btn btn-social btn-primary',
+						'label' => as_lang_html('main/back_button'),
+					),
+			
+					'tools' => array(
+						'add' => array(
+							'type' => 'link',
+							'url' => as_path_html($rootpage . '/' . $request.'/subdept', array('identifier' => $department['departid'])),
+							'tags' => 'name="doadddepartment"',
+							'class' => 'btn btn-primary btn-block',
+							'label' => as_lang_html('main/add_sub_department_button'),
+						),
+					),
+					
+					'hidden' => array( 'code' => as_get_form_security_code('business-departments')),
+				);
+					
+				if (count($departments)) {
+					unset($bodycontent['fields']['intro']);
+			
+					$navdepartmenthtml = '';
+					$k = 1;
+					foreach ($departments as $department) {
+						if (!isset($department['parentid'])) {
+							if ($department['content'] == null) $department['content'] = "...";
+							$bodycontent['dash']['items'][] = array(
+								'img' => as_get_media_html($department['icon'], 20, 20), 
+								'label' => as_html($department['title']).' Department', 
+								'numbers' => '1 User', 'description' => $department['content'],
+								'link' => as_path_html($rootpage . '/' . $request.'/department', array('identifier' => $department['departid'])),
+								'infors' => array(
+									'depts' => array('icount' => $department['sections'], 'ilabel' => 'Sub-Departments', 'ibadge' => 'columns'),
+									'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
+								),
+							);
+						}
+						$k++;
+					}
+			
+				} 
+			
+				$as_content['row_view'][] = array(
+					'colms' => array(
+						0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
+						2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($bodycontent) ),
+					),
+				);
+			}
 			break;
 
 		default:
-		
-			$savedoptions = false;
-			$securityexpired = false;
 		
 			$bodycontent = array(
 				'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
@@ -304,11 +688,18 @@ if (is_numeric($request)) {
 				'style' => 'tall',
 		
 				'dash' => array( 'theme' => 'primary'),
+
+				'icon' => array(
+					'fa' => 'arrow-left',
+					'url' => as_path_html($rootpage),
+					'class' => 'btn btn-social btn-primary',
+					'label' => as_lang_html('main/back_button'),
+				),
 		
 				'tools' => array(
 					'add' => array(
 						'type' => 'link',
-						'url' => $request.'/new',
+						'url' => $request.'/newdept',
 						'tags' => 'name="doadddepartment"',
 						'class' => 'btn btn-primary btn-block',
 						'label' => as_lang_html('main/add_department_button'),
@@ -325,12 +716,14 @@ if (is_numeric($request)) {
 				$k = 1;
 				foreach ($departments as $department) {
 					if (!isset($department['parentid'])) {
+						if ($department['content'] == null) $department['content'] = "...";
 						$bodycontent['dash']['items'][] = array(
 							'img' => as_get_media_html($department['icon'], 20, 20), 
 							'label' => as_html($department['title']).' Department', 
-							'numbers' => '1 User', 'description' => $department['content'], 
-							'link' => as_path_html('business/dept', array('edit' => $department['departid'])),
+							'numbers' => '1 User', 'description' => $department['content'],
+							'link' => as_path_html($rootpage . '/' . $request.'/department', array('identifier' => $department['departid'])),
 							'infors' => array(
+								'depts' => array('icount' => $department['sections'], 'ilabel' => 'Sub-Departments', 'ibadge' => 'columns'),
 								'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
 							),
 						);
@@ -340,20 +733,19 @@ if (is_numeric($request)) {
 		
 			} 
 		
+			$as_content['row_view'][] = array(
+				'colms' => array(
+					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($bodycontent) ),
+				),
+			);
 			break;
 	}
-
-	$as_content['row_view'][] = array(
-		'colms' => array(
-			0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
-			2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($bodycontent) ),
-		),
-	);
 }
 else {
 	switch ( $request ) {
 		case 'register':
-			$as_content['title'] = 'Business <small>Registration</small>';
+			$as_content['title'] = 'Business <small>REGISTRATION</small>';
 			
 			$formcontent = array(
 				'title' => as_lang_html('main/get_started'),
@@ -365,21 +757,21 @@ else {
 					'title' => array(
 						'label' => as_lang_html('main/bs_title_label'),
 						'tags' => 'name="title" id="title" dir="auto"',
-						'value' => as_html(@$in['title']),
+						'value' => as_html(@$intitle),
 						'error' => as_html(@$errors['title']),
 					),
 					
 					'username' => array(
 						'label' => as_lang_html('main/bs_username_label'),
 						'tags' => 'name="username" id="username" dir="auto"',
-						'value' => as_html(@$in['username']),
+						'value' => as_html(@$inusername),
 						'error' => as_html(@$errors['username']),
 					),
 	
 					'location' => array(
 						'label' => as_lang_html('main/bs_location_label'),
 						'tags' => 'name="location" id="location" dir="auto"',
-						'value' => as_html(@$in['location']),
+						'value' => as_html(@$inlocation),
 						'error' => as_html(@$errors['location']),
 					),
 					
@@ -388,7 +780,7 @@ else {
 						'tags' => 'name="content" id="content" dir="auto"',
 						'type' => 'textarea',
 						'rows' => 2,
-						'value' => as_html(@$in['content']),
+						'value' => as_html(@$incontent),
 						'error' => as_html(@$errors['content']),
 					),
 			
@@ -438,12 +830,12 @@ else {
 			break;
 			
 		default:		
-			$as_content['title'] = 'Your Businesses <small>Dashboard</small>';
+			$as_content['title'] = 'Your Businesses <small>DASHBOARD</small>';
 			
 			$businesses = as_db_select_with_pending(as_db_business_list($userid));
 			//url, updates,img, icon, label
 			$item1 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
-				'updates' => array('bg-green', 'NEW'), 'title' => 'New Business', 'icon' => 'plus', 'link' => 'business/register');
+				'updates' => array('bg-green', 'NEW'), 'title' => 'New Business', 'icon' => 'plus', 'link' => $rootpage.'/register');
 			
 			$item2 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
 				'updates' => array('bg-blue', 'NEW'), 'title' => 'Action 1', 'icon' => 'edit', 'link' => '#');
@@ -457,7 +849,7 @@ else {
 			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 'title' => 'You have ' . count($businesses) .' Businesses, You may add more', 
 				'tools' => array(
 					'add' => array( 'type' => 'link', 'label' => 'NEW BUSINESS',
-					'url' => $request.'business/register', 'class' => 'btn btn-primary btn-block' )
+					'url' => $rootpage.'/register', 'class' => 'btn btn-primary btn-block' )
 				),
 			);
 				
@@ -469,7 +861,7 @@ else {
 					$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 'label' => $biz['title'], 'numbers' => '1 User', 
 					'description' => $biz['content'], 'link' => 'business/'.$biz['businessid'],
 						'infors' => array(
-							'depts' => array('icount' => 0, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
+							'depts' => array('icount' => $biz['departments'], 'ilabel' => 'Departments', 'ibadge' => 'columns'),
 							'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
 						),
 					);

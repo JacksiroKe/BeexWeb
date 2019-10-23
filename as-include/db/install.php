@@ -149,7 +149,7 @@ function as_db_table_definitions()
 
 		'businesses' => array(//businessid, type, title, contact, location, username, content, icon, images, tags, userid, created
 			'businessid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
-			'type' => "ENUM('PUBLIC', 'PRIVATE') NOT NULL",
+			'bstype' => "ENUM('PUBLIC', 'PRIVATE') NOT NULL",
 			'title' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ')',
 			'contact' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'location' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
@@ -180,6 +180,7 @@ function as_db_table_definitions()
 
 		'businessdepts' => array(//departid, businessid, parentid, title, icon, content, userid, managers, users, extra, created
 			'departid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'depttype' => "ENUM('STK', 'SALE', 'FIN', 'HR', 'CC', 'PROC', 'GEN') NOT NULL",
 			'businessid' => 'INT UNSIGNED',
 			'parentid' => 'INT UNSIGNED',
 			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // department name

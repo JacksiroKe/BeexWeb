@@ -29,6 +29,33 @@ require_once AS_INCLUDE_DIR . 'app/updates.php';
 
 
 /**
+ * Set $field of $rowid to $value in the database users table. If the $fields parameter is an array, the $value
+ * parameter is ignored and each element of the array is treated as a key-value pair of user fields and values.
+ * @param string|null $table
+ * @param mixed $rowid
+ * @param string|array $fields
+ * @param string|null $value
+ */
+function as_db_record_set($table, $column, $departid, $fields, $value = null)
+{
+	if (!is_array($fields)) {
+		$fields = array(
+			$fields => $value,
+		);
+	}
+
+	$sql = 'UPDATE ^'.$table.' SET ';
+	foreach ($fields as $field => $fieldValue) {
+		$sql .= as_db_escape_string($field) . ' = $, ';
+	}
+	$sql = substr($sql, 0, -2) . ' WHERE ' . $column . ' = $';
+
+	$params = array_values($fields);
+	$params[] = $departid;
+
+	as_db_query_sub_params($sql, $params);
+}
+/**
  * Update the selected review in the database for $articleid to $selchildid, and optionally record that $lastuserid did it from $lastip
  * @param $articleid
  * @param $selchildid
@@ -268,6 +295,18 @@ function as_db_post_delete($postid)
 	as_db_query_sub(
 		'DELETE FROM ^posts WHERE postid=#',
 		$postid
+	);
+}
+
+/**
+ * Deletes post $postid from the database (will also delete any likes on the post due to foreign key cascading)
+ * @param $postid
+ */
+function as_db_department_delete($departid)
+{
+	as_db_query_sub(
+		'DELETE FROM ^businessdepts WHERE departid=#',
+		$departid
 	);
 }
 

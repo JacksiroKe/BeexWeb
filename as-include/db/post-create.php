@@ -34,22 +34,22 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
  * @param $ip
  * @return mixed
  */
-function as_db_business_create($type, $title, $contact, $location, $username, $content, $icon, $tags, $userid)
+function as_db_business_create($bstype, $title, $contact, $location, $username, $content, $icon, $tags, $userid)
 {
 	as_db_query_sub(
-			'INSERT INTO ^businesses (type, title, contact, location, username, content, icon, tags, userid, created) ' .
+			'INSERT INTO ^businesses (bstype, title, contact, location, username, content, icon, tags, userid, created) ' .
 			'VALUES ($, $, $, $, $, $, $, $, #, NOW())',
-			$type, $title, $contact, $location, $username, $content, $icon, $tags, $userid
+			$bstype, $title, $contact, $location, $username, $content, $icon, $tags, $userid
 		);
 	return as_db_last_insert_id();
 }
 
-function as_db_department_create($businessid, $parentid, $title, $content, $icon, $userid)
+function as_db_department_create($depttype, $title, $content, $icon, $userid)
 {
 	as_db_query_sub(
-			'INSERT INTO ^businessdepts (businessid, parentid, title, content, icon, userid, created) ' .
-			'VALUES (#, #, $, $, $, #, NOW())',
-			$businessid, $parentid, $title, $content, $icon, $userid
+			'INSERT INTO ^businessdepts (depttype, title, content, icon, userid, created) ' .
+			'VALUES ($, $, $, $, #, NOW())',
+			$depttype, $title, $content, $icon, $userid
 		);
 	return as_db_last_insert_id();
 }
