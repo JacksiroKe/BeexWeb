@@ -149,7 +149,7 @@ function as_db_table_definitions()
 
 		'businesses' => array(//businessid, type, title, contact, location, username, content, icon, images, tags, userid, created
 			'businessid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
-			'bstype' => "ENUM('PUBLIC', 'PRIVATE') NOT NULL",
+			'bstype' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ') NOT NULL DEFAULT \'PUBLIC\'',
 			'title' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ')',
 			'contact' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'location' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
@@ -160,7 +160,7 @@ function as_db_table_definitions()
 			'tags' => 'VARCHAR(' . AS_DB_MAX_TAGS_LENGTH . ')', // string of tags separated by commas
 			'userid' => $useridcoltype, // which user created it
 			'managers' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
-			'extra' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra1' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra2' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra3' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
@@ -178,9 +178,9 @@ function as_db_table_definitions()
 			'PRIMARY KEY (businessid)',
 		),
 
-		'businessdepts' => array(//departid, businessid, parentid, title, icon, content, userid, managers, users, extra, created
+		'businessdepts' => array(//departid, depttype, businessid, parentid, title, icon, content, userid, managers, users, extra, created
 			'departid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
-			'depttype' => "ENUM('STK', 'SALE', 'FIN', 'HR', 'CC', 'PROC', 'GEN') NOT NULL",
+			'depttype' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'GEN\'',
 			'businessid' => 'INT UNSIGNED',
 			'parentid' => 'INT UNSIGNED',
 			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // department name
@@ -189,11 +189,11 @@ function as_db_table_definitions()
 			'userid' => $useridcoltype, // which user created it
 			'managers' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'users' => 'INT UNSIGNED NOT NULL DEFAULT 1',
-			'extra' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
-			'extra' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra1' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra2' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra3' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'extra4' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'created' => 'DATETIME NOT NULL',
 			'updated' => 'DATETIME', // time of last update
 			'PRIMARY KEY (departid)',

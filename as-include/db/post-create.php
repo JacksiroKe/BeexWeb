@@ -23,8 +23,6 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
 	header('Location: ../../');
 	exit;
 }
-
-
 /**
  * Create a new business in the database with type, categoryid, location, contact, title, username, content, icon, tags, userid, created
  * @param $email
@@ -47,10 +45,10 @@ function as_db_business_create($bstype, $title, $contact, $location, $username, 
 function as_db_department_create($depttype, $title, $content, $icon, $userid)
 {
 	as_db_query_sub(
-			'INSERT INTO ^businessdepts (depttype, title, content, icon, userid, created) ' .
-			'VALUES ($, $, $, $, #, NOW())',
-			$depttype, $title, $content, $icon, $userid
-		);
+		'INSERT INTO ^businessdepts (depttype, title, content, icon, userid, created) ' .
+		'VALUES ($, $, $, $, #, NOW())',
+		$depttype, $title, $content, $icon, $userid
+	);
 	return as_db_last_insert_id();
 }
 

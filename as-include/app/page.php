@@ -433,6 +433,7 @@ function as_page_routing()
 		'messages/' => 'pages/messages.php',
 		'message/' => 'pages/message.php',
 		'business/' => 'pages/business.php',
+		'department/' => 'pages/businessdept.php',
 		'products/' => 'pages/products.php',
 		'products/dashboard' => 'pages/products-dashboard.php',
 		'signup' => 'pages/signup.php',
