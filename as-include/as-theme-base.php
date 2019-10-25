@@ -1193,11 +1193,11 @@ class as_html_theme_base
 							
 			foreach ($row['colms'] as $bx => $column) {
 				$this->output('<div class="'.$column['class'].'">');
+				
 				if (isset($column['extras'])) 
 					foreach ($column['extras'] as $xt => $extras) $this->output($extras);
 				
-				if (isset($column['c_items']))
-					$this->column_view($column['c_items']);
+				if (isset($column['c_items'])) $this->column_view($column['c_items']);
 				$this->output('</div>');
 			}
 			if (isset($row['section'])) $this->output('</section>');
@@ -1209,6 +1209,10 @@ class as_html_theme_base
 	{	
 		foreach ($content as $ci => $c_item) {
 			if (isset($c_item['type']))
+				
+				if (isset($c_item['alert_view'])) $this->alert_view($c_item['alert_view']['type'], $c_item['alert_view']['message']);
+				if (isset($c_item['callout_view'])) $this->callout_view($c_item['callout_view']['type'], $c_item['callout_view']['message']);
+				
 				switch ($c_item['type'])
 				{
 					case 'box':
@@ -1534,11 +1538,25 @@ class as_html_theme_base
 				$this->output('</ul>');
 			}
 			
-
             $this->output('</div>');
 		}
 	}
 	
+	public function alert_view($type, $message, $title = null)
+	{
+		$this->output('<div class="alert alert-'.$type.' alert-dismissible">');
+		$this->output('<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>');
+		if (isset($title)) $this->output('<h4><i class="icon fa fa-ban"></i>'.$title.'</h4>');
+		$this->output($message, '</div>');
+	}
+
+	public function callout_view($type, $message, $title = null)
+	{
+		$this->output('<div class="callout callout-'.$type.'">');
+		if (isset($title)) $this->output('<h4>'.$title.'</h4>');
+		$this->output('<p>'.$message.'</p>', '</div>');
+	}
+
 	public function item_data($data)
 	{
 		if (isset($data['text'])) $this->output($data['text']);

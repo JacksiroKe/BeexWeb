@@ -25,6 +25,11 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
 
 require_once AS_INCLUDE_DIR . 'APS/as-beex-business.php';
 require_once AS_INCLUDE_DIR . 'APS/as-beex-department.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-cc.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-fin.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-hr.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-sale.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-stock.php';
 
 $request = "";
 $rootpage = "business";
@@ -37,15 +42,12 @@ if (isset($requestparts[1])) $request = strtolower($requestparts[1]);
 
 $userid = as_get_logged_in_userid();
 $departmentid = as_get('identifier');
+
+$hasalert = as_get('alert');
+$hascallout = as_get('callout');
+$texttoshow = as_get('message');
+
 $department = BxDepartment::get_single($userid, $departmentid);
-$depttypes = array(
-	'GEN' => as_lang('main/general') . ' ' . as_lang('main/department'),
-	'STK' => as_lang('main/stock') . ' ' . as_lang('main/department'),
-	'SALE' => as_lang('main/sale') . ' ' . as_lang('main/department'),
-	'FIN' => as_lang('main/finance') . ' ' . as_lang('main/department'),
-	'HR' => as_lang('main/human_resource') . ' ' . as_lang('main/department'),
-	'CC' => as_lang('main/customer_care') . ' ' . as_lang('main/department'),
-);
 
 $defaulticon ='appicon.png';
 $savedoptions = false;
@@ -81,7 +83,7 @@ if (as_clicked('doregister')) {
 				// register and redirect
 				as_limits_increment(null, AS_LIMIT_BUSINESSES);				
 				$businessid = $business->create_new();				
-				as_redirect($rootpage . '/' . $businessid );
+				as_redirect($rootpage . '/' . $businessid, array('alert' => 'success', 'message' => $business->title .' Business has been added successfully') );
 			}
 		}
 
@@ -95,7 +97,7 @@ if (is_numeric($request)) {
 	if (as_clicked('dodeletedept')) {
 		require_once AS_INCLUDE_DIR . 'app/post-update.php';
 		if (as_post_text('edit') !== null) as_db_department_delete(as_post_text('edit'));
-		as_redirect($rootpage . '/' . $request );
+		as_redirect($rootpage . '/' . $request, array('added' => true, 'message' => '') );
 	}
 	
 	else if (as_clicked('docancel')) {
@@ -129,30 +131,11 @@ if (is_numeric($request)) {
 		// Perform appropriate database action
 		if (empty($errors)) {
 			$department->icon = as_upload_file($_FILES["file"], 'department.jpg', 'icon');
-			if (isset($department->departid))
-			{ 
-				// changing existing department
-				as_db_record_set('businessdepts', 'departid', $department->departid, 'businessid', $request);
-				as_db_record_set('businessdepts', 'departid', $department->departid, 'title', $intitle);
-				as_db_record_set('businessdepts', 'departid', $department->departid, 'content', $incontent);
-				as_redirect( 'department/' . $department->departid);
-			} else { 
-				// creating a new one
-				$departid = $department->create_new();
-				as_redirect($rootpage . '/' . $request, array('added' => true));
-			}
+			$departid = $department->create_new();
+			as_redirect($rootpage . '/' . $request, array('alert' => 'success', 'message' => $department->title .' Department has been added successfully') );
 		}
 		else as_redirect($rootpage . '/' . $request );
 	}
-
-	//$setmissing = as_post_text('missing') || as_get('missing');
-	//$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editdepartment->departid);
-
-	$hassubdepartment = false;
-	/*foreach ($departments as $department) {
-		if (!strcmp($department->parentid'], $editdepartid))
-			$hassubdepartment = true;
-	}*/
 
 	$as_content['title'] = $business->title.' <small>BUSINESS</small>';
 	$sincetime = as_time_to_string(as_opt('db_time') - $business->created);
@@ -308,7 +291,7 @@ if (is_numeric($request)) {
 						'label' => as_lang_html('main/select_dept_type'),
 						'tags' => 'name="depttype" id="depttype"',
 						'type' => 'select',
-						'options' => $depttypes,
+						'options' => BxDepartment::department_types(),
 						//'value' => as_html(isset($indepttype) ? $indepttype : @$department->depttype']),
 						'error' => as_html(@$errors['depttype']),
 					),
@@ -366,6 +349,9 @@ if (is_numeric($request)) {
 					'label' => as_lang_html('main/delete_button'),
 				);
 			}
+			if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+			if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+			
 			$as_content['row_view'][] = array(
 				'colms' => array(
 					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
@@ -377,7 +363,7 @@ if (is_numeric($request)) {
 		default:		
 			$bodycontent = array(
 				'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
-				'title' => 'This Business has ' . count($departments) .' Departments, You may add more',
+				'title' => count($departments) .' DEPARTMENT' . (count($departments) == 1 ? '' : 'S'),
 				'type' => 'form',
 				'style' => 'tall',
 				'ok' => $savedoptions ? as_lang_html('main/options_saved') : null,
@@ -428,8 +414,11 @@ if (is_numeric($request)) {
 					$k++;
 				}
 		
-			} 
-		
+			}
+
+			if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+			if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+			
 			$as_content['row_view'][] = array(
 				'colms' => array(
 					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
@@ -520,6 +509,9 @@ else {
 					'code' => as_get_form_security_code('business-new'),
 				),
 			);
+			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+			if (isset($hascallout)) $formcontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+			
 			$as_content['row_view'][] = array(
 				'colms' => array(
 					0 => array('class' => 'col-md-9', 'c_items' => array($formcontent) ),
@@ -544,7 +536,8 @@ else {
 			$item4 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
 				'updates' => array('bg-yellow', 'NEW'), 'title' => 'Action 3', 'icon' => 'cog', 'link' => '#');
 			
-			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 'title' => 'You have ' . count($businesses) .' Businesses, You may add more', 
+			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 
+				'title' => count($businesses) .' BUSINESS' . (count($businesses) == 1 ? '' : 'ES'), 
 				'tools' => array(
 					'add' => array( 'type' => 'link', 'label' => 'NEW BUSINESS',
 					'url' => as_path_html($rootpage.'/register'), 'class' => 'btn btn-primary btn-block' )
@@ -553,8 +546,6 @@ else {
 				
 			if (count($businesses)){				
 				foreach ($businesses as $business){
-					//$bizdeparts = as_db_select_with_pending(as_db_department_nav_selectspec($business['businessid'], 1, true, false, true));
-
 					$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 'label' => $business->title, 'numbers' => '1 User', 
 					'description' => $business->content, 'link' => 'business/'.$business->businessid,
 						'infors' => array(
@@ -564,7 +555,9 @@ else {
 					);
 				}
 			}
-	
+			if (isset($hasalert)) $dashlist['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+			if (isset($hascallout)) $dashlist['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+			
 			$as_content['row_view'][] = array(
 				'colms' => array(
 					1 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($item1, $item2, $item3, $item4) ),

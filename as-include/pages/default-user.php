@@ -109,9 +109,9 @@ $latestoffers = array( 'type' => 'list', 'theme' => 'primary', 'title' => 'Lates
 
 $as_content['row_view'][] = array(
 	'colms' => array(
-		1 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($smallbox1) ),
-		2 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($latestnews) ),
-		3 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($latestoffers) ),
+		//1 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($smallbox1) ),
+		//2 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($latestnews) ),
+		//3 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($latestoffers) ),
 	),
 );
 
