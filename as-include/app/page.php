@@ -747,6 +747,10 @@ function as_content_prepare($voting = false, $categoryids = array())
 		}
 	}
 
+	$notifications = as_db_notifications(as_get_logged_in_userid());
+	if (count($notifications)) 
+		$as_content['notifications'] = $notifications;
+	
 	if (AS_FINAL_EXTERNAL_USERS || !as_is_logged_in()) {
 		if (as_opt('show_notice_visitor') && (!isset($topath)) && (!isset($_COOKIE['as_noticed'])))
 			$as_content['notices'][] = as_notice_form('visitor', as_opt('notice_visitor'));

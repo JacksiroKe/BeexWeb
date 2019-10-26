@@ -123,6 +123,20 @@ class BxBusiness
   }
 
   /**
+   * Edit a existing business
+   */
+  public function edit_biz($thisbz)
+  {
+    require_once AS_INCLUDE_DIR . 'db/users.php';
+    require_once AS_INCLUDE_DIR . 'db/post-create.php';
+    require_once AS_INCLUDE_DIR . 'app/options.php';
+    require_once AS_INCLUDE_DIR . 'app/emails.php';
+
+    as_db_record_set('businesses', 'businessid', $thisbz->businessid, 'title', $thisbz->title);
+    as_db_record_set('businesses', 'businessid', $thisbz->businessid, 'content', $thisbz->content);
+  }
+
+  /**
    * Fetches the a single of record in the business class
    */
   public static function get_single( $userid, $businessid ) 

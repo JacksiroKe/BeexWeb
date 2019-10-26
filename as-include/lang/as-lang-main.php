@@ -137,6 +137,7 @@ return array(
 	'bs_email_label' => 'Email Address:',
 	'bs_website_label' => 'Website (Optional):',
 	'business_register_button' => 'Register Your Business',
+	'business_update_button' => 'Update Your Business',
 	'max_length_x' => 'Maximum length is ^ characters',
 	'max_upload_size_x' => 'Maximum upload size is ^',
 	'me' => 'me',

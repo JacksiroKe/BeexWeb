@@ -516,6 +516,112 @@ class as_html_theme_base
 		$this->output('</div> <!-- END as-header -->', '');
 	}
 
+	public function messages()
+	{
+		if (!(isset($this->content['messages']) ? $this->content['messages'] : null)) return;
+		$this->output('<li class="dropdown messages-menu">
+		<!-- Menu toggle button -->
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+		<i class="fa fa-envelope-o"></i>
+		<span class="label label-success">4</span>
+		</a>
+		<ul class="dropdown-menu">
+		<li class="header">You have 4 messages</li>
+		<li>
+		<!-- inner menu: contains the messages -->
+		<ul class="menu">
+		<li><!-- start message -->
+		<a href="#">
+		<div class="pull-left">
+		<!-- User Image -->
+		<img src="'.$this->userimage.'" class="img-circle" alt="User Image">
+		</div>
+		<!-- Message title and timestamp -->
+		<h4>
+		Support Team
+		<small><i class="fa fa-clock-o"></i> 5 mins</small>
+		</h4>
+		<!-- The message -->
+		<p>Why not buy a new awesome theme?</p>
+		</a>
+		</li>
+		<!-- end message -->
+		</ul>
+		<!-- /.menu -->
+		</li>
+		<li class="footer"><a href="#">See All Messages</a></li>
+		</ul>
+		</li>');
+	}
+
+	public function notifications()
+	{
+		if (!(isset($this->content['notifications']) ? $this->content['notifications'] : null)) return;
+		$this->output('<li class="dropdown notifications-menu">
+		<!-- Menu toggle button -->
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+		<i class="fa fa-bell-o"></i>
+		<span class="label label-warning">10</span>
+		</a>
+		<ul class="dropdown-menu">
+		<li class="header">You have 10 notifications</li>
+		<li>
+		<!-- Inner Menu: contains the notifications -->
+		<ul class="menu">
+		<li><!-- start notification -->
+		<a href="#">
+		<i class="fa fa-users text-aqua"></i> 5 new users joined today
+		</a>
+		</li>
+		<!-- end notification -->
+		</ul>
+		</li>
+		<li class="footer"><a href="#">View all</a></li>
+		</ul>
+		</li>');
+	}
+
+	public function tasks()
+	{
+		if (!(isset($this->content['tasks']) ? $this->content['tasks'] : null)) return;
+		$this->output('<li class="dropdown tasks-menu">
+		<!-- Menu Toggle Button -->
+		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
+		<i class="fa fa-flag-o"></i>
+		<span class="label label-danger">9</span>
+		</a>
+		<ul class="dropdown-menu">
+		<li class="header">You have 9 tasks</li>
+		<li>
+		<!-- Inner menu: contains the tasks -->
+		<ul class="menu">
+		<li><!-- Task item -->
+		<a href="#">
+		<!-- Task title and progress text -->
+		<h3>
+		Design some buttons
+		<small class="pull-right">20%</small>
+		</h3>
+		<!-- The progress bar -->
+		<div class="progress xs">
+		<!-- Change the css width attribute to simulate progress -->
+		<div class="progress-bar progress-bar-aqua" style="width: 20%" role="progressbar"
+		aria-valuenow="20" aria-valuemin="0" aria-valuemax="100">
+		<span class="sr-only">20% Complete</span>
+		</div>
+		</div>
+		</a>
+		</li>
+		<!-- end task item -->
+		</ul>
+		</li>
+		<li class="footer">
+		<a href="#">View all tasks</a>
+		</li>
+		</ul>
+		</li>');
+	}
+
 	public function dashboard()
 	{
 		if (!(isset($this->content['user']) ? $this->content['user'] : null)) return;
@@ -1235,7 +1341,7 @@ class as_html_theme_base
 						$this->btnapp_view($c_item);
 						break;
 					
-					case 'nav-tabs-custom':
+					case 'tabs':
 						$this->tabs_view($c_item);
 						break;
 						
@@ -1256,48 +1362,44 @@ class as_html_theme_base
 
 	public function tabs_view($tabs)
 	{
-		if (!empty($tabs)) {
+		if (isset($tabs)) {
 			$this->output('<div class="nav-tabs-custom">');
 			$this->output('<ul class="nav nav-tabs'.(isset($tabs['right']) ? ' pull-right' : '').'">');
 			$i = 0;
 			foreach ($tabs['navs'] as $nv => $nav) {
-				if ($nv == 'header')
-					$this->output('<li class="pull-left header"><i class="fa fa-inbox"></i> '.$nav.'</li>');
-						//$tabs['body']['header']['icon'].'"></i> '.$nav.'</li>');					
-				else
-					$this->output('<li'.($i==0 ? ' class="active"' : '').'><a href="#'.$nv.'" data-toggle="tab">'.$nav.'</a></li>');					
+				$this->output('<li'.($i==0 ? ' class="active"' : '').'><a href="#'.$nv.'" data-toggle="tab">'.$nav.'</a></li>');					
 				$i++;
 			}
             $this->output('</ul>');
 			
             $this->output(' <div class="tab-content">');
 			$t = 0;
-			foreach ($tabs['body'] as $tb => $tabpane) {
-				$this->output('<div class="'.($t==0 ? 'active ' : '').'tab-pane" id="'.$tb.'">');
-				foreach ($tabpane as $tp) {
-					$this->tab_pane($tp);
+			if (isset($tabs['pane']))
+				foreach ($tabs['pane'] as $tb => $tabpane) {
+					$this->output('<div class="'.($t==0 ? 'active ' : '').'tab-pane" id="'.$tb.'">');
+					$this->tab_pane($tabpane);
+					$this->output('</div>');
+					$t++;				
 				}
-				$this->output('</div>');
-				$t++;				
-			}
 			$this->output('</div>', '</div>');		
 		}		
 	}
 	
-	public function tab_pane($tab_pane)
+	public function tab_pane($pane)
 	{
-		foreach ($tab_pane as $view) {
-			switch ($view['type']) {
-				case 'posts':
-					$this->post_view($view);	
-					break;
-				case 'tlines':
-					$this->tline_view($view);	
-					break;
-				case 'form':
-					$this->form($view);	
-					break;
-			}
+		switch ($pane['type']) {
+			case 'box':
+				$this->box_view($pane);	
+				break;
+			case 'posts':
+				$this->post_view($pane);	
+				break;
+			case 'tlines':
+				$this->tline_view($pane);	
+				break;
+			case 'form':
+				$this->form($pane);	
+				break;
 		}
 	}
 	
@@ -1324,7 +1426,6 @@ class as_html_theme_base
 	
 	public function tline_view($tline)
 	{
-		//print_r($timeline);
 		$this->output('<ul class="timeline timeline-inverse">');
 		$this->output('<li');					
 			if (isset($tline['class'])) {							
@@ -1393,8 +1494,8 @@ class as_html_theme_base
 	
 	public function box_view($box)
 	{
-		if (!empty($box)) {
-			$this->output('<div class="box box-'.$box['theme'].'">');
+		if (isset($box)) {
+			if (isset($box['theme'])) $this->output('<div class="box box-'.$box['theme'].'">');
 			
 			if (isset($box['title'])) $this->box_title($box);
 				
@@ -1405,7 +1506,7 @@ class as_html_theme_base
 					else {
 						switch ($item['tag'][0]) {
 							case 'avatar':
-								$this->output($item['img']);
+								$this->output($item['img'], '<hr>');
 								break;
 								
 							case 'link':
@@ -1439,7 +1540,7 @@ class as_html_theme_base
 				$this->output('</div>');
 			}
 			
-            $this->output('</div>');
+            if (isset($box['theme'])) $this->output('</div>');
 		}
 	}
 	

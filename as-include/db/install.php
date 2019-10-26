@@ -277,6 +277,20 @@ function as_db_table_definitions()
 			'KEY tohidden (tohidden)',
 		),
 
+		'notifications' => array(// notifyid, status, userid, title, content, action, link, format, created, read
+			'notifyid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'status' => "ENUM('READ', 'UNREAD') NOT NULL DEFAULT 'UNREAD'",
+			'userid' => $useridcoltype,
+			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL',
+			'content' => 'VARCHAR(' . AS_DB_MAX_CONTENT_LENGTH . ') NOT NULL',
+			'action' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'read\'',
+			'link' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'#\'',
+			'format' => 'VARCHAR(' . AS_DB_MAX_FORMAT_LENGTH . ') CHARACTER SET ascii NOT NULL',
+			'created' => 'DATETIME NOT NULL',
+			'readon' => 'DATETIME NOT NULL',
+			'PRIMARY KEY (notifyid)',
+		),
+
 		'userfavorites' => array(
 			'userid' => $useridcoltype . ' NOT NULL', // the user who favorited the entity
 			'entitytype' => 'CHAR(1) CHARACTER SET ascii NOT NULL', // see /as-include/app/updates.php

@@ -1078,6 +1078,25 @@ function as_db_list_orders_selectspec()
 	return $selectspec;
 }
 
+function as_db_notifications( $userid, $unread = true, $limit = null )
+{
+	$selectspec['columns'] = array('notifyid', 'status', 'userid', 'title', 'content', 'action', 'link', 'format',
+		'created' => 'UNIX_TIMESTAMP(^notifications.created)', 'readon' => 'UNIX_TIMESTAMP(^notifications.readon)');
+	
+	if ($unread) {
+		$selectspec['source'] = '^notifications WHERE status="UNREAD" AND userid=#';
+		$selectspec['arguments'] = array($userid);
+	} else {
+		$selectspec['source'] = '^notifications WHERE userid=#';
+		$selectspec['arguments'] = array($userid);
+	}
+
+	if ($limit) $selectspec['source'] .= ' LIMIT=' . $limit;
+	$selectspec['sortasc'] = 'notifyid';
+	
+	return as_db_select_with_pending($selectspec);
+}
+
 function as_db_orders_basic_selectspec($likeuserid = null, $full = false, $user = true)
 {
 	if (as_to_override(__FUNCTION__)) { $args=func_get_args(); return as_call_override(__FUNCTION__, $args); }

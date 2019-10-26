@@ -55,24 +55,24 @@ $securityexpired = false;
 		
 $in = array();
 
-if (as_clicked('doregister')) {
+if (as_clicked('dosavebusiness')) {
 	require_once AS_INCLUDE_DIR . 'app/limits.php';
 
 	if (as_user_limits_remaining(AS_LIMIT_BUSINESSES)) {
 		require_once AS_INCLUDE_DIR . 'app/post-create.php';
 		
-		$business = new BxBusiness();
-		$business->type = as_post_text('type');
-		$business->location = as_post_text('location');
-		$business->contact = as_post_text('phone')." xx ".as_post_text('email')." xx ".as_post_text('website');
-		$business->title = as_post_text('title');
-		$business->username = as_post_text('username');
-		$business->content = as_post_text('content');
-		$business->icon = as_post_text('icon');
-		$business->tags = as_post_text('tags');
-		$business->userid = $userid;
+		$newbiz = new BxBusiness();
+		$newbiz->type = as_post_text('type');
+		$newbiz->location = as_post_text('location');
+		$newbiz->contact = as_post_text('phone')." xx ".as_post_text('email')." xx ".as_post_text('website');
+		$newbiz->title = as_post_text('title');
+		$newbiz->username = as_post_text('username');
+		$newbiz->content = as_post_text('content');
+		$newbiz->icon = as_post_text('icon');
+		$newbiz->tags = as_post_text('tags');
+		$newbiz->userid = $userid;
 
-		if (!as_check_form_security_code('business-new', as_post_text('code'))) {
+		if (!as_check_form_security_code('business-save', as_post_text('code'))) {
 			$pageerror = as_lang_html('misc/form_security_again');
 		} else {
 			// T&Cs validation
@@ -80,10 +80,17 @@ if (as_clicked('doregister')) {
 				$errors['terms'] = as_lang_html('users/terms_not_accepted');
 
 			if (empty($errors)) {
-				// register and redirect
-				as_limits_increment(null, AS_LIMIT_BUSINESSES);				
-				$businessid = $business->create_new();				
-				as_redirect($rootpage . '/' . $businessid, array('alert' => 'success', 'message' => $business->title .' Business has been added successfully') );
+				// register and redirect				
+				if (isset($business->businessid))
+				{ 
+					// changing existing business
+					as_redirect( $rootpage . '/' . $business->businessid);
+				} else { 
+					// creating a new one
+					as_limits_increment(null, AS_LIMIT_BUSINESSES);				
+					$businessid = $newbiz->create_new();				
+					as_redirect($rootpage . '/' . $businessid, array('alert' => 'success', 'message' => $newbiz->title .' Business has been added successfully') );					
+				}
 			}
 		}
 
@@ -147,45 +154,35 @@ if (is_numeric($request)) {
 			'items' => array(
 				0 => array( 
 					'tag' => array('avatar'),
-					'img' => '<center>'.as_get_media_html($defaulticon, 300, 300).'</center>',
+					'img' => '<center>'.as_get_media_html($defaulticon, 200, 200).'</center>',
 				),
-				
-				1 => array( 
-					'tag' => array('h3', 'profile-username text-center'),
-					'data' => array( 'text' => $business->title ),
-				),
-				
-				2 => array( 
-					'tag' => array('list', 'list-group list-group-unbordered'),
-					'data' => array(
-						'Mobile:' => $contacts[0],
-						'Email:' => $contacts[1],
-						'Website:' => $contacts[2],
-						as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
-					),
-				),
-				3 => '',			
 			),
 		),
 	);
+	;
 	
 	if ($business->userid == $userid)
 	{
-		$profile1['body']['items'][] = array( 
+		$profile1['body']['items']['link1'] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
-			'href' => $request.'/edit',
-			'label' => '<b>Edit This Business</b>',
+			'href' => as_path_html($rootpage . '/' . $request . '/edit'),
+			'label' => '<b>Edit Your Business</b>',
+		);
+		$profile1['body']['items']['link2'] = array( 
+			'tag' => array('link', 'btn btn-primary btn-block'),
+			'href' => as_path_html($rootpage . '/' . $request.'/manage'),
+			'label' => '<b>Add or Remove Manager(s)</b>',
 		);
 	}
 	else {
 		$profile1['body']['items'][] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
-			'href' => '#',
-			'label' => '<b>Follow</b>',
+			'href' => as_path_html('#'),
+			'label' => '<b>Contact them</b>',
 		);
 	}
 
-	$profile2 = array( 'type' => 'box', 'theme' => 'information', 'title' => 'About Us', 
+	$navtabs['aboutus'] = array( 'type' => 'box', 
 		'body' => array(
 			'type' => 'box-body',
 			'items' => array(
@@ -212,7 +209,127 @@ if (is_numeric($request)) {
 		),
 	);
 	
+	$navtabs['contactus'] = array( 'type' => 'box',
+		'body' => array(
+			'type' => 'box-body',
+			'items' => array(			
+				1 => array( 
+					'tag' => array('h3', 'profile-username text-center'),
+					'data' => array( 'text' => $business->title ),
+				),
+				
+				2 => array( 
+					'tag' => array('list', 'list-group list-group-unbordered'),
+					'data' => array(
+						'Mobile:' => $contacts[0],
+						'Email:' => $contacts[1],
+						'Website:' => $contacts[2],
+						as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
+					),
+				),			
+			),			
+		),
+	);
+	
+	$profile2 = array( 'type' => 'tabs', 'navs' => array( 'aboutus' => 'About Us', 'contactus' => 'Contact Us'), 'pane' => $navtabs );
+	
 	switch ($request2) {
+		case 'edit':
+			$as_content['title'] = 'Edit: ' .$business->title.' <small>BUSINESS</small>';
+			$profile1['body']['items']['link1'] = array( 
+				'tag' => array('link', 'btn btn-primary btn-block'),
+				'href' => as_path_html($rootpage . '/' . $request ),
+				'label' => '<b>View Your Business</b>',
+			);
+
+			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+			if (isset($hascallout)) $formcontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+			
+			$formcontent = array(
+				'title' => 'Update Your Business Information',
+				'type' => 'form',
+				'style' => 'tall',
+				'tags' => 'method="post" action="' . as_self_html() . '"',
+			
+				'fields' => array(
+					'title' => array(
+						'label' => as_lang_html('main/bs_title_label'),
+						'tags' => 'name="title" id="title" autocomplete="off"',
+						'value' => as_html(@$business->title),
+						'error' => as_html(@$errors['title']),
+					),
+					
+					'username' => array(
+						'label' => as_lang_html('main/bs_username_label'),
+						'tags' => 'name="username" id="username" autocomplete="off"',
+						'value' => as_html(@$business->username),
+						'error' => as_html(@$errors['username']),
+					),
+	
+					'location' => array(
+						'label' => as_lang_html('main/bs_location_label'),
+						'tags' => 'name="location" id="location" autocomplete="off"',
+						'value' => as_html(@$business->location),
+						'error' => as_html(@$errors['location']),
+					),
+					
+					'content' => array(
+						'label' => as_lang_html('main/bs_description_label'),
+						'tags' => 'name="content" id="content" autocomplete="off"',
+						'type' => 'textarea',
+						'rows' => 2,
+						'value' => as_html(@$business->content),
+						'error' => as_html(@$errors['content']),
+					),
+			
+					'phone' => array(
+						'label' => as_lang_html('main/bs_phone_label'),
+						'tags' => 'name="phone" id="phone" autocomplete="off"',
+						'value' => as_html(@$contacts[0]),
+						'error' => as_html(@$errors['phone']),
+					),
+			
+					'email' => array(
+						'label' => as_lang_html('main/bs_email_label'),
+						'tags' => 'name="email" id="email" autocomplete="off"',
+						'value' => as_html(@$contacts[1]),
+						'error' => as_html(@$errors['email']),
+					),
+			
+					'website' => array(
+						'label' => as_lang_html('main/bs_website_label'),
+						'tags' => 'name="website" id="website" autocomplete="off"',
+						'value' => as_html(@$contacts[2]),
+						'error' => as_html(@$errors['website']),
+					),
+				),
+			
+				'buttons' => array(
+					'save' => array(
+						'tags' => 'onclick="as_show_waiting_after(this, false);"',
+						'label' => as_lang_html('main/business_update_button'),
+					),
+				),
+			
+				'hidden' => array(
+					'type' => 'PUBLIC',
+					'department' => '0',
+					'icon' => 'business.jpg',
+					'tags' => '',
+					'dosavebusiness' => '1',
+					'code' => as_get_form_security_code('business-save'),
+				),
+			);
+
+			$as_content['row_view'][] = array(
+				'colms' => array(
+					0 => array('class' => 'col-md-3', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-9 col-xs-6', 'c_items' => array($formcontent) ),
+				),
+			);
+
+			break;
+
 		case 'newdept':
 			$in['department'] = new BxDepartment();
 			$as_content['title'] = 'Department <small>REGISTRATION</small>';
@@ -354,8 +471,8 @@ if (is_numeric($request)) {
 			
 			$as_content['row_view'][] = array(
 				'colms' => array(
-					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
-					2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($bodycontent) ),
+					0 => array('class' => 'col-md-3', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-9 col-xs-6', 'c_items' => array($bodycontent) ),
 				),
 			);
 			break;
@@ -421,8 +538,8 @@ if (is_numeric($request)) {
 			
 			$as_content['row_view'][] = array(
 				'colms' => array(
-					0 => array('class' => 'col-md-4', 'c_items' => array($profile1, $profile2) ),
-					2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($bodycontent) ),
+					0 => array('class' => 'col-md-3', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-9 col-xs-6', 'c_items' => array($bodycontent) ),
 				),
 			);
 			break;
@@ -494,7 +611,7 @@ else {
 				),
 			
 				'buttons' => array(
-					'register' => array(
+					'save' => array(
 						'tags' => 'onclick="as_show_waiting_after(this, false);"',
 						'label' => as_lang_html('main/business_register_button'),
 					),
@@ -505,8 +622,8 @@ else {
 					'department' => '0',
 					'icon' => 'business.jpg',
 					'tags' => '',
-					'doregister' => '1',
-					'code' => as_get_form_security_code('business-new'),
+					'dosavebusiness' => '1',
+					'code' => as_get_form_security_code('business-save'),
 				),
 			);
 			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
@@ -560,8 +677,8 @@ else {
 			
 			$as_content['row_view'][] = array(
 				'colms' => array(
-					1 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($item1, $item2, $item3, $item4) ),
-					2 => array('class' => 'col-lg-8 col-xs-6', 'c_items' => array($dashlist) ),
+					1 => array('class' => 'col-lg-3 col-xs-6', 'c_items' => array($item1, $item2, $item3, $item4) ),
+					2 => array('class' => 'col-lg-9 col-xs-6', 'c_items' => array($dashlist) ),
 				),
 			);
 	
