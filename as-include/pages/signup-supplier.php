@@ -76,7 +76,7 @@ if (as_clicked('dosignup')) {
 				// signup and redirect
 				as_limits_increment(null, AS_LIMIT_SIGNUPS);
 
-				$supplierid = as_create_new_supplier($userid, $intitle, $incontent, $infield1, $infield2, $usertype);		
+				$supplierid = as_create_department_supplier($userid, $intitle, $incontent, $infield1, $infield2, $usertype);		
 
 				if (isset($topath))
 					as_redirect_raw(as_path_to_root() . $topath); // path already provided as URL fragment

@@ -357,7 +357,7 @@ if (AS_FINAL_EXTERNAL_USERS) {
 					}
 				}
 
-				$userid = as_create_new_user((string)@$fields['email'], null /* no password */, $handle,
+				$userid = as_create_department_user((string)@$fields['email'], null /* no password */, $handle,
 					isset($fields['level']) ? $fields['level'] : AS_USER_LEVEL_BASIC, @$fields['confirmed']);
 
 				as_db_user_signin_add($userid, $source, $identifier);

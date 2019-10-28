@@ -1624,7 +1624,7 @@ class as_html_theme_base
 					$this->output('<div class="product-info">');
 					$this->output('<a href="'.$item['link'].'" class="product-title" style="font-size: 20px;">'.$item['label'].'</a>');
 					//$this->output('<span class="label label-warning pull-right">'.$item['numbers'].'</span>');
-					$this->output('<span class="product-description">'.$item['description'].'</span>');
+					if (isset($item['description'])) $this->output('<span class="product-description">'.$item['description'].'</span>');
 					$this->output('</div><br>');
 
 					if (isset($item['infors'])) {

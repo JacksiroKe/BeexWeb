@@ -107,8 +107,8 @@ function as_db_table_definitions()
 			'createip' => 'VARBINARY(16) NOT NULL', // INET6_ATON of IP address when created
 			'email' => 'VARCHAR(' . AS_DB_MAX_EMAIL_LENGTH . ') NOT NULL',
 			'handle' => 'VARCHAR(' . AS_DB_MAX_HANDLE_LENGTH . ') NOT NULL', // username
-			'business' => 'MEDIUMINT NOT NULL DEFAULT 0', // business attached
 			//'businesses' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL', // businesses attached
+			//'departments' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL', // businesses attached
 			'avatarblobid' => 'BIGINT UNSIGNED', // blobid of stored avatar
 			'avatarwidth' => 'SMALLINT UNSIGNED', // pixel width of stored avatar
 			'avatarheight' => 'SMALLINT UNSIGNED', // pixel height of stored avatar

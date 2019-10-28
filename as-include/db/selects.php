@@ -1640,6 +1640,28 @@ function as_db_userfields_selectspec()
 	);
 }
 
+/**
+ * Return the selecspec to retrieve a single array with details of the account of the user identified by
+ * $useridhandle, which should be a userid if $isuserid is true, otherwise $useridhandle should be a handle.
+ * @param $useridhandle
+ * @param $isuserid
+ * @return array
+ */
+function as_db_user_profile($userid)
+{
+	return array(
+		'columns' => array(
+			'userid', 'usertype' => 'type', 'profiles', 'firstname', 'lastname', 'gender', 'country', 'mobile', 'email', 'level', 'handle',
+			'created' => 'UNIX_TIMESTAMP(created)', 'flags', 'signedin' => 'UNIX_TIMESTAMP(signedin)',
+			'signinip', 'written' => 'UNIX_TIMESTAMP(written)', 'avatarblobid' => 'BINARY avatarblobid', 'avatarwidth', 'avatarheight'
+		),
+
+		'source' => '^users WHERE userid=$',
+		'arguments' => array($userid),
+		'single' => true,
+	);
+}
+
 
 /**
  * Return the selecspec to retrieve a single array with details of the account of the user identified by

@@ -79,7 +79,7 @@
 				// register and redirect
 				as_limits_increment(null, AS_LIMIT_SIGNUPS);
 
-				$userid = as_create_new_user($infirstname, $inlastname, $ingender, $incountry, $inmobile, $inemail, $inpassword, $inhandle);
+				$userid = as_create_department_user($infirstname, $inlastname, $ingender, $incountry, $inmobile, $inemail, $inpassword, $inhandle);
 				as_set_signed_in_user($userid, $inhandle);
 			
 				$userinfo = as_db_select_with_pending(as_db_user_account_selectspec($userid, true));

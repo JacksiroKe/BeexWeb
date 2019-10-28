@@ -66,7 +66,7 @@ class BxDepartment
      * @param bool $confirmed
      * @return mixed
      */
-    public function create_new()
+    public function create_department()
     {
         require_once AS_INCLUDE_DIR . 'db/post-update.php';
         require_once AS_INCLUDE_DIR . 'db/users.php';
@@ -81,7 +81,7 @@ class BxDepartment
                     $stockdept->parentid = $this->parentid;
                     $stockdept->icon = $this->icon;
                     $stockdept->userid = $this->userid;
-                    $departid = $stockdept->create_new();
+                    $departid = $stockdept->create_department();
                     break;
 
                 case 'SALE':
@@ -90,7 +90,7 @@ class BxDepartment
                     $salesdept->parentid = $this->parentid;
                     $salesdept->icon = $this->icon;
                     $salesdept->userid = $this->userid;
-                    $departid = $salesdept->create_new();
+                    $departid = $salesdept->create_department();
                     break;
 
                 case 'FIN':
@@ -99,7 +99,7 @@ class BxDepartment
                     $findept->parentid = $this->parentid;
                     $findept->icon = $this->icon;
                     $findept->userid = $this->userid;
-                    $departid = $findept->create_new();
+                    $departid = $findept->create_department();
                     break;
 
                 case 'HR':
@@ -108,7 +108,7 @@ class BxDepartment
                     $hrdept->parentid = $this->parentid;
                     $hrdept->icon = $this->icon;
                     $hrdept->userid = $this->userid;
-                    $departid = $hrdept->create_new();
+                    $departid = $hrdept->create_department();
                     break;
 
                 case 'CC':
@@ -117,7 +117,7 @@ class BxDepartment
                     $ccdept->parentid = $this->parentid;
                     $ccdept->icon = $this->icon;
                     $ccdept->userid = $this->userid;
-                    $departid = $ccdept->create_new();
+                    $departid = $ccdept->create_department();
                     break;
                 
                 default:

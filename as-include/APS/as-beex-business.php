@@ -73,7 +73,7 @@ class BxBusiness
    * Handles user points, notification and optional email confirmation.
    * @return mixed
    */
-  public function create_new()
+  public function create_business()
   {
     require_once AS_INCLUDE_DIR . 'db/users.php';
     require_once AS_INCLUDE_DIR . 'db/post-create.php';
@@ -93,31 +93,31 @@ class BxBusiness
 		$ccdept->depttype = 'CC';
     $ccdept->userid = $this->userid;
     $ccdept->businessid = $businessid;
-    $ccdept->create_new();
+    $ccdept->create_department();
 
     $findept = new BxFinanceDept();
 		$stockdept->depttype = 'FIN';
     $stockdept->userid = $this->userid;
     $stockdept->businessid = $businessid;
-    $findept->create_new();
+    $findept->create_department();
 
     $hrdept = new BxHumanResource();
 		$hrdept->depttype = 'HR';
     $hrdept->userid = $this->userid;
     $hrdept->businessid = $businessid;
-    $hrdept->create_new();
+    $hrdept->create_department();
     
     $salesdept = new BxSalesDept();
 		$salesdept->depttype = 'SALE';
     $salesdept->userid = $this->userid;
     $salesdept->businessid = $businessid;
-    $salesdept->create_new();
+    $salesdept->create_department();
     
     $stockdept = new BxStockDept();
 		$stockdept->depttype = 'STK';
     $stockdept->userid = $this->userid;
     $stockdept->businessid = $businessid;
-    $stockdept->create_new();
+    $stockdept->create_department();
     
     return $businessid;
   }
@@ -125,15 +125,18 @@ class BxBusiness
   /**
    * Edit a existing business
    */
-  public function edit_biz($thisbz)
+  public function edit_business()
   {
     require_once AS_INCLUDE_DIR . 'db/users.php';
     require_once AS_INCLUDE_DIR . 'db/post-create.php';
     require_once AS_INCLUDE_DIR . 'app/options.php';
     require_once AS_INCLUDE_DIR . 'app/emails.php';
 
-    as_db_record_set('businesses', 'businessid', $thisbz->businessid, 'title', $thisbz->title);
-    as_db_record_set('businesses', 'businessid', $thisbz->businessid, 'content', $thisbz->content);
+    as_db_record_set('businesses', 'businessid', $this->businessid, 'title', $this->title);
+    as_db_record_set('businesses', 'businessid', $this->businessid, 'content', $this->content);
+    as_db_record_set('businesses', 'businessid', $this->businessid, 'contact', $this->contact);
+    as_db_record_set('businesses', 'businessid', $this->businessid, 'username', $this->username);
+    as_db_record_set('businesses', 'businessid', $this->businessid, 'icon', $this->icon);
   }
 
   /**
@@ -181,7 +184,7 @@ class BxBusiness
       'columns' => array('businessid', 'bstype', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', 'managers', 
         'departments' => '(SELECT COUNT(*) FROM ^businessdepts WHERE businessid = ^businesses.businessid)', 'userid', 
         'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)'),
-      'source' => '^businesses WHERE userid=#',
+      'source' => '^businesses WHERE userid=# OR managers LIKE "'.$userid.',"',
       'arguments' => array($userid),
       'sortasc' => 'title',
     ));

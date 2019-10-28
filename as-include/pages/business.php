@@ -50,12 +50,13 @@ $texttoshow = as_get('message');
 $department = BxDepartment::get_single($userid, $departmentid);
 
 $defaulticon ='appicon.png';
+$usericon ='user.png';
 $savedoptions = false;
 $securityexpired = false;
 		
 $in = array();
 
-if (as_clicked('dosavebusiness')) {
+if (as_clicked('doregister')) {
 	require_once AS_INCLUDE_DIR . 'app/limits.php';
 
 	if (as_user_limits_remaining(AS_LIMIT_BUSINESSES)) {
@@ -72,7 +73,7 @@ if (as_clicked('dosavebusiness')) {
 		$newbiz->tags = as_post_text('tags');
 		$newbiz->userid = $userid;
 
-		if (!as_check_form_security_code('business-save', as_post_text('code'))) {
+		if (!as_check_form_security_code('business-register', as_post_text('code'))) {
 			$pageerror = as_lang_html('misc/form_security_again');
 		} else {
 			// T&Cs validation
@@ -80,17 +81,10 @@ if (as_clicked('dosavebusiness')) {
 				$errors['terms'] = as_lang_html('users/terms_not_accepted');
 
 			if (empty($errors)) {
-				// register and redirect				
-				if (isset($business->businessid))
-				{ 
-					// changing existing business
-					as_redirect( $rootpage . '/' . $business->businessid);
-				} else { 
-					// creating a new one
-					as_limits_increment(null, AS_LIMIT_BUSINESSES);				
-					$businessid = $newbiz->create_new();				
-					as_redirect($rootpage . '/' . $businessid, array('alert' => 'success', 'message' => $newbiz->title .' Business has been added successfully') );					
-				}
+				// creating a new one
+				as_limits_increment(null, AS_LIMIT_BUSINESSES);				
+				$businessid = $newbiz->create_business();				
+				as_redirect($rootpage . '/' . $businessid, array('alert' => 'success', 'message' => $newbiz->title .' Business has been added successfully') );					
 			}
 		}
 
@@ -112,38 +106,49 @@ if (is_numeric($request)) {
 		else as_redirect( 'department/' . as_post_text('edit'));
 	}
 	
-	else if (as_clicked('dosavedepartment')) {
-		require_once AS_INCLUDE_DIR . 'app/post-create.php';
-		$department = new BxDepartment();
-		$department->depttype = as_post_text('depttype');
-		$department->title = as_post_text('title');
-		$department->content = as_post_text('content');
-		$department->parentid = as_post_text('parent');
-		$department->businessid = $business->businessid;
-		$department->business = $business->title;
-		$department->userid = $userid;
+	else if (as_clicked('doupdate')) {
+		require_once AS_INCLUDE_DIR . 'app/post-update.php';
+		
+		$business->location = as_post_text('location');
+		$business->contact = as_post_text('phone')." xx ".as_post_text('email')." xx ".as_post_text('website');
+		$business->title = as_post_text('title');
+		$business->username = as_post_text('username');
+		$business->content = as_post_text('content');
+		$business->icon = as_post_text('icon');
+		$business->tags = as_post_text('tags');
 
-		if (is_array(@$_FILES["file"])) {
-			$iconfileerror = $_FILES["file"]['error'];
-			if ($iconfileerror === 1) $errors['posticon'] = as_lang('main/file_upload_limit_exceeded');
-			elseif ($iconfileerror === 0 && $_FILES["file"]['size'] > 0) {
-				require_once AS_INCLUDE_DIR . 'app/limits.php';
-
-				$toobig = as_image_file_too_big($_FILES["file"]['tmp_name'], 500);
-
-				if ($toobig) $errors['posticon'] = as_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
+		if (!as_check_form_security_code('business-update', as_post_text('code'))) {
+			$pageerror = as_lang_html('misc/form_security_again');
+		} else {
+			if (empty($errors)) {
+				// register and redirect				
+				if (isset($business->businessid))
+				{ 
+					$business->edit_business();
+					as_redirect( $rootpage . '/' . $business->businessid);
+				}
 			}
 		}
-		
-		// Perform appropriate database action
-		if (empty($errors)) {
-			$department->icon = as_upload_file($_FILES["file"], 'department.jpg', 'icon');
-			$departid = $department->create_new();
-			as_redirect($rootpage . '/' . $request, array('alert' => 'success', 'message' => $department->title .' Department has been added successfully') );
-		}
-		else as_redirect($rootpage . '/' . $request );
 	}
 
+	else if (as_clicked('domanage')) {
+		require_once AS_INCLUDE_DIR . 'app/post-update.php';
+		
+		$business->managers = as_post_text('managers');
+
+		if (!as_check_form_security_code('business-manage', as_post_text('code'))) {
+			$pageerror = as_lang_html('misc/form_security_again');
+		} else {
+			if (empty($errors)) {
+				// register and redirect				
+				if (isset($business->businessid))
+				{ 
+					$business->edit_business();
+					as_redirect( $rootpage . '/' . $business->businessid);
+				}
+			}
+		}
+	}
 	$as_content['title'] = $business->title.' <small>BUSINESS</small>';
 	$sincetime = as_time_to_string(as_opt('db_time') - $business->created);
 	$joindate = as_when_to_html($business->created, 0);
@@ -170,7 +175,7 @@ if (is_numeric($request)) {
 		);
 		$profile1['body']['items']['link2'] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
-			'href' => as_path_html($rootpage . '/' . $request.'/manage'),
+			'href' => as_path_html($rootpage . '/' . $request.'/managers'),
 			'label' => '<b>Add or Remove Manager(s)</b>',
 		);
 	}
@@ -234,6 +239,78 @@ if (is_numeric($request)) {
 	$profile2 = array( 'type' => 'tabs', 'navs' => array( 'aboutus' => 'About Us', 'contactus' => 'Contact Us'), 'pane' => $navtabs );
 	
 	switch ($request2) {
+		case 'managers':
+			$profile1['body']['items']['link2'] = null;
+			$managers = explode(',', $business->managers);		
+
+			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+			if (isset($hascallout)) $formcontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+
+			$bodycontent = array(
+				'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
+				'title' => count($managers) .' MANAGER' . (count($managers) == 1 ? '' : 'S'),
+				'type' => 'form',
+				'style' => 'tall',
+				'ok' => $savedoptions ? as_lang_html('main/options_saved') : null,
+		
+				'style' => 'tall',
+		
+				'dash' => array( 'theme' => 'primary'),
+
+				'icon' => array(
+					'fa' => 'arrow-left',
+					'url' => as_path_html($rootpage),
+					'class' => 'btn btn-social btn-primary',
+					'label' => as_lang_html('main/back_button'),
+				),
+		
+				'tools' => array(
+					'add' => array(
+						'type' => 'link',
+						'url' => '#',
+						'class' => 'btn btn-primary btn-block',
+						'label' => 'ADD A MANAGER',
+					),
+				),
+				
+				'hidden' => array( 'code' => as_get_form_security_code('business-departments')),
+			);
+			$owner = as_db_select_with_pending(as_db_user_profile($userid));
+			
+			$bodycontent['dash']['items'][] = array(
+				'img' => as_avatar(20, 'profile-user-img img-responsive', $owner), 
+				'label' => $owner['firstname'].' '.$owner['lastname'], 
+				'description' => 'BUSINESS OWNER',
+				'link' => as_path_html('user/' . $owner['handle']),
+			);
+			if (count($managers)) {
+				unset($bodycontent['fields']['intro']);
+		
+				foreach ($managers as $mid) {
+					if (!empty($mid)) {
+						$manager = as_db_select_with_pending(as_db_user_profile($mid));
+			
+						$bodycontent['dash']['items'][] = array(
+							'img' => as_avatar(20, 'profile-user-img img-responsive', $manager), 
+							'label' => $manager['firstname'].' '.$manager['lastname'], 
+							'description' => 'BUSINESS MANAGER',
+							'link' => as_path_html('user/' . $manager['handle']),
+						);
+					}
+				}
+		
+			}
+
+			if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+			if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+			
+			$as_content['row_view'][] = array(
+				'colms' => array(
+					0 => array('class' => 'col-md-3', 'c_items' => array($profile1, $profile2) ),
+					2 => array('class' => 'col-lg-9 col-xs-6', 'c_items' => array($bodycontent) ),
+				),
+			);
+			break;
 		case 'edit':
 			$as_content['title'] = 'Edit: ' .$business->title.' <small>BUSINESS</small>';
 			$profile1['body']['items']['link1'] = array( 
@@ -316,8 +393,8 @@ if (is_numeric($request)) {
 					'department' => '0',
 					'icon' => 'business.jpg',
 					'tags' => '',
-					'dosavebusiness' => '1',
-					'code' => as_get_form_security_code('business-save'),
+					'doupdate' => '1',
+					'code' => as_get_form_security_code('business-update'),
 				),
 			);
 
@@ -622,8 +699,8 @@ else {
 					'department' => '0',
 					'icon' => 'business.jpg',
 					'tags' => '',
-					'dosavebusiness' => '1',
-					'code' => as_get_form_security_code('business-save'),
+					'doregister' => '1',
+					'code' => as_get_form_security_code('business-register'),
 				),
 			);
 			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
@@ -664,7 +741,8 @@ else {
 			if (count($businesses)){				
 				foreach ($businesses as $business){
 					$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 'label' => $business->title, 'numbers' => '1 User', 
-					'description' => $business->content, 'link' => 'business/'.$business->businessid,
+					'description' => ($business->userid == $userid ? 'Role: OWNER' : 'Role: MANAGER'). '<br>'. $business->content, 
+						'link' => 'business/'.$business->businessid,
 						'infors' => array(
 							'depts' => array('icount' => $business->departments, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
 							'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),

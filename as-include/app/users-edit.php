@@ -177,7 +177,7 @@ function as_password_validate($password, $olduser = null)
  * @param bool $confirmed
  * @return mixed
  */
-function as_create_new_supplier($userid, $title, $content, $field1, $field2, $usertype)
+function as_create_department_supplier($userid, $title, $content, $field1, $field2, $usertype)
 {
 	require_once AS_INCLUDE_DIR . 'db/users.php';
 	require_once AS_INCLUDE_DIR . 'app/options.php';
@@ -211,7 +211,7 @@ function as_create_new_supplier($userid, $title, $content, $field1, $field2, $us
  * @param bool $confirmed
  * @return mixed
  */
-function as_create_new_user($type, $firstname, $lastname, $gender, $country, $mobile, $email, $password, $handle, $level = AS_USER_LEVEL_BASIC, $confirmed = false)
+function as_create_department_user($type, $firstname, $lastname, $gender, $country, $mobile, $email, $password, $handle, $level = AS_USER_LEVEL_BASIC, $confirmed = false)
 {
 	if (as_to_override(__FUNCTION__)) { $args=func_get_args(); return as_call_override(__FUNCTION__, $args); }
 

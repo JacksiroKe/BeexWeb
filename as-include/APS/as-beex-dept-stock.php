@@ -44,7 +44,7 @@ class BxStockDept extends BxDepartment
      * @param bool $confirmed
      * @return mixed
      */
-    public function create_new()
+    public function create_department()
     {
         require_once AS_INCLUDE_DIR . 'db/post-update.php';
         require_once AS_INCLUDE_DIR . 'db/users.php';

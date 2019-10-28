@@ -92,7 +92,7 @@ if (!isset($pass_failure_type) && as_clicked('super')) {
 		if (empty($fielderrors)) {
 			require_once AS_INCLUDE_DIR.'app/users.php';
 
-			$userid = as_create_new_user('SA', $infirstname, $inlastname, $ingender, $incountry, $inmobile, $inemail, $inpassword, $inhandle, AS_USER_LEVEL_SUPER);
+			$userid = as_create_department_user('SA', $infirstname, $inlastname, $ingender, $incountry, $inmobile, $inemail, $inpassword, $inhandle, AS_USER_LEVEL_SUPER);
 			as_set_signed_in_user($userid, $inhandle);
 
 			as_set_option('feedback_email', $inemail);

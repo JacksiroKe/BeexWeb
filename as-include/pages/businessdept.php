@@ -82,7 +82,7 @@ if (is_numeric($request)) {
 		// Perform appropriate database action
 		if (empty($errors)) {
 			$subdepartment->icon = as_upload_file($_FILES["file"], 'department.jpg', 'icon');
-			$departid = $subdepartment->create_new();
+			$departid = $subdepartment->create_department();
 			as_redirect($rootpage . '/' . $request, array('alert' => 'success', 'message' => $subdepartment->title .' Sub-Department has been added successfully') );
 		}
 		else as_redirect($rootpage . '/' . $request );
@@ -131,7 +131,7 @@ if (is_numeric($request)) {
 				as_redirect( 'department/' . $subdepartment->departid);
 			} else { 
 				// creating a new one
-				$departid = $subdepartment->create_new();
+				$departid = $subdepartment->create_department();
 				as_redirect($rootpage . '/' . $request, array('added' => true));
 			}
 		}

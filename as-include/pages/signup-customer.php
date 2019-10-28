@@ -86,7 +86,7 @@ if (as_clicked('dosignup')) {
 				// signup and redirect
 				as_limits_increment(null, AS_LIMIT_SIGNUPS);
 
-				$userid = as_create_new_user('U', $infirstname, $inlastname, $ingender, $incountry, $inmobile, $inemail, $inpassword, $inhandle, AS_USER_LEVEL_BASIC);
+				$userid = as_create_department_user('U', $infirstname, $inlastname, $ingender, $incountry, $inmobile, $inemail, $inpassword, $inhandle, AS_USER_LEVEL_BASIC);
 			
 				as_set_signed_in_user($userid, $inhandle);
 
