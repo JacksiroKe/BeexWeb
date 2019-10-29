@@ -43,7 +43,7 @@ $categories = as_db_select_with_pending(as_db_category_nav_selectspec(null, true
 
 // See if we need to redirect
 
-if (empty($adminsection)) {
+/*if (empty($adminsection)) {
 	$subnav = as_admin_sub_navigation();
 
 	if (isset($subnav[@$_COOKIE['as_admin_last']]))
@@ -52,7 +52,7 @@ if (empty($adminsection)) {
 		reset($subnav);
 		as_redirect(key($subnav));
 	}
-}
+}*/
 
 
 // Check admin privileges (do late to allow one DB query)
@@ -1852,8 +1852,5 @@ switch ($adminsection) {
 
 if (isset($checkboxtodisplay))
 	as_set_display_rules($as_content, $checkboxtodisplay);
-
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
-
 
 return $as_content;

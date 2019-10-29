@@ -163,7 +163,7 @@ class as_html_theme_layer extends as_html_theme_base {
 			//$this->content['form']=$options;
 			
 			$this->template = "admin";
-			$this->content['navigation']['sub'] = as_admin_sub_navigation();
+			//$this->content['navigation']['sub'] = as_admin_sub_navigation();
 			$this->content['suggest_next']="";
 			$this->content['title']= as_lang_html('admin/admin_title') . ' - ' . as_lang('bluelte/bluelte_theme');
 			$this->content['error'] = $securityexpired ? as_lang_html( 'admin/form_security_expired' ) : as_admin_page_error();

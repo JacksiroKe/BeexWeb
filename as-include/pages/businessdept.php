@@ -283,47 +283,81 @@ if (is_numeric($request)) {
 			
 		}
 	} else {          
-		$as_content['title'] = $department->title. ' <small>'. (isset($department->parentid) ? 'SUB-DEPARTMENT' : 'DEPARTMENT') . ' </small>';
+		$as_content['title'] = $department->business . ' ' . $department->title. '<small> DEPARTMENT</small>';
+		//$as_content['title'] = ' <small>'. (isset($department->parentid) ? 'SUB-DEPARTMENT' : 'DEPARTMENT') . ' </small>';
 		$sincetime = as_time_to_string(as_opt('db_time') - $department->created);
 		$joindate = as_when_to_html($department->created, 0);
 		//$contacts = explode('xx', $business['contact']);		
 		
-		$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 
-			'title' => count($sections) .' SUB-DEPARTMENT' . (count($sections) == 1 ? '' : 'S'),
+		$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary'); 
+		$dashlist['title'] = strtoupper(strip_tags($as_content['title']));
 		
-			'icon' => array(
-				'fa' => 'arrow-left',
-				'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
-				'class' => 'btn btn-social btn-primary',
-				'label' => as_lang_html('main/back_button'),
-			),
-		
-			'tools' => array(
+		$dashlist['icon'] = array(
+			'fa' => 'arrow-left',
+			'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+			'class' => 'btn btn-social btn-primary',
+			'label' => as_lang_html('main/back_button'),
+		);
+
+		if ($department->depttype == 'STK') {
+			$categoryslugs = as_get('cart');
+			$categories = as_db_select_with_pending(as_db_category_nav_selectspec($categoryslugs, false, false, true));
+
+			if (count($categories)){	
+				
+				$dashlist['tools'] = array(
+					'add' => array( 'type' => 'link', 'label' => 'ADD STOCK',
+					'url' => as_path_html($rootpage.'/entry'), 
+					'class' => 'btn btn-primary btn-block')
+				);				
+				unset($as_content['form']['fields']['intro']);
+
+				$navcategoryhtml = '';
+				$k = 1;
+				foreach ($categories as $category) {
+					if (!isset($category['parentid'])) {
+						$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($category['pcount']));
+						
+						$dashlist['items'][] = array('img' => as_get_media_html($category['icon'], 20, 20), 
+						'label' => as_html($category['title']),// 'numbers' => '1 User', 
+						'description' => $count. ' ' . $category['content'], 
+							'link' => as_path_html('admin/categories', array('edit' => $category['categoryid'])),
+						);
+					}
+				}
+				$k++;
+			}
+				
+		} 
+		else {			
+			$dashlist['title'] .= ' ' . count($sections) .' SUB-DEPARTMENT' . (count($sections) == 1 ? '' : 'S');
+			
+			$dashlist['tools'] = array(
 				'add' => array( 'type' => 'link', 'label' => 'NEW SUB-DEPARTMENT',
 				'url' => as_path_html($rootpage.'/'.$request.'/register'), 
 				'class' => 'btn btn-primary btn-block')
-			),
-		);
+			);	
 			
-		if (count($sections)){				
-			foreach ($sections as $section){
-				$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 
-				'label' => $section->title . ' Sub-Department', 'numbers' => '1 User', 
-				'description' => $section->content, 'link' => as_path_html('department/'.$section->departid),
-					'infors' => array(
-						'depts' => array('icount' => $section->sections, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
-						'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
-					),
-				);
+			if (count($sections)){				
+				foreach ($sections as $section){
+					$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 
+					'label' => $section->title . ' Sub-Department', 'numbers' => '1 User', 
+					'description' => $section->content, 'link' => as_path_html('department/'.$section->departid),
+						'infors' => array(
+							'depts' => array('icount' => $section->sections, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
+							'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
+						),
+					);
+				}
 			}
 		}
-
+		
 		if (isset($hasalert)) $dashlist['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 		if (isset($hascallout)) $dashlist['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
 		
 		$as_content['row_view'][] = array(
 			'colms' => array(
-				0 => array('class' => 'col-lg-12 col-xs-6', 'c_items' => array($dashlist) ),
+				0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($dashlist) ),
 			),
 		);
 	}

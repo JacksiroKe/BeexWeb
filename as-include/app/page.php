@@ -596,9 +596,9 @@ function as_content_prepare($voting = false, $categoryids = array())
 
     if ($rules['superadmin']) {
         require_once AS_INCLUDE_DIR . 'app/admin.php';
-        $as_content['navigation']['admin'] = as_admin_sub_navigation();
+		$as_content['navigation']['main'] = as_admin_sub_navigation($as_content['navigation']['main']);
     }
-
+	
 	$as_content['search'] = array(
 		'form_tags' => 'method="get" action="' . as_path_html('search') . '"',
 		'form_extra' => as_path_form_html('search'),
@@ -777,7 +777,6 @@ function as_content_prepare($voting = false, $categoryids = array())
 
 	return $as_content;
 }
-
 
 /**
  * Get the start parameter which should be used, as constrained by the setting in as-config.php

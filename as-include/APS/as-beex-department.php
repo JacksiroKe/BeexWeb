@@ -141,11 +141,12 @@ class BxDepartment
      */
     public static function get_single( $userid, $departid ) 
     {
-        $selectspec['columns'] = array('departid', 'depttype', 'businessid', 'parentid', 'title', 'icon', 'content', '^businessdepts.userid', 'managers', 'users', 'extra',
+        $selectspec['columns'] = array('departid', 'depttype', '^businessdepts.businessid', '^businessdepts.parentid', '^businessdepts.title', '^businessdepts.icon', '^businessdepts.content', '^businessdepts.userid', '^businessdepts.managers', '^businessdepts.users', '^businessdepts.extra', 'business' => '^businesses.title', 
         'sections' => '(SELECT COUNT(*) FROM ^businessdepts WHERE ^businessdepts.parentid = ^businessdepts.departid)',
         'created' => 'UNIX_TIMESTAMP(^businessdepts.created)', 'updated' => 'UNIX_TIMESTAMP(^businessdepts.updated)');
             
-        $selectspec['source'] = '^businessdepts LEFT JOIN ^users ON ^users.userid=^businessdepts.userid';
+        $selectspec['source'] = '^businessdepts LEFT JOIN ^businesses ON ^businesses.businessid=^businessdepts.businessid';
+        $selectspec['source'] .= ' LEFT JOIN ^users ON ^users.userid=^businessdepts.userid';
         $selectspec['source'] .= " WHERE ^businessdepts.departid=#";	
         $selectspec['arguments'][] = $departid;
         $selectspec['single'] = true;
@@ -165,6 +166,7 @@ class BxDepartment
             $department->sections = (int) $result['sections'];
             $department->created = $result['created'];
             $department->updated = $result['updated'];
+            $department->business = $result['business'];
             return $department;
         }
         else return null;

@@ -174,7 +174,7 @@ if (isset($pointstitle[$oldpoints])) {
 
 $as_content['focusid'] = 'title';
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
+//$as_content['navigation']['sub'] = as_admin_sub_navigation();
 
 
 return $as_content;

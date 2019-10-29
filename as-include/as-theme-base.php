@@ -726,54 +726,56 @@ class as_html_theme_base
 	public function nav($navtype, $level = null)
 	{
 		$navigation = @$this->content['navigation'][$navtype];
+		switch ($navtype) {
+			case'user':
+				$this->output('<div class="as-nav-' . $navtype . '">');
 
-		if ($navtype == 'user') {
-			$this->output('<div class="as-nav-' . $navtype . '">');
+				if ($navtype == 'user')
+					$this->signed_in();
 
-			if ($navtype == 'user')
-				$this->signed_in();
-
-			// reverse order of 'opposite' items since they float right
-			foreach (array_reverse($navigation, true) as $key => $navlink) {
-				if (@$navlink['opposite']) {
-					unset($navigation[$key]);
-					$navigation[$key] = $navlink;
+				// reverse order of 'opposite' items since they float right
+				foreach (array_reverse($navigation, true) as $key => $navlink) {
+					if (@$navlink['opposite']) {
+						unset($navigation[$key]);
+						$navigation[$key] = $navlink;
+					}
 				}
-			}
 
-			$this->set_context('nav_type', $navtype);
-			$this->nav_list($navigation, 'nav-' . $navtype, $level);
-			$this->nav_clear($navtype);
-			$this->clear_context('nav_type');
+				$this->set_context('nav_type', $navtype);
+				$this->nav_list($navigation, 'nav-' . $navtype, $level);
+				$this->nav_clear($navtype);
+				$this->clear_context('nav_type');
 
-			$this->output('</div>');
+				$this->output('</div>');
+				break;
+				
+			case 'main':
+				foreach ( $navigation as $key => $item ) {
+					if (isset($item['sub'])) {
+						$this->output('<li class="treeview">', '<a href="#">');
+						$this->output('<i class="' . (isset($item['icon']) ? $item['icon'] : 'fa fa-link') . '"></i>');
+						$this->output('<span> ' . $item['label'] . ' </span>');
+						$this->output('<span class="pull-right-container">',
+							'<i class="fa fa-angle-left pull-right"></i>', '</span>', '</a>');
+						$this->output('<ul class="treeview-menu">');
+						foreach ( $item['sub'] as $k => $sub ) {
+							$this->output('<li>', '<a href="'.$sub['url'].'">');
+							$this->output('<i class="' . (isset($sub['icon']) ? $sub['icon'] : 'fa fa-link') . '"></i>');
+							$this->output('<span>' . $sub['label'] . '</span></a>', '</li>');
+						}
+						$this->output('</ul>');
+						$this->output('</li>');
+					} else {
+						if (isset($item['url'])) {
+							$this->output('<li>', '<a href="'.$item['url'].'">');
+							$this->output('<i class="' . (isset($item['icon']) ? $item['icon'] : 'fa fa-link') . '"></i>');
+							$this->output('<span>' . $item['label'] . '</span></a>', '</li>');
+						}
+						else $this->output('<li class="header">'.strtoupper($item['label']).'</li>');
+					}
+				}
+				break;
 		}
-		else if ($navtype == 'main') {
-            foreach ( $navigation as $key => $item ) {
-                if (isset($item['sub'])) {
-                    $this->output('<li class="treeview">', '<a href="#">');
-                    $this->output('<i class="' . (isset($item['icon']) ? $item['icon'] : 'fa fa-link') . '"></i>');
-                    $this->output('<span> ' . $item['label'] . ' </span>');
-                    $this->output('<span class="pull-right-container">',
-                        '<i class="fa fa-angle-left pull-right"></i>', '</span>', '</a>');
-                    $this->output('<ul class="treeview-menu">');
-                    foreach ( $item['sub'] as $k => $sub ) {
-                        $this->output('<li>', '<a href="'.$sub['url'].'">');
-                        $this->output('<i class="' . (isset($sub['icon']) ? $sub['icon'] : 'fa fa-link') . '"></i>');
-                        $this->output('<span>' . $sub['label'] . '</span></a>', '</li>');
-                    }
-                    $this->output('</ul>');
-                    $this->output('</li>');
-                } else {
-                    if (isset($item['url'])) {
-                        $this->output('<li>', '<a href="'.$item['url'].'">');
-                        $this->output('<i class="' . (isset($item['icon']) ? $item['icon'] : 'fa fa-link') . '"></i>');
-                        $this->output('<span>' . $item['label'] . '</span></a>', '</li>');
-                    }
-                    else $this->output('<li class="header">'.strtoupper($item['label']).'</li>');
-                }
-            }
-        }
 	}
 
 	public function nav_list($navigation, $class, $level = null)
@@ -1216,7 +1218,7 @@ class as_html_theme_base
 			if (isset($box['icon']['url'])) $this->output('</a>');
 		}
 		$this->output('<h3 class="box-title">'.$box['title'].'</h3>');
-		if (isset($box['tools'])) {					
+		if (isset($box['tools'])) {				
 			$this->output('<div class="box-tools">');
 			foreach ($box['tools'] as $tl => $tool)  {
 				switch ($tool['type']) {
@@ -1226,6 +1228,10 @@ class as_html_theme_base
 						
 					case 'button':
 						$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-minus"></i></button>');
+						break;
+							
+					case 'button_md':
+						$this->output('<button type="button" class="'.$tool['class'].'" data-toggle="modal" data-target="'.$tool['url'].'">'.$tool['label'].'</button>');
 						break;
 						
 					case 'link':
@@ -1243,6 +1249,24 @@ class as_html_theme_base
 				}
 			}
 			$this->output('</div>');
+		}
+
+		if (isset($box['modals'])) {
+			foreach ($box['modals'] as $md => $modal)  {
+				$this->output('<div class="'.$modal['class'].'" id="'.$md.'">');
+				$this->output('<div class="modal-dialog">');
+				$this->output('<div class="modal-content">');
+				$this->output('<div class="modal-header">');
+				$this->output('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-user"></i></button>');
+				$this->output('<h4 class="modal-title">'.$modal['header']['title'].'</h4>', '</div>');
+				$this->output('<div class="modal-body"><p>One fine body&hellip;</p></div>');
+				$this->output('<div class="modal-footer">');
+				$this->output('<button type="button" class="btn btn-default" data-dismiss="modal">DONE</button>');
+				//$this->output('<button type="button" class="btn btn-default pull-left" data-dismiss="modal">DONE</button>');
+				//$this->output('<button type="button" class="btn btn-primary">Save changes</button>');
+				$this->output('</div>', '</div>');
+				$this->output('</div>', '</div>');
+			}
 		}
 		$this->output('</div>');
 	}

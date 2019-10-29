@@ -130,7 +130,7 @@ if (count($items)) {
 	$as_content['title'] = as_lang_html('admin/no_flagged_found');
 
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
+//$as_content['navigation']['sub'] = as_admin_sub_navigation();
 $as_content['script_rel'][] = 'as-content/as-admin.js?' . AS_VERSION;
 
 

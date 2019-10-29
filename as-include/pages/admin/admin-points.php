@@ -178,7 +178,7 @@ as_array_insert($as_content['form']['fields'], 'points_like_up_q', array('blank2
 as_array_insert($as_content['form']['fields'], 'points_multiple', array('blank3' => array('type' => 'blank')));
 
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
+//$as_content['navigation']['sub'] = as_admin_sub_navigation();
 
 
 return $as_content;

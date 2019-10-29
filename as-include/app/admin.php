@@ -272,15 +272,13 @@ function as_admin_permit_options($widest, $narrowest, $doconfirms = true, $dopoi
 	return $options;
 }
 
-
 /**
  * Return the sub navigation structure common to admin pages
  */
-function as_admin_sub_navigation()
+function as_admin_sub_navigation($navigation)
 {
 	if (as_to_override(__FUNCTION__)) { $args=func_get_args(); return as_call_override(__FUNCTION__, $args); }
 
-	$navigation = array();
 	$level = as_get_logged_in_level();
 
 	if ($level >= AS_USER_LEVEL_ADMIN) {
@@ -292,7 +290,7 @@ function as_admin_sub_navigation()
             'icon' => 'fa fa-circle-o text-red',
         );
 
-        /*$navigation['categories'] = array(
+        $navigation['categories'] = array(
             'label' => as_lang_html('admin/categories_title'),
             'url' => as_path_html('admin/categories'),
             'icon' => 'fa fa-circle-o text-yellow',
@@ -302,7 +300,7 @@ function as_admin_sub_navigation()
             'label' => as_lang_html('admin/products_title'),
             'url' => as_path_html('admin/products'),
             'icon' => 'fa fa-circle-o text-aqua',
-        );*/
+        );
 
         $navigation['emails'] = array(
             'label' => as_lang_html('admin/emails_title'),
@@ -429,7 +427,6 @@ function as_admin_sub_navigation()
 			'url' => as_path_html('admin/approve'),
 		);
 	}
-
 	return $navigation;
 }
 
@@ -531,7 +528,7 @@ function as_admin_single_click($entityid, $action)
 				case 'userapprove':
 					if ($useraccount['level'] <= AS_USER_LEVEL_APPROVED) { // don't demote higher level users
 						require_once AS_INCLUDE_DIR . 'app/users-edit.php';
-						as_set_user_level($useraccount['userid'], $useraccount['handle'], AS_USER_LEVEL_APPROVED, $useraccount['level']);
+						as_set_user_level($useraccount['userid'], $useraccount['firstname'], $useraccount['handle'], $useraccount['email'], AS_USER_LEVEL_APPROVED, $useraccount['level'], $useraccount['profiles']);
 						return true;
 					}
 					break;

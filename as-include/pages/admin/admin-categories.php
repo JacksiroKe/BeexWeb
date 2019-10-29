@@ -628,6 +628,6 @@ if (as_get('recalc')) {
 	);
 }
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
+//$as_content['navigation']['sub'] = as_admin_sub_navigation();
 
 return $as_content;

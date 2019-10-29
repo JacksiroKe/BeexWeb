@@ -252,7 +252,7 @@ if (isset($editfield['fieldid'])) {
 
 $as_content['focusid'] = 'name';
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
+//$as_content['navigation']['sub'] = as_admin_sub_navigation();
 
 
 return $as_content;
