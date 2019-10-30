@@ -1744,9 +1744,9 @@ class as_html_theme_base
 	
 	public function navlist($navigation)
 	{
-		$this->output('<ul class="sidebar-menu" data-widget="tree">');
+		//$this->output('<ul class="sidebar-menu" data-widget="tree">');
 		foreach ( $navigation['items'] as $key => $item ) {
-			if (isset($item['sub'])) {
+			/*if (isset($item['sub'])) {
 				$this->output('<li class="treeview">', '<a href="#">');
 				$this->output(isset($item['icon']) ? $item['icon'] : '');
 				$this->output('<span> ' . $item['label'] . ' </span>');
@@ -1768,9 +1768,41 @@ class as_html_theme_base
 					$this->output('<span>' . $item['label'] . '</span></a>', '</li>');
 				}
 				else $this->output('<li class="header">'.strtoupper($item['label']).'</li>');
+			}*/
+
+			$this->output('<div class="box box-default collapsed-box">');
+			$this->output('<div class="box-header with-border">');
+			if (isset($item['sub'])) {
+				$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
 			}
+			else $this->output('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+			$this->output($item['label']);
+			$this->output('</div>');
+
+			if (isset($item['sub'])) {
+				$this->output('<div class="box-body">');
+				foreach ( $item['sub'] as $k => $sub ) {
+					$this->output('<div class="box box-default collapsed-box">');
+					$this->output('<div class="box-header with-border">');
+					if (isset($sub['sub'])) {
+						$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
+					}
+					else $this->output('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
+					$this->output($sub['label']);
+					$this->output('</div>');
+
+					if (isset($sub['sub'])) {
+						$this->output('<div class="box-body">');
+
+						$this->output('</div>');
+					}
+					$this->output('</div>');
+				}
+				$this->output('</div>');
+			}
+			$this->output('</div>');
 		}
-		$this->output('</ul>');
+		//$this->output('</ul>');
 	}
 
 	public function table($table)

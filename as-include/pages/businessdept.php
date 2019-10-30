@@ -318,7 +318,7 @@ if (is_numeric($request)) {
 					if (!isset($category['parentid'])) {
 						$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($category['pcount']));
 						
-						$tablelist['rows'][$k] = array(
+						/*$tablelist['rows'][$k] = array(
 							'fields' => array(
 								'>>' => array( 'data' => ''),
 								'id' => array( 'data' => $k),
@@ -341,8 +341,8 @@ if (is_numeric($request)) {
 									),
 								);
 							}
-						}
-						/*$navlist['items'][$k] = array(
+						}*/
+						$navlist['items'][$k] = array(
 							'label' => as_html($category['title']),
 							'icon' => as_get_media_html($category['icon'], 20, 20),
 						);
@@ -355,12 +355,12 @@ if (is_numeric($request)) {
 									'icon' => as_get_media_html($subcart['icon'], 20, 20),
 								);
 							}
-						}*/
+						}
 					}
 					$k++;
 				}
-				//$bodycontent['navlist']	= $navlist;	
-				$bodycontent['table']	= $tablelist;	
+				$bodycontent['navlist']	= $navlist;	
+				//$bodycontent['table']	= $tablelist;	
 			}
 				
 		} 
