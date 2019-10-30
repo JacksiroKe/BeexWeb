@@ -173,9 +173,6 @@ if (is_numeric($request)) {
 							2 => array( 
 								'tag' => array('list', 'list-group list-group-unbordered'),
 								'data' => array(
-									//'Mobile:' => $contacts[0],
-									//'Email:' => $contacts[1],
-									//'Website:' => $contacts[2],
 									as_lang_html('main/online_since') => $sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')',
 								),
 							),
@@ -289,10 +286,10 @@ if (is_numeric($request)) {
 		$joindate = as_when_to_html($department->created, 0);
 		//$contacts = explode('xx', $business['contact']);		
 		
-		$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary'); 
-		$dashlist['title'] = strtoupper(strip_tags($as_content['title']));
+		$bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
+		$bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
 		
-		$dashlist['icon'] = array(
+		$bodycontent['icon'] = array(
 			'fa' => 'arrow-left',
 			'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
 			'class' => 'btn btn-social btn-primary',
@@ -305,34 +302,72 @@ if (is_numeric($request)) {
 
 			if (count($categories)){	
 				
-				$dashlist['tools'] = array(
+				$bodycontent['tools'] = array(
 					'add' => array( 'type' => 'link', 'label' => 'ADD STOCK',
 					'url' => as_path_html($rootpage.'/entry'), 
 					'class' => 'btn btn-primary btn-block')
 				);				
 				unset($as_content['form']['fields']['intro']);
 
+				//$tablelist = array( 'id' => 'allcategories', 'headers' => array(' ||45', '#||45', 'Title', 'Items', ' ||45') );		
+
 				$navcategoryhtml = '';
 				$k = 1;
+				//print_r($categories);
 				foreach ($categories as $category) {
 					if (!isset($category['parentid'])) {
 						$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($category['pcount']));
 						
-						$dashlist['items'][] = array('img' => as_get_media_html($category['icon'], 20, 20), 
-						'label' => as_html($category['title']),// 'numbers' => '1 User', 
-						'description' => $count. ' ' . $category['content'], 
-							'link' => as_path_html('admin/categories', array('edit' => $category['categoryid'])),
+						$tablelist['rows'][$k] = array(
+							'fields' => array(
+								'>>' => array( 'data' => ''),
+								'id' => array( 'data' => $k),
+								'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
+								'count' => array( 'data' => ($count)),
+								'<<' => array( 'data' => ''),
+							),
 						);
+
+						if ($category['childcount']) {
+							$subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));							
+							foreach ($subcarts as $subcart) {
+								$tablelist['rows'][$k]['sub'][] = array(
+									'fields' => array(
+										'>>' => array( 'data' => ''),
+										'id' => array( 'data' => $k),
+										'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
+										'count' => array( 'data' => ($count)),
+										'<<' => array( 'data' => ''),
+									),
+								);
+							}
+						}
+						/*$navlist['items'][$k] = array(
+							'label' => as_html($category['title']),
+							'icon' => as_get_media_html($category['icon'], 20, 20),
+						);
+						if ($category['childcount']) {
+							$subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));
+							
+							foreach ($subcarts as $subcart) {
+								$navlist['items'][$k]['sub'][] = array(
+									'label' => as_html($subcart['title']),
+									'icon' => as_get_media_html($subcart['icon'], 20, 20),
+								);
+							}
+						}*/
 					}
+					$k++;
 				}
-				$k++;
+				//$bodycontent['navlist']	= $navlist;	
+				$bodycontent['table']	= $tablelist;	
 			}
 				
 		} 
 		else {			
-			$dashlist['title'] .= ' ' . count($sections) .' SUB-DEPARTMENT' . (count($sections) == 1 ? '' : 'S');
+			$bodycontent['title'] .= ' ' . count($sections) .' SUB-DEPARTMENT' . (count($sections) == 1 ? '' : 'S');
 			
-			$dashlist['tools'] = array(
+			$bodycontent['tools'] = array(
 				'add' => array( 'type' => 'link', 'label' => 'NEW SUB-DEPARTMENT',
 				'url' => as_path_html($rootpage.'/'.$request.'/register'), 
 				'class' => 'btn btn-primary btn-block')
@@ -340,7 +375,7 @@ if (is_numeric($request)) {
 			
 			if (count($sections)){				
 				foreach ($sections as $section){
-					$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 
+					$bodycontent['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 
 					'label' => $section->title . ' Sub-Department', 'numbers' => '1 User', 
 					'description' => $section->content, 'link' => as_path_html('department/'.$section->departid),
 						'infors' => array(
@@ -352,12 +387,12 @@ if (is_numeric($request)) {
 			}
 		}
 		
-		if (isset($hasalert)) $dashlist['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
-		if (isset($hascallout)) $dashlist['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
+		if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
+		if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
 		
 		$as_content['row_view'][] = array(
 			'colms' => array(
-				0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($dashlist) ),
+				0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
 			),
 		);
 	}

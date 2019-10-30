@@ -1742,6 +1742,37 @@ class as_html_theme_base
 		$this->output('</a>');
 	}
 	
+	public function navlist($navigation)
+	{
+		$this->output('<ul class="sidebar-menu" data-widget="tree">');
+		foreach ( $navigation['items'] as $key => $item ) {
+			if (isset($item['sub'])) {
+				$this->output('<li class="treeview">', '<a href="#">');
+				$this->output(isset($item['icon']) ? $item['icon'] : '');
+				$this->output('<span> ' . $item['label'] . ' </span>');
+				$this->output('<span class="pull-left-container">',
+					'<i class="fa fa-angle-right pull-left"></i>', '</span>', '</a>');
+				$this->output('<ul class="treeview-menu">');
+
+				foreach ( $item['sub'] as $k => $sub ) {
+					$this->output('<li>', '<a href="#">');
+					$this->output(isset($sub['icon']) ? $sub['icon'] : '');
+					$this->output('<span>' . $sub['label'] . '</span></a>', '</li>');
+				}
+				$this->output('</ul>');
+				$this->output('</li>');
+			} else {
+				if (isset($item['url'])) {
+					$this->output('<li>', '<a href="#">');
+					$this->output(isset($sub['icon']) ? $sub['icon'] : '');
+					$this->output('<span>' . $item['label'] . '</span></a>', '</li>');
+				}
+				else $this->output('<li class="header">'.strtoupper($item['label']).'</li>');
+			}
+		}
+		$this->output('</ul>');
+	}
+
 	public function table($table)
 	{
 		if (!empty($table)) {
@@ -1753,26 +1784,46 @@ class as_html_theme_base
 			
 			if (isset($table['headers'])) {
 				$this->output('<thead>', '<tr>');
-				foreach ($table['headers'] as $header) 
-					$this->output('<th valign="top">'.$header.'</th>');
+				foreach ($table['headers'] as $header) {
+					if (strpos($header, '||')) {
+						$hd = explode('||', $header);
+						$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
+					}
+					else $this->output('<th valign="top">'.$header.'</th>');
+				}
 				$this->output('</tr>', '</thead>');
 			}
 			
 			if (isset($table['rows'])) {
 				$this->output('<tbody>');
 				foreach ($table['rows'] as $row) {
-					$this->output('<tr'.(isset($row['onclick']) ? $row['onclick'] : '' ).'>');
+
+					$this->output('<tr>');
 					foreach ($row['fields'] as $row) 
 						$this->output('<td valign="top">'.$row['data'].'</td>');
 					$this->output('</tr>');
+
+					if (isset($row['sub'])) {							
+						foreach ( $row['sub'] as $k => $sub ) {
+							$this->output('<tr>');
+							foreach ($sub['fields'] as $rw) 
+								$this->output('<td valign="top">'.$rw['data'].'</td>');
+							$this->output('</tr>');
+						}			
+					}
 				}
 				$this->output('</tbody>');
 			}
 			
 			if (isset($table['headers'])) {
 				$this->output('<tfoot>', '<tr>');
-				foreach ($table['headers'] as $header) 
-					$this->output('<th valign="top">'.$header.'</th>');
+				foreach ($table['headers'] as $header) {
+					if (strpos($header, '||')) {
+						$hd = explode('||', $header);
+						$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
+					}
+					else $this->output('<th valign="top">'.$header.'</th>');
+				}				
 				$this->output('</tr>', '</tfoot>');
 			}
 			
@@ -1801,6 +1852,7 @@ class as_html_theme_base
 		$this->form_fields($form, $columns);
 		$this->output('</div>');
 		if (isset($form['table'])) $this->table($form['table']);
+		if (isset($form['navlist'])) $this->navlist($form['navlist']);
 		else if (isset($form['dash'])) $this->dashlist_view($form['dash']);
 		$this->form_buttons($form, $columns);
 

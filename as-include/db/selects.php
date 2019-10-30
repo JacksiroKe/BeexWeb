@@ -1284,7 +1284,7 @@ function as_db_category_selectspec()
 function as_db_category_sub_selectspec($categoryid)
 {
 	return array(
-		'columns' => array('categoryid', 'title', 'tags', 'pcount', 'position'),
+		'columns' => array('categoryid', 'title', 'tags', 'pcount', 'icon', 'position'),
 		'source' => '^categories WHERE parentid<=># ORDER BY position',
 		'arguments' => array($categoryid),
 		'arraykey' => 'categoryid',

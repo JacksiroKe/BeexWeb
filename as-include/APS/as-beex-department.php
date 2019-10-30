@@ -171,7 +171,12 @@ class BxDepartment
         }
         else return null;
     }
-
+    
+    public static function is_stock( $userid, $departid ) 
+    {
+        if ($this->depttype == 'STK') return true;
+        else return false;
+    }
     /**
      * Fetches the list of record in the business class
      */

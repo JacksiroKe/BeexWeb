@@ -595,6 +595,11 @@ function as_content_prepare($voting = false, $categoryids = array())
     }*/
 
     if ($rules['superadmin']) {
+		$as_content['navigation']['main']['users'] = array(
+            'label' => as_lang_html('main/nav_users'),
+            'url' => as_path_html('users'),
+            'icon' => 'fa fa-users',
+        );
         require_once AS_INCLUDE_DIR . 'app/admin.php';
 		$as_content['navigation']['main'] = as_admin_sub_navigation($as_content['navigation']['main']);
     }
