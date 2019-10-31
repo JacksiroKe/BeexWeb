@@ -19,6 +19,63 @@
 
 // General page functions
 
+function as_user_search(str) {
+	if (str.length==0) {
+	  document.getElementById("usersearch").innerHTML="";
+	  document.getElementById("usersearch").style.border="0px";
+	  return;
+	}
+	if (window.XMLHttpRequest) {
+	  // code for IE7+, Firefox, Chrome, Opera, Safari
+	  xmlhttp=new XMLHttpRequest();
+	} else {  // code for IE6, IE5
+	  xmlhttp=new ActiveXObject("Microsoft.XMLHTTP");
+	}
+	xmlhttp.onreadystatechange=function() {
+	  if (this.readyState==4 && this.status==200) {
+		document.getElementById("usersearch").innerHTML=this.responseText;
+		document.getElementById("usersearch").style.border="1px solid #A5ACB2";
+	  }
+	}
+	xmlhttp.open("GET","usersearch.php?q="+str,true);
+	xmlhttp.send();
+}
+
+function as_order_nowx(category, item, elem)
+{
+	var qtty = document.getElementById('quantity');
+	var place = document.getElementById('address');
+	var params = {};
+	params.o_itemid = item;
+	params.o_category = category;
+	params.o_quantity = qtty.value;
+	params.o_address = place.value;
+	
+	as_reveal('#placing', 'form');
+	as_conceal('#as-buying', 'form');
+	
+	as_ajax_post('order', params, function(lines) {
+			if (lines[0] == '1') {
+				qtty.value = '';
+				place.value = '';
+				as_show_waiting_after(elem, false);
+				as_reveal('#as-buying', 'form');
+				as_conceal('#placing', 'form');
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+				as_reveal('#as-buying', 'form');
+				as_conceal('#placing', 'form');
+			} else {
+				as_ajax_error();
+			}
+
+		}
+	);
+	as_show_waiting_after(elem, false);
+
+	return false;
+}
+
 function as_reveal(elem, type, callback)
 {
 	if (elem)

@@ -43,6 +43,39 @@ $hascallout = as_get('callout');
 $texttoshow = as_get('message');
 
 if (isset($requestparts[1])) $request = strtolower($requestparts[1]);
+$checkboxtodisplay = null;
+
+function as_category_nav_to_browse(&$navigation, $categories, $categoryid, $favoritemap)
+{
+	foreach ($navigation as $key => $navlink) {
+		$category = $categories[$navlink['categoryid']];
+
+		if (!$category['childcount']) {
+			unset($navigation[$key]['url']);
+		} elseif ($navlink['selected']) {
+			$navigation[$key]['state'] = 'open';
+			$navigation[$key]['url'] = as_path_html('categories/' . as_category_path_request($categories, $category['parentid']));
+		} else
+			$navigation[$key]['state'] = 'closed';
+
+		if (@$favoritemap[$navlink['categoryid']]) {
+			$navigation[$key]['favorited'] = true;
+		}
+		
+		$navigation[$key]['icon'] = as_get_media_html($category['icon'], 20, 20);
+		$navigation[$key]['note'] =
+			' - <a href="'.as_path_html('items/'.implode('/', array_reverse(explode('/', $category['backpath'])))).'">'.( ($category['pcount']==1)
+				? as_lang_html_sub('main/1_article', '1', '1')
+				: as_lang_html_sub('main/x_articles', number_format($category['pcount']))
+			).'</a>';
+
+		if (strlen($category['content']))
+			$navigation[$key]['note'] .= as_html(' - ' . $category['content']);
+
+		if (isset($navlink['subnav']))
+			as_category_nav_to_browse($navigation[$key]['subnav'], $categories, $categoryid, $favoritemap);
+	}
+}
 
 $userid = as_get_logged_in_userid();
 $departmentid = as_get('identifier');
@@ -309,72 +342,58 @@ if (is_numeric($request)) {
 				);				
 				unset($as_content['form']['fields']['intro']);
 
-				$navlist = array( 'id' => 'allcategories', 'headers' => array(' ||45', '#||45', 'Title', 'Items', ' ||45') );		
+				$tablelist = array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Code', 'Suppllier', 'Date of Entry', 'Qty', 'Amount', '*') );		
 
 				$navcategoryhtml = '';
 				$k = 1;
-				//print_r($categories);
+				
 				foreach ($categories as $category) {
 					if (!isset($category['parentid'])) {
-						$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($category['pcount']));
-						
-						/*$tablelist['rows'][$k] = array(
+						$tablelist['rows'][$k] = array(
 							'fields' => array(
-								'>>' => array( 'data' => ''),
+								'*' => array( 'data' => ($category['childcount'] ? ' (' . $category['childcount'] . ')' : '')),
 								'id' => array( 'data' => $k),
 								'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
-								'count' => array( 'data' => ($count)),
-								'<<' => array( 'data' => ''),
+								'code' => array( 'data' => '' ),
+								'supp' => array( 'data' => '' ),
+								'code' => array( 'data' => '' ),
+								'entry' => array( 'data' => '' ),
+								'qty' => array( 'data' => ($category['pcount'])),
+								'amount' => array( 'data' => '' ),
+								'x' => array( 'data' => ''),
 							),
 						);
 
 						if ($category['childcount']) {
-							$subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));							
-							foreach ($subcarts as $subcart) {
-								$tablelist['rows'][$k]['sub'][] = array(
-									'fields' => array(
-										'>>' => array( 'data' => ''),
-										'id' => array( 'data' => $k),
-										'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
-										'count' => array( 'data' => ($count)),
-										'<<' => array( 'data' => ''),
-									),
-								);
-							}
-						}*/
-						$navlist['items'][$k] = array(
-							//'label' => as_html($category['title']),
-							//'icon' => as_get_media_html($category['icon'], 20, 20),
-							'fields' => array(
-								'>>' => array( 'data' => ' ||45'),
-								'id' => array( 'data' => $k. '||45'),
-								'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
-								'count' => array( 'data' => ($count)),
-								'<<' => array( 'data' => ' ||45'),
-							),
-						);
-						if ($category['childcount']) {
 							$subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));
-							
+							$j = 1;
 							foreach ($subcarts as $subcart) {
-								$navlist['items'][$k]['sub'][] = array(
-									//'label' => as_html($subcart['title']),
-									//'icon' => as_get_media_html($subcart['icon'], 20, 20),
+								$tablelist['rows'][$k]['sub'][$j] = array(
 									'fields' => array(
-										'>>' => array( 'data' => ''),
-										'id' => array( 'data' => $k),
+										'*' => array( 'data' => ''),
+										'#' => array( 'data' => $j),
 										'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
-										'count' => array( 'data' => ($count)),
-										'<<' => array( 'data' => ''),
+										'code' => array( 'data' => '' ),
+										'supp' => array( 'data' => '' ),
+										'code' => array( 'data' => '' ),
+										'entry' => array( 'data' => '' ),
+										'qty' => array( 'data' => ($category['pcount'])),
+										'amount' => array( 'data' => '' ),
+										'x' => array( 'data' => ''),
 									),
 								);
+								$checkboxtodisplay['child_' . $k . '_' . $j] = 'parent_' . $k ;
+								$j++;
 							}
 						}
+
 					}
 					$k++;
 				}
-				$bodycontent['navlist']	= $navlist;	
-				//$bodycontent['table']	= $tablelist;	
+
+				if (isset($checkboxtodisplay)) as_set_display_rules($as_content, $checkboxtodisplay);
+
+				$bodycontent['table']	= $tablelist;	
 			}
 				
 		} 

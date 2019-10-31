@@ -1218,7 +1218,7 @@ class as_html_theme_base
 			if (isset($box['icon']['url'])) $this->output('</a>');
 		}
 		$this->output('<h3 class="box-title">'.$box['title'].'</h3>');
-		if (isset($box['tools'])) {				
+		if (isset($box['tools'])) {			
 			$this->output('<div class="box-tools">');
 			foreach ($box['tools'] as $tl => $tool)  {
 				switch ($tool['type']) {
@@ -1250,27 +1250,49 @@ class as_html_theme_base
 			}
 			$this->output('</div>');
 		}
-
-		if (isset($box['modals'])) {
-			foreach ($box['modals'] as $md => $modal)  {
-				$this->output('<div class="'.$modal['class'].'" id="'.$md.'">');
-				$this->output('<div class="modal-dialog">');
-				$this->output('<div class="modal-content">');
-				$this->output('<div class="modal-header">');
-				$this->output('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-user"></i></button>');
-				$this->output('<h4 class="modal-title">'.$modal['header']['title'].'</h4>', '</div>');
-				$this->output('<div class="modal-body"><p>One fine body&hellip;</p></div>');
-				$this->output('<div class="modal-footer">');
-				$this->output('<button type="button" class="btn btn-default" data-dismiss="modal">DONE</button>');
-				//$this->output('<button type="button" class="btn btn-default pull-left" data-dismiss="modal">DONE</button>');
-				//$this->output('<button type="button" class="btn btn-primary">Save changes</button>');
-				$this->output('</div>', '</div>');
-				$this->output('</div>', '</div>');
-			}
-		}
+		if (isset($box['modals'])) $this->modal($box['modals']);
 		$this->output('</div>');
 	}
+
+	public function modal($modals)
+	{
+		foreach ($modals as $md => $modal)  {
+			$this->output('<div class="'.$modal['class'].'" id="'.$md.'">');
+			$this->output('<div class="modal-dialog">');
+			$this->output('<div class="modal-content">');
+			$this->output('<div class="modal-header">');
+			$this->output('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-user"></i></button>');
+			$this->output('<h4 class="modal-title">'.$modal['header']['title'].'</h4>', '</div>');
+			$this->output('<div class="modal-body">');
+					
+			if (strpos($modal['view'], 'user_search') === 0) $this->user_search($modal['view']);
+
+			$this->output('</div>');
+			$this->output('<div class="modal-footer">');
+			$this->output('<button type="button" class="btn btn-default" data-dismiss="modal">DONE</button>');
+			//$this->output('<button type="button" class="btn btn-default pull-left" data-dismiss="modal">DONE</button>');
+			//$this->output('<button type="button" class="btn btn-primary">Save changes</button>');
+			$this->output('</div>', '</div>');
+			$this->output('</div>', '</div>');
+		}
+	}
 	
+	public function user_search($search)
+	{
+		if (isset($search)) {
+			$this->output('<form role="form">');
+			$this->output('<div class="box-body">');
+			$this->output('<div class="form-group">');
+			$this->output('<label for="exampleInputEmail1">Search for a User</label>');
+			$this->output('<input type="text" class="form-control" id="search_term" placeholder="Enter an email address or name">');
+			$this->output('</div>', '</div>');
+			$this->output('<div class="box-footer">');
+			$this->output('<input class="btn btn-primary" value="ADD AS A MANAGER TO THIS BUSINESS" 
+				name="doaddmanager" onclick="as_show_waiting_after(this, false); return as_add_manager(this);">');
+			$this->output('</div>', '</form>');
+		}
+	}
+
 	public function form($form)
 	{
 		if (!empty($form)) {
@@ -1745,14 +1767,27 @@ class as_html_theme_base
 	public function navlist($navigation)
 	{		
 		$this->output('<table class="table table-bordered table-striped" style="margin:0px;">');
+
+		if (isset($navigation['headers'])) {
+			$tdw = 80 / (count($navigation['headers']) - 3);
+		}
+		else $tdw = 40;
+
 		if (isset($navigation['headers'])) {
 			$this->output('<thead>', '<tr>');
 			foreach ($navigation['headers'] as $header) {
-				if (strpos($header, '||')) {
-					$hd = explode('||', $header);
-					$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
+				switch ($header)
+				{
+					case '*': case 'x':
+						$this->output('<th valign="top" style="width:50px;"></th>');
+						break;
+					case '#':
+						$this->output('<th valign="top" style="width:50px;">'.$header.'</th>');
+						break;
+					default:
+						$this->output('<th valign="top">'.$header.'</th>');
+						break;
 				}
-				else $this->output('<th valign="top">'.$header.'</th>');
 			}
 			$this->output('</tr>', '</thead>');
 		}
@@ -1762,22 +1797,28 @@ class as_html_theme_base
 			$this->output('<div class="box collapsed-box accordian" style="padding:0px;">');
 			$this->output('<div class="box-header with-border" style="padding:0px;">');
 			
-			//$this->output($item['label']);
 			$this->output('<table class="table table-bordered table-striped" style="margin:0px;">');
 			$this->output('<tbody>', '<tr>');
 			foreach ($item['fields'] as $ri => $row) {
-				//$this->output('<td valign="top">'.$row['data'].'</td>');
-				if (isset($item['sub']) && $ri == '>>') {
-					$this->output('<td valign="top" style="width:50px;">');
-					$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
-					$this->output('</td>');
-				}
-				else {
-					if (strpos($row['data'], '||')) {
-						$hd = explode('||', $row['data']);
-						$this->output('<td valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</td>');
-					}
-					else $this->output('<td valign="top">'.$row['data'].'</td>');
+				switch ($ri)
+				{
+					case '*':
+						if (isset($item['sub'])) {
+							$this->output('<td valign="top" style="width:50px;">');
+							$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
+							$this->output('</td>');
+						}
+						else $this->output('<td valign="top" style="width:50px;"></td>');
+						break;
+					case '#': case 'id':
+						$this->output('<td valign="top" style="width:50px;">'.$row['data'].'</td>');
+						break;
+					case 'x':
+						$this->output('<td valign="top" style="width:50px;"></td>');
+						break;
+					default:
+						$this->output('<td valign="top" style="width:'.$tdw.'%;">'.$row['data'].'</td>');
+						break;
 				}
 			}
 			$this->output('</tr>', '</tbody>', '</table>');
@@ -1786,28 +1827,37 @@ class as_html_theme_base
 			if (isset($item['sub'])) {
 				$this->output('<div class="box-body">');
 				foreach ( $item['sub'] as $k => $sub ) {
-					$this->output('<div class="box box-default collapsed-box">');
-					$this->output('<div class="box-header with-border">');
-					/*if (isset($sub['sub'])) {
-						$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
-					}
-					else $this->output('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');*/
-					//$this->output($sub['label']);
-					$this->output('<table class="table table-bordered table-striped">');
+					$this->output('<div class="box collapsed-box accordian" style="padding:0px;">');
+					$this->output('<div class="box-header with-border" style="padding:0px;">');
+					
+					$this->output('<table class="table table-bordered table-striped" style="margin:0px;">');
 					$this->output('<tbody>', '<tr>');
-					foreach ($sub['fields'] as $rw) 
-						$this->output('<td valign="top">'.$rw['data'].'</td>');
+					foreach ($sub['fields'] as $rx => $rw) {
+						switch ($rx)
+						{
+							case '*':
+								if (isset($rw['sub'])) {
+									$this->output('<td valign="top" style="width:50px;">');
+									$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
+									$this->output('</td>');
+								}
+								else $this->output('<td valign="top" style="width:50px;"></td>');
+								break;
+							case '#': case 'id':
+								$this->output('<td valign="top" style="width:50px;">'.$rw['data'].'</td>');
+								break;
+							case 'x':
+								$this->output('<td valign="top" style="width:50px;"></td>');
+								break;
+							default:
+								$this->output('<td valign="top" style="width:'.$tdw.'%;">'.$rw['data'].'</td>');
+								break;
+						}
+					}
 					$this->output('</tr>', '</tbody>', '</table>');
 					$this->output('</div>');
-
-					if (isset($sub['sub'])) {
-						$this->output('<div class="box-body">');
-
-						$this->output('</div>');
-					}
-					$this->output('</div>');
 				}
-				$this->output('</div>');
+				$this->output('</div>', '</div>');
 			}
 			$this->output('</div>');
 		}
@@ -1815,11 +1865,18 @@ class as_html_theme_base
 		if (isset($navigation['headers'])) {
 			$this->output('<thead>', '<tr>');
 			foreach ($navigation['headers'] as $header) {
-				if (strpos($header, '||')) {
-					$hd = explode('||', $header);
-					$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
+				switch ($header)
+				{
+					case '*': case 'x':
+						$this->output('<th valign="top" style="width:50px;"></th>');
+						break;
+					case '#':
+						$this->output('<th valign="top" style="width:50px;">'.$header.'</th>');
+						break;
+					default:
+						$this->output('<th valign="top">'.$header.'</th>');
+						break;
 				}
-				else $this->output('<th valign="top">'.$header.'</th>');
 			}
 			$this->output('</tr>', '</thead>');
 		}
@@ -1838,31 +1895,42 @@ class as_html_theme_base
 			if (isset($table['headers'])) {
 				$this->output('<thead>', '<tr>');
 				foreach ($table['headers'] as $header) {
-					if (strpos($header, '||')) {
-						$hd = explode('||', $header);
-						$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
+					switch ($header)
+					{
+						case '*': case 'x':
+							$this->output('<th valign="top" style="width:50px;"></th>');
+							break;
+						case '#':
+							$this->output('<th valign="top" style="width:50px;">'.$header.'</th>');
+							break;
+						default:
+							$this->output('<th valign="top">'.$header.'</th>');
+							break;
 					}
-					else $this->output('<th valign="top">'.$header.'</th>');
 				}
 				$this->output('</tr>', '</thead>');
 			}
 			
 			if (isset($table['rows'])) {
 				$this->output('<tbody>');
-				foreach ($table['rows'] as $row) {
-
+				foreach ($table['rows'] as $ra => $row) {
 					$this->output('<tr>');
-					foreach ($row['fields'] as $row) 
-						$this->output('<td valign="top">'.$row['data'].'</td>');
+					foreach ($row['fields'] as $rb => $rd) {
+						$this->output('<td valign="top">');
+						if (isset($row['sub']) && $rb == '*')
+							$this->output('<input id="parent_'.$ra.'" type="checkbox" value="1"> ' . $rd['data']);
+						else $this->output($rd['data']);
+						$this->output('</td>');
+					}
 					$this->output('</tr>');
-
-					if (isset($row['sub'])) {							
+					
+					if (isset($row['sub'])) {
 						foreach ( $row['sub'] as $k => $sub ) {
-							$this->output('<tr>');
+							$this->output('<tr id="child_'.$ra.'_'.$k.'" style="display:none;">');
 							foreach ($sub['fields'] as $rw) 
 								$this->output('<td valign="top">'.$rw['data'].'</td>');
 							$this->output('</tr>');
-						}			
+						};
 					}
 				}
 				$this->output('</tbody>');
@@ -1871,11 +1939,18 @@ class as_html_theme_base
 			if (isset($table['headers'])) {
 				$this->output('<tfoot>', '<tr>');
 				foreach ($table['headers'] as $header) {
-					if (strpos($header, '||')) {
-						$hd = explode('||', $header);
-						$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
+					switch ($header)
+					{
+						case '*': case 'x':
+							$this->output('<th valign="top" style="width:50px;"></th>');
+							break;
+						case '#':
+							$this->output('<th valign="top" style="width:50px;">'.$header.'</th>');
+							break;
+						default:
+							$this->output('<th valign="top">'.$header.'</th>');
+							break;
 					}
-					else $this->output('<th valign="top">'.$header.'</th>');
 				}				
 				$this->output('</tr>', '</tfoot>');
 			}
