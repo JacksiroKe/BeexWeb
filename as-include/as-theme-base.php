@@ -1743,40 +1743,44 @@ class as_html_theme_base
 	}
 	
 	public function navlist($navigation)
-	{
-		//$this->output('<ul class="sidebar-menu" data-widget="tree">');
-		foreach ( $navigation['items'] as $key => $item ) {
-			/*if (isset($item['sub'])) {
-				$this->output('<li class="treeview">', '<a href="#">');
-				$this->output(isset($item['icon']) ? $item['icon'] : '');
-				$this->output('<span> ' . $item['label'] . ' </span>');
-				$this->output('<span class="pull-left-container">',
-					'<i class="fa fa-angle-right pull-left"></i>', '</span>', '</a>');
-				$this->output('<ul class="treeview-menu">');
-
-				foreach ( $item['sub'] as $k => $sub ) {
-					$this->output('<li>', '<a href="#">');
-					$this->output(isset($sub['icon']) ? $sub['icon'] : '');
-					$this->output('<span>' . $sub['label'] . '</span></a>', '</li>');
+	{		
+		$this->output('<table class="table table-bordered table-striped" style="margin:0px;">');
+		if (isset($navigation['headers'])) {
+			$this->output('<thead>', '<tr>');
+			foreach ($navigation['headers'] as $header) {
+				if (strpos($header, '||')) {
+					$hd = explode('||', $header);
+					$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
 				}
-				$this->output('</ul>');
-				$this->output('</li>');
-			} else {
-				if (isset($item['url'])) {
-					$this->output('<li>', '<a href="#">');
-					$this->output(isset($sub['icon']) ? $sub['icon'] : '');
-					$this->output('<span>' . $item['label'] . '</span></a>', '</li>');
-				}
-				else $this->output('<li class="header">'.strtoupper($item['label']).'</li>');
-			}*/
-
-			$this->output('<div class="box box-default collapsed-box">');
-			$this->output('<div class="box-header with-border">');
-			if (isset($item['sub'])) {
-				$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
+				else $this->output('<th valign="top">'.$header.'</th>');
 			}
-			else $this->output('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
-			$this->output($item['label']);
+			$this->output('</tr>', '</thead>');
+		}
+		$this->output('</table>');
+		
+		foreach ( $navigation['items'] as $key => $item ) {
+			$this->output('<div class="box collapsed-box accordian" style="padding:0px;">');
+			$this->output('<div class="box-header with-border" style="padding:0px;">');
+			
+			//$this->output($item['label']);
+			$this->output('<table class="table table-bordered table-striped" style="margin:0px;">');
+			$this->output('<tbody>', '<tr>');
+			foreach ($item['fields'] as $ri => $row) {
+				//$this->output('<td valign="top">'.$row['data'].'</td>');
+				if (isset($item['sub']) && $ri == '>>') {
+					$this->output('<td valign="top" style="width:50px;">');
+					$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
+					$this->output('</td>');
+				}
+				else {
+					if (strpos($row['data'], '||')) {
+						$hd = explode('||', $row['data']);
+						$this->output('<td valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</td>');
+					}
+					else $this->output('<td valign="top">'.$row['data'].'</td>');
+				}
+			}
+			$this->output('</tr>', '</tbody>', '</table>');
 			$this->output('</div>');
 
 			if (isset($item['sub'])) {
@@ -1784,11 +1788,16 @@ class as_html_theme_base
 				foreach ( $item['sub'] as $k => $sub ) {
 					$this->output('<div class="box box-default collapsed-box">');
 					$this->output('<div class="box-header with-border">');
-					if (isset($sub['sub'])) {
+					/*if (isset($sub['sub'])) {
 						$this->output('<button type="button" class="btn btn-box-tool" data-widget="collapse"><i class="fa fa-plus"></i> </button>');
 					}
-					else $this->output('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');
-					$this->output($sub['label']);
+					else $this->output('&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;');*/
+					//$this->output($sub['label']);
+					$this->output('<table class="table table-bordered table-striped">');
+					$this->output('<tbody>', '<tr>');
+					foreach ($sub['fields'] as $rw) 
+						$this->output('<td valign="top">'.$rw['data'].'</td>');
+					$this->output('</tr>', '</tbody>', '</table>');
 					$this->output('</div>');
 
 					if (isset($sub['sub'])) {
@@ -1802,7 +1811,19 @@ class as_html_theme_base
 			}
 			$this->output('</div>');
 		}
-		//$this->output('</ul>');
+		$this->output('<table class="table table-bordered table-striped">');
+		if (isset($navigation['headers'])) {
+			$this->output('<thead>', '<tr>');
+			foreach ($navigation['headers'] as $header) {
+				if (strpos($header, '||')) {
+					$hd = explode('||', $header);
+					$this->output('<th valign="top" style="width:'.$hd[1].'px;">'.$hd[0].'</th>');
+				}
+				else $this->output('<th valign="top">'.$header.'</th>');
+			}
+			$this->output('</tr>', '</thead>');
+		}
+		$this->output('</table>');
 	}
 
 	public function table($table)

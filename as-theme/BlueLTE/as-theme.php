@@ -76,7 +76,13 @@
             $this->bluelte_resources( $css_paths, 'css' );
             $this->bluelte_resources( array( 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic' ) , 'css' , true );
         }
-
+		
+		function head_custom()
+        {
+            parent::head_custom();
+			$this->output('<style>.accordian{position:relative;border-radius:0px;background:#ffffff;border-top:0px;margin-bottom:0px;width:100%;box-shadow:0 0px 0px rgba(0,0,0,0.1)}</style>');
+		}
+		
         function bluelte_resources( $paths, $type = 'css', $external = false )
         {
             if ( count( $paths ) ) {

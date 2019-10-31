@@ -577,7 +577,7 @@ if ($setmissing) {
 			),
 		),
 		
-		'table' => array( 'id' => 'allcategories', 'headers' => array('', 'Title', 'Items') ),
+		'table' => array( 'id' => 'allcategories', 'headers' => array(' ||50',  '#||50', 'Title', 'Items', ' ||50') ),
 
 		'tools' => array(
 			'add' => array(
@@ -603,9 +603,11 @@ if ($setmissing) {
 				$as_content['form']['table']['rows'][] = array(
 					'onclick' => ' title="Click on this item to edit or view"',
 					'fields' => array(
+						'>>' => array( 'data' => ''),
 						'id' => array( 'data' => $k),
 						'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
 						'count' => array( 'data' => ($count)),
+						'<<' => array( 'data' => ''),
 					),
 				);
 			}

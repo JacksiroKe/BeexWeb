@@ -309,7 +309,7 @@ if (is_numeric($request)) {
 				);				
 				unset($as_content['form']['fields']['intro']);
 
-				//$tablelist = array( 'id' => 'allcategories', 'headers' => array(' ||45', '#||45', 'Title', 'Items', ' ||45') );		
+				$navlist = array( 'id' => 'allcategories', 'headers' => array(' ||45', '#||45', 'Title', 'Items', ' ||45') );		
 
 				$navcategoryhtml = '';
 				$k = 1;
@@ -343,16 +343,30 @@ if (is_numeric($request)) {
 							}
 						}*/
 						$navlist['items'][$k] = array(
-							'label' => as_html($category['title']),
-							'icon' => as_get_media_html($category['icon'], 20, 20),
+							//'label' => as_html($category['title']),
+							//'icon' => as_get_media_html($category['icon'], 20, 20),
+							'fields' => array(
+								'>>' => array( 'data' => ' ||45'),
+								'id' => array( 'data' => $k. '||45'),
+								'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
+								'count' => array( 'data' => ($count)),
+								'<<' => array( 'data' => ' ||45'),
+							),
 						);
 						if ($category['childcount']) {
 							$subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));
 							
 							foreach ($subcarts as $subcart) {
 								$navlist['items'][$k]['sub'][] = array(
-									'label' => as_html($subcart['title']),
-									'icon' => as_get_media_html($subcart['icon'], 20, 20),
+									//'label' => as_html($subcart['title']),
+									//'icon' => as_get_media_html($subcart['icon'], 20, 20),
+									'fields' => array(
+										'>>' => array( 'data' => ''),
+										'id' => array( 'data' => $k),
+										'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
+										'count' => array( 'data' => ($count)),
+										'<<' => array( 'data' => ''),
+									),
 								);
 							}
 						}
