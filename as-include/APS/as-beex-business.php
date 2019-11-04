@@ -80,13 +80,22 @@ class BxBusiness
     require_once AS_INCLUDE_DIR . 'app/options.php';
     require_once AS_INCLUDE_DIR . 'app/emails.php';
 
+    $manager = as_db_select_with_pending(as_db_user_account_selectspec(as_get_logged_in_handle(), false));
     $businessid = as_db_business_create($this->type, $this->title, $this->contact, $this->location, $this->username, $this->content, $this->icon, $this->tags, $this->userid);
-    /*as_send_notification($userid, $firstname.' '.$lastname, $email, $handle, as_lang('emails/welcome_subject'), as_lang('emails/welcome_body'), array(
-      '^password' => isset($password) ? as_lang('main/hidden') : as_lang('users/password_to_set'),
+    
+    $link = as_opt('site_url').'business/'.$businessid;
+
+    as_send_notification($userid, $manager['firstname'].' '.$manager['lastname'], $manager['email'], $manager['handle'], as_lang('emails/new_business_subject'), as_lang('emails/new_business_body'), array(
+      '^business_title' => $this->title,
+      '^business_username' => $this->username,
+      '^business_location' => $this->location,
+      '^business_contact' => $this->contact,
+      '^business_description' => $this->content,
+      '^business_url' => $link,
       '^url' => as_opt('site_url'),
-      '^custom' => strlen($custom) ? ($custom . "\n\n") : '',
-      '^confirm' => $confirm,
-    ));*/
+    ));
+    
+    as_db_notification_create($this->userid, as_lang_html_sub('notify/new_business', $this->title), 'open-bs-page', $link, '');
     
     //Create default Departments
     $ccdept = new BxCustomercare();

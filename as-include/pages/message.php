@@ -122,6 +122,7 @@ if (as_post_text('domessage')) {
 
 		if (empty($errors)) {
 			require_once AS_INCLUDE_DIR . 'db/messages.php';
+			require_once AS_INCLUDE_DIR . 'db/users.php';
 			require_once AS_INCLUDE_DIR . 'app/emails.php';
 
 			if (as_opt('show_message_history'))
@@ -144,10 +145,12 @@ if (as_post_text('domessage')) {
 				'^a_url' => as_path_absolute('account'),
 			);
 
-			if (as_send_notification($toaccount['userid'], $toaccount['email'], $toaccount['handle'],
+			if (as_send_notification($toaccount['userid'], $toaccount['firstname'], $toaccount['lastname'], $toaccount['email'], $toaccount['handle'],
 				as_lang('emails/private_message_subject'), as_lang('emails/private_message_body'), $subs))
 				$messagesent = true;
-
+			
+			as_db_notification_create($toaccount['userid'], as_lang_html_sub('notify/new_message', $toaccount['firstname']), 'open-inbox', as_path_absolute('account'), '');
+    
 			as_report_event('u_message', $signinuserid, as_get_logged_in_handle(), as_cookie_get(), array(
 				'userid' => $toaccount['userid'],
 				'handle' => $toaccount['handle'],

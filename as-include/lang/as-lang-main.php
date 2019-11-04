@@ -148,6 +148,7 @@ return array(
 	'nav_activity' => 'All Activity',
 	'nav_admin' => 'Site Adminstrator',
 	'nav_bs' => 'Businesses',
+	'nav_bs_all' => 'Business List',
 	'nav_sell' => 'Sell on Beex',
 	'nav_write' => 'Post an Item',
 	'nav_categories' => 'Categories',
@@ -282,6 +283,7 @@ return array(
 	'liked_qs_title' => 'Highest liked items',
 	'liked_up_popup' => 'You have liked this up - click to remove like',
 	'last_update' => 'Last Update',
+	'user_business' => 'My Businesses',
 	'written' => '', // blank in English - placeholder for other languages
 	'x_ago' => '^ ago',
 	'x_reviews' => '^ reviews',

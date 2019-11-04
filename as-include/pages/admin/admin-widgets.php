@@ -340,7 +340,4 @@ if (!$widgetfound) {
 	unset($as_content['form']['buttons']['save']);
 }
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
-
-
 return $as_content;

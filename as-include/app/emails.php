@@ -200,7 +200,7 @@ function as_email_html_container($fullname, $body)
 				<td class="wrapper">
 				  <table border="0" cellpadding="0" cellspacing="0">
 					<tr><td>
-					<center><a href="' . $url . '"><img src="' . $url . 'as-media/as-logo.png" style="width:100%;"></a></center></td>
+					<center><a href="' . $url . '"><img src="' . $url . 'as-media/appicon.png" style="width:100px;"></a></center></td>
 					</tr>
 					<tr>
 					  <td>

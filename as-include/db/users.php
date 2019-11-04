@@ -23,6 +23,24 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
 	header('Location: ../../');
 	exit;
 }
+/**
+ * Create a new notification in the database with type, categoryid, location, contact, title, username, content, icon, tags, userid, created
+ * @param $email
+ * @param $password
+ * @param $handle
+ * @param $level
+ * @param $ip
+ * @return mixed
+ */
+function as_db_notification_create($userid, $message, $action, $link, $format)
+{
+	as_db_query_sub(
+			'INSERT INTO ^notifications (userid, message, action, link, format, created) ' .
+			'VALUES (#, $, $, $, $, NOW())',
+			$userid, $message, $action, $link, $format
+		);
+	return as_db_last_insert_id();
+}
 
 /**
  * Return the expected value for the passcheck column given the $password and password $salt

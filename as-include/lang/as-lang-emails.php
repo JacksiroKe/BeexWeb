@@ -69,7 +69,7 @@ return array(
 
 	'to_handle_prefix' => "^,\n\n",
 
-	'elevated_body_up' => "Congratulations! Because we entrust you with Your user profile on ^site_title has been elevated from being a  ^old_level to  ^new_level!\n\nClick below to check ^site_title under your new priviledges:\n\n^url\n\nThank you,\n\n^site_title",
+	'elevated_body_up' => "Congratulations! Because we have confidence in you, Your user profile on ^site_title has been elevated from being a  ^old_level to  ^new_level!\n\nClick below to check ^site_title under your new priviledges:\n\n^url\n\nThank you,\n\n^site_title",
 	'elevated_body_down' => "Sorry! Because we have found you as ^old_level to be threathening the intergrity of ^site_title, we have to stripped you of your priviledges on ^site_title a little! You will still continue to participate on ^site_title with your remaining priviledges as a ^new_level. \n\nIf you find this to be a mistake please contact our admin via private message.\n\nClick below to check ^site_title under your new priviledges:\n\n^url\n\nThank you,\n\n^site_title",
 	
 	'elevated_subject_up' => '^site_title - Your profile level has been elevated!',
@@ -88,4 +88,14 @@ return array(
 	'welcome_body' => "Thank you for taking your time to sign up on ^site_title.\n\n^custom^confirm\n\nYour signin details are as follows:\n\nUsername: ^handle\nEmail: ^email\n\nPlease keep this information safe for future reference.\n\nThank you,\n\n^site_title\n^url",
 	'welcome_confirm' => "Please click below to confirm your email address.\n\n^url\n\n",
 	'welcome_subject' => 'Welcome to ^site_title!',
+	
+	'new_business_body' => "Congratulations for setting up a new business on ^site_title.\n\nYour business details are as follows:\n\Name: ^business_title\n\nUsername: ^business_username\n\nLocation: ^business_location\n\nContacts: ^business_contact\n\nDescription: ^business_description\n\nFeel free to update this information if you that necessary.\n\nPlease click below to open your business profile page.\n\n^business_url\n\nThank you,\n\n^site_title\n^url",
+	'new_business_subject' => 'Congratulations for setting up ^business_title Business!',
+	
+	'new_business_manager_body' => "Congratulations! One of the Managers of ^business_title business has added more priviledges to your profile on ^site_title. You are now a Manager of the business\n\nThe business details are as follows:\n\nBusiness name: ^business_title\nBusiness Username: ^business_username\n\nLocation: ^business_location\n\nContacts: ^business_contact\n\nDescription: ^business_description\n\nPlease click below to open this business's profile page.\n\n^business_url\n\nThank you,\n\n^site_title\n^url",
+	'not_business_manager_body' => "Sorry! You are no longer a manager of ^business_title anymore. More information over this action will be provided to you in subsequent communications to you and over the email.\n\nIf you find this to be a mistake please contact our admin via private message.\n\n^url\n\nThank you,\n\n^site_title",
+	
+	'new_business_manager_subject' => 'Congrats! You are now a ^business_title Manager!',
+	'not_business_manager_subject' => 'Sorry! You are no longer a ^business_title Manager!',
+
 );

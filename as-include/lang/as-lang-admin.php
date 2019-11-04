@@ -67,6 +67,7 @@ return array(
 	'cancel_mailing_button' => 'Cancel Mailing',
 	'categories' => 'Categories',
 	'categories_introduction' => 'To get started with categories, click the \'Add Category\' button.',
+	'products_introduction' => 'To get started with products, click the \'Add Product\' button.',
 	'categories_not_shown' => 'Some items have categories which will not be displayed.',
 	'products_title' => 'Products',
 	'categories_title' => 'Categories',

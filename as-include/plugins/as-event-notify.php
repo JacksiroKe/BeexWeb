@@ -37,7 +37,7 @@ class as_event_notify
 					$blockwordspreg = as_get_block_words_preg();
 					$sendtext = as_viewer_text($followreview['content'], $followreview['format'], array('blockwordspreg' => $blockwordspreg));
 
-					as_send_notification($followreview['userid'], $followreview['notify'], @$followreview['handle'], as_lang('emails/a_followed_subject'), as_lang('emails/a_followed_body'), array(
+					as_send_notification($followreview['userid'], "BeExpress User", $followreview['notify'], @$followreview['handle'], as_lang('emails/a_followed_subject'), as_lang('emails/a_followed_body'), array(
 						'^q_handle' => $sendhandle,
 						'^q_title' => as_block_words_replace($params['title'], $blockwordspreg),
 						'^a_content' => $sendtext,
@@ -46,7 +46,7 @@ class as_event_notify
 				}
 
 				if (as_opt('notify_admin_q_post'))
-					as_send_notification(null, as_opt('feedback_email'), null, as_lang('emails/q_posted_subject'), as_lang('emails/q_posted_body'), array(
+					as_send_notification(null, as_opt('feedback_email'), "BeExpress User", null, as_lang('emails/q_posted_subject'), as_lang('emails/q_posted_body'), array(
 						'^q_handle' => $sendhandle,
 						'^q_title' => $params['title'], // don't censor title or content here since we want the admin to see bad words
 						'^q_content' => $params['text'],
@@ -60,7 +60,7 @@ class as_event_notify
 				$item = $params['parent'];
 
 				if (isset($item['notify']) && !as_post_is_by_user($item, $userid, $cookieid))
-					as_send_notification($item['userid'], $item['notify'], @$item['handle'], as_lang('emails/q_reviewed_subject'), as_lang('emails/q_reviewed_body'), array(
+					as_send_notification($item['userid'], "", $item['notify'], @$item['handle'], as_lang('emails/q_reviewed_subject'), as_lang('emails/q_reviewed_body'), array(
 						'^a_handle' => isset($handle) ? $handle : (strlen($params['name']) ? $params['name'] : as_lang('main/anonymous')),
 						'^q_title' => $item['title'],
 						'^a_content' => as_block_words_replace($params['text'], as_get_block_words_preg()),
@@ -105,7 +105,7 @@ class as_event_notify
 					elseif (isset($senduserid))
 						$senttouserid[$senduserid] = true;
 
-					as_send_notification($senduserid, $sendemail, @$parent['handle'], $subject, $body, array(
+					as_send_notification($senduserid, "", $sendemail, @$parent['handle'], $subject, $body, array(
 						'^c_handle' => $sendhandle,
 						'^c_context' => $sendcontext,
 						'^c_content' => $sendtext,
@@ -131,7 +131,7 @@ class as_event_notify
 							$senttouserid[$senduserid] = true;
 						}
 
-						as_send_notification($senduserid, $sendemail, @$comment['handle'], as_lang('emails/c_commented_subject'), as_lang('emails/c_commented_body'), array(
+						as_send_notification($senduserid, "", $sendemail, @$comment['handle'], as_lang('emails/c_commented_subject'), as_lang('emails/c_commented_body'), array(
 							'^c_handle' => $sendhandle,
 							'^c_context' => $sendcontext,
 							'^c_content' => $sendtext,
@@ -145,7 +145,7 @@ class as_event_notify
 			case 'q_queue':
 			case 'q_requeue':
 				if (as_opt('moderate_notify_admin')) {
-					as_send_notification(null, as_opt('feedback_email'), null,
+					as_send_notification(null, as_opt('feedback_email'), "", null,
 						($event == 'q_requeue') ? as_lang('emails/remoderate_subject') : as_lang('emails/moderate_subject'),
 						($event == 'q_requeue') ? as_lang('emails/remoderate_body') : as_lang('emails/moderate_body'),
 						array(
@@ -163,7 +163,7 @@ class as_event_notify
 			case 'a_queue':
 			case 'a_requeue':
 				if (as_opt('moderate_notify_admin')) {
-					as_send_notification(null, as_opt('feedback_email'), null,
+					as_send_notification(null, as_opt('feedback_email'), "", null,
 						($event == 'a_requeue') ? as_lang('emails/remoderate_subject') : as_lang('emails/moderate_subject'),
 						($event == 'a_requeue') ? as_lang('emails/remoderate_body') : as_lang('emails/moderate_body'),
 						array(
@@ -181,7 +181,7 @@ class as_event_notify
 			case 'c_queue':
 			case 'c_requeue':
 				if (as_opt('moderate_notify_admin')) {
-					as_send_notification(null, as_opt('feedback_email'), null,
+					as_send_notification(null, as_opt('feedback_email'), "", null,
 						($event == 'c_requeue') ? as_lang('emails/remoderate_subject') : as_lang('emails/moderate_subject'),
 						($event == 'c_requeue') ? as_lang('emails/remoderate_body') : as_lang('emails/moderate_body'),
 						array(
@@ -205,7 +205,7 @@ class as_event_notify
 				$notifycount = $flagcount - as_opt('flagging_notify_first');
 
 				if ($notifycount >= 0 && ($notifycount % as_opt('flagging_notify_every')) == 0) {
-					as_send_notification(null, as_opt('feedback_email'), null, as_lang('emails/flagged_subject'), as_lang('emails/flagged_body'), array(
+					as_send_notification(null, as_opt('feedback_email'), "", null, as_lang('emails/flagged_subject'), as_lang('emails/flagged_body'), array(
 						'^p_handle' => isset($oldpost['handle']) ? $oldpost['handle'] :
 							(strlen($oldpost['name']) ? $oldpost['name'] : as_lang('main/anonymous')),
 						'^flags' => ($flagcount == 1) ? as_lang_html_sub('main/1_flag', '1', '1') : as_lang_html_sub('main/x_flags', $flagcount),
@@ -224,7 +224,7 @@ class as_event_notify
 					$blockwordspreg = as_get_block_words_preg();
 					$sendcontent = as_viewer_text($review['content'], $review['format'], array('blockwordspreg' => $blockwordspreg));
 
-					as_send_notification($review['userid'], $review['notify'], @$review['handle'], as_lang('emails/a_selected_subject'), as_lang('emails/a_selected_body'), array(
+					as_send_notification($review['userid'], "", $review['notify'], @$review['handle'], as_lang('emails/a_selected_subject'), as_lang('emails/a_selected_body'), array(
 						'^s_handle' => isset($handle) ? $handle : as_lang('main/anonymous'),
 						'^q_title' => as_block_words_replace($params['parent']['title'], $blockwordspreg),
 						'^a_content' => $sendcontent,
@@ -236,7 +236,7 @@ class as_event_notify
 
 			case 'u_signup':
 				if (as_opt('signup_notify_admin')) {
-					as_send_notification(null, as_opt('feedback_email'), null, as_lang('emails/u_signuped_subject'),
+					as_send_notification(null, "", as_opt('feedback_email'), null, as_lang('emails/u_signuped_subject'),
 						as_opt('moderate_users') ? as_lang('emails/u_to_approve_body') : as_lang('emails/u_signuped_body'), array(
 							'^u_handle' => $handle,
 							'^url' => as_path_absolute('user/' . $handle),
@@ -248,7 +248,7 @@ class as_event_notify
 
 			case 'u_level':
 				if ($params['level'] >= AS_USER_LEVEL_APPROVED && $params['oldlevel'] < AS_USER_LEVEL_APPROVED) {
-					as_send_notification($params['userid'], null, $params['handle'], as_lang('emails/u_approved_subject'), as_lang('emails/u_approved_body'), array(
+					as_send_notification($params['userid'], "", null, $params['handle'], as_lang('emails/u_approved_subject'), as_lang('emails/u_approved_body'), array(
 						'^url' => as_path_absolute('user/' . $params['handle']),
 					));
 				}
@@ -259,7 +259,7 @@ class as_event_notify
 				if ($userid != $params['userid']) {
 					$blockwordspreg = as_get_block_words_preg();
 
-					as_send_notification($params['userid'], null, $params['handle'], as_lang('emails/wall_post_subject'), as_lang('emails/wall_post_body'), array(
+					as_send_notification($params['userid'], "", null, $params['handle'], as_lang('emails/wall_post_subject'), as_lang('emails/wall_post_body'), array(
 						'^f_handle' => isset($handle) ? $handle : as_lang('main/anonymous'),
 						'^post' => as_block_words_replace($params['text'], $blockwordspreg),
 						'^url' => as_path_absolute('user/' . $params['handle'], null, 'wall'),

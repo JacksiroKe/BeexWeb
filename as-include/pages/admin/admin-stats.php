@@ -282,7 +282,4 @@ $as_content['script_onloads'][] = array(
 	"as_version_check('https://raw.githubusercontent.com/aps/appsmata/master/VERSION.txt', " . as_js(as_html(AS_VERSION), true) . ", 'aps-version', true);"
 );
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
-
-
 return $as_content;

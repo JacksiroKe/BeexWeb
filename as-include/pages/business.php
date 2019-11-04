@@ -23,14 +23,6 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
 	exit;
 }
 
-require_once AS_INCLUDE_DIR . 'APS/as-beex-business.php';
-require_once AS_INCLUDE_DIR . 'APS/as-beex-department.php';
-require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-cc.php';
-require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-fin.php';
-require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-hr.php';
-require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-sale.php';
-require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-stock.php';
-
 $request = "";
 $rootpage = "business";
 $as_content = as_content_prepare();
@@ -241,6 +233,7 @@ if (is_numeric($request)) {
 		case 'managers':
 			$profile1['body']['items']['link2'] = null;
 			$managers = explode(',', $business->managers);		
+			$in['userfinder'] = as_get_post_title('usersearch');
 
 			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $formcontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
@@ -278,12 +271,32 @@ if (is_numeric($request)) {
 						'header' => array(
 							'title' => 'ADD MANAGERS',
 						),
-						'view' => 'user_search',
+						'view' => array(
+							'type' => 'form', 'style' => 'tall',
+							'fields' => array(
+								'namesearch' => array(
+									'label' => 'Enter a username or Email',
+									'tags' => 'name="namesearch" id="namesearch" autocomplete="off"',
+								),
+								
+								'userresults' => array(
+									'type' => 'custom',
+									'html' => '<span id="userresults"></span>',
+								),
+
+								'useraction' => array(
+									'type' => 'custom',
+									'html' => '<span id="refreshsubmit"><input class="btn btn-primary" value="ADD AS A MANAGER" name="doaddmanager" onclick="as_show_waiting_after(this, false); return as_add_manager('.$business->businessid.', this);"></span>',
+								),
+							),
+						),
 					),
 				),
 
 				'hidden' => array( 'code' => as_get_form_security_code('business-departments')),
 			);
+			$as_content['script_onloads'][] = 'as_username_change('.as_js($in['userfinder']).');';
+
 			$owner = as_db_select_with_pending(as_db_user_profile($userid));
 			
 			$bodycontent['dash']['items'][] = array(
@@ -296,10 +309,10 @@ if (is_numeric($request)) {
 				unset($bodycontent['fields']['intro']);
 		
 				foreach ($managers as $mid) {
-					if (!empty($mid)) {
+					if (!empty($mid) && $userid != $mid) {
 						$manager = as_db_select_with_pending(as_db_user_profile($mid));
 			
-						$bodycontent['dash']['items'][] = array(
+						$bodycontent['dash']['items'][$mid] = array(
 							'img' => as_avatar(20, 'profile-user-img img-responsive', $manager), 
 							'label' => $manager['firstname'].' '.$manager['lastname'], 
 							'description' => 'BUSINESS MANAGER',
@@ -320,6 +333,7 @@ if (is_numeric($request)) {
 				),
 			);
 			break;
+
 		case 'edit':
 			$as_content['title'] = 'Edit: ' .$business->title.' <small>BUSINESS</small>';
 			$profile1['body']['items']['link1'] = array( 
@@ -563,6 +577,14 @@ if (is_numeric($request)) {
 			);
 			break;
 
+		case 'products':			
+			list($products, $categories) = as_db_select_with_pending(
+				as_db_question_selectspec($userid, $selectsort, $start),
+				as_db_category_nav_selectspec($editproductid, true, false, true)
+			);
+
+			break;
+
 		default:		
 			$bodycontent = array(
 				'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
@@ -603,7 +625,7 @@ if (is_numeric($request)) {
 				foreach ($departments as $department) {
 					if (!isset($department->parentid)) {
 						if ($department->content == null) $department->content = "...";
-						$bodycontent['dash']['items'][] = array(
+						$bodycontent['dash']['items'][$department->departid] = array(
 							'img' => as_get_media_html($department->icon, 20, 20), 
 							'label' => as_html($department->title).' Department', 
 							'numbers' => '1 User', 'description' => $department->content,
@@ -727,18 +749,6 @@ else {
 			
 			$businesses = BxBusiness::get_list($userid);
 
-			$item1 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
-				'updates' => array('bg-green', 'NEW'), 'title' => 'New Business', 'icon' => 'plus', 'link' => $rootpage.'/register');
-			
-			$item2 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
-				'updates' => array('bg-blue', 'NEW'), 'title' => 'Action 1', 'icon' => 'edit', 'link' => '#');
-			
-			$item3 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
-				'updates' => array('bg-red', 'NEW'), 'title' => 'Action 2', 'icon' => 'wrench', 'link' => '#');
-			
-			$item4 = array( 'type' => 'btn-app', 'theme' => 'aqua', 'info' => 'Get started',
-				'updates' => array('bg-yellow', 'NEW'), 'title' => 'Action 3', 'icon' => 'cog', 'link' => '#');
-			
 			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 
 				'title' => count($businesses) .' BUSINESS' . (count($businesses) == 1 ? '' : 'ES'), 
 				'tools' => array(
@@ -764,8 +774,7 @@ else {
 			
 			$as_content['row_view'][] = array(
 				'colms' => array(
-					1 => array('class' => 'col-lg-3 col-xs-6', 'c_items' => array($item1, $item2, $item3, $item4) ),
-					2 => array('class' => 'col-lg-9 col-xs-6', 'c_items' => array($dashlist) ),
+					0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($dashlist) ),
 				),
 			);
 	

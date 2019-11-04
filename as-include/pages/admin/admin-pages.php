@@ -570,7 +570,4 @@ if (isset($editpage)) {
 	);
 }
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
-
-
 return $as_content;

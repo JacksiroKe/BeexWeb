@@ -152,12 +152,12 @@
                 $this->output('<div class="control-sidebar-bg"></div>', '</div>');
             }
             else {
-				$this->output('<div class="login-box">');
-				$this->output('<div class="login-logo">', '<a href=".">'.$this->content['site_title'].'</a>', '</div>');
-				
-				$this->guest();
-				
-				$this->output('</div>');
+              $this->output('<div class="login-box">');
+              $this->output('<div class="login-logo">', '<a href=".">'.$this->content['site_title'].'</a>', '</div>');
+              
+              $this->guest();
+              
+              $this->output('</div>');
             }          
         }
 

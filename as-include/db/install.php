@@ -160,6 +160,7 @@ function as_db_table_definitions()
 			'tags' => 'VARCHAR(' . AS_DB_MAX_TAGS_LENGTH . ')', // string of tags separated by commas
 			'userid' => $useridcoltype, // which user created it
 			'managers' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
+			'users' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra1' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra2' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
@@ -172,7 +173,6 @@ function as_db_table_definitions()
 			'createip' => 'VARBINARY(16)', // INET6_ATON of IP address used to create the post
 			'lastuserid' => $useridcoltype, // which user last modified it
 			'lastip' => 'VARBINARY(16)', // INET6_ATON of IP address which last modified the post
-			'users' => 'INT UNSIGNED NOT NULL DEFAULT 1',
 			'hotness' => 'FLOAT',
 			'flagcount' => 'TINYINT UNSIGNED NOT NULL DEFAULT 0',
 			'PRIMARY KEY (businessid)',
@@ -188,7 +188,7 @@ function as_db_table_definitions()
 			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ') NOT NULL DEFAULT \'\'', // description of department 
 			'userid' => $useridcoltype, // which user created it
 			'managers' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
-			'users' => 'INT UNSIGNED NOT NULL DEFAULT 1',
+			'users' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra1' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
 			'extra2' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'\'',
@@ -281,13 +281,12 @@ function as_db_table_definitions()
 			'notifyid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'status' => "ENUM('READ', 'UNREAD') NOT NULL DEFAULT 'UNREAD'",
 			'userid' => $useridcoltype,
-			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL',
-			'content' => 'VARCHAR(' . AS_DB_MAX_CONTENT_LENGTH . ') NOT NULL',
+			'message' => 'VARCHAR(' . AS_DB_MAX_CONTENT_LENGTH . ') NOT NULL',
 			'action' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'read\'',
 			'link' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL DEFAULT \'#\'',
 			'format' => 'VARCHAR(' . AS_DB_MAX_FORMAT_LENGTH . ') CHARACTER SET ascii NOT NULL',
 			'created' => 'DATETIME NOT NULL',
-			'readon' => 'DATETIME NOT NULL',
+			'readon' => 'DATETIME',
 			'PRIMARY KEY (notifyid)',
 		),
 

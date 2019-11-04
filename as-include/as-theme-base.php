@@ -556,29 +556,23 @@ class as_html_theme_base
 
 	public function notifications()
 	{
-		if (!(isset($this->content['notifications']) ? $this->content['notifications'] : null)) return;
-		$this->output('<li class="dropdown notifications-menu">
-		<!-- Menu toggle button -->
-		<a href="#" class="dropdown-toggle" data-toggle="dropdown">
-		<i class="fa fa-bell-o"></i>
-		<span class="label label-warning">10</span>
-		</a>
-		<ul class="dropdown-menu">
-		<li class="header">You have 10 notifications</li>
-		<li>
-		<!-- Inner Menu: contains the notifications -->
-		<ul class="menu">
-		<li><!-- start notification -->
-		<a href="#">
-		<i class="fa fa-users text-aqua"></i> 5 new users joined today
-		</a>
-		</li>
-		<!-- end notification -->
-		</ul>
-		</li>
-		<li class="footer"><a href="#">View all</a></li>
-		</ul>
-		</li>');
+		$notifys = $this->content['notifications'];
+
+		$this->output('<li class="dropdown notifications-menu">');
+		$this->output('<a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-bell-o"></i>');
+		$this->output('<span class="label label-warning">'.count($notifys).'</span></a>');
+		$this->output('<ul class="dropdown-menu">', '<li class="header">You have '.count($notifys));
+		$this->output(' notification'.(count($notifys) == 1 ? '' : 's').'</li>');
+		foreach ($notifys as $notify) {
+			$this->output('<li>', '<ul class="menu">', '<li>');
+			if (isset($notify['link'])) $this->output('<a href="'.$notify['link'].'">');
+			else $this->output('<a href="#">');
+			//$this->output('<i class="fa fa-users text-aqua"></i>');
+			$this->output($notify['message'].'</a>');
+			$this->output('</li>', '</ul>', '</li>');
+		}
+		$this->output('<li class="footer"><a href="#">View all</a></li>');
+		$this->output('</ul>', '</li>');
 	}
 
 	public function tasks()
@@ -972,7 +966,9 @@ class as_html_theme_base
 		
 		$this->output('<div class="content-wrapper fixed-cw">');
 		$this->output('<section class="content-header">');
-		$this->output('<h1>'.@$content['title'].'</h1>');
+
+		if (isset($this->content['error'])) $this->output('<h1>'.as_opt('site_title').'</h1>');
+		else $this->output('<h1>'.@$content['title'].'</h1>');
 		
 		if (strlen($this->request)) {
 			$this->output('<ol class="breadcrumb">');
@@ -984,7 +980,11 @@ class as_html_theme_base
 		
 		$this->output('</section>');
 	  
-		$this->output('<section class="content container-fluid"> <!-- Main Content -->');	
+		$this->output('<section class="content container-fluid"> <!-- Main Content -->');
+		
+		if (isset($this->content['success'])) $this->success($this->content['success']);
+		if (isset($this->content['error'])) $this->error($this->content['error']);	
+
 		$this->main_parts($content);
 		$this->output('</section> <!-- End Main Content -->');
 		$this->output('</div> <!-- END as-main -->', '');
@@ -1075,22 +1075,20 @@ class as_html_theme_base
 	public function error($error)
 	{
 		if (strlen($error)) {
-			$this->output(
-				'<div class="as-error">',
-				$error,
-				'</div>'
-			);
+			$this->output('<div class="callout callout-danger">');
+            $this->output('<h2>'.$this->content['title'].'!</h2>');
+			$this->output('<h4>'.$error.'</h4>');
+			$this->output('</div>');
 		}
 	}
 
 	public function success($message)
 	{
 		if (strlen($message)) {
-			$this->output(
-				'<div class="as-success">',
-				$message,
-				'</div>'
-			);
+			$this->output('<div class="callout callout-success">');
+            $this->output('<h2>'.$this->content['title'].'!</h2>');
+			$this->output('<h4>'.$message.'</h4>');
+			$this->output('</div>');
 		}
 	}
 
@@ -1261,11 +1259,11 @@ class as_html_theme_base
 			$this->output('<div class="modal-dialog">');
 			$this->output('<div class="modal-content">');
 			$this->output('<div class="modal-header">');
-			$this->output('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-user"></i></button>');
+			$this->output('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-close"></i></button>');
 			$this->output('<h4 class="modal-title">'.$modal['header']['title'].'</h4>', '</div>');
 			$this->output('<div class="modal-body">');
 					
-			if (strpos($modal['view'], 'user_search') === 0) $this->user_search($modal['view']);
+			if ($modal['view']['type'] = 'form') $this->form($modal['view']);
 
 			$this->output('</div>');
 			$this->output('<div class="modal-footer">');
@@ -1280,14 +1278,19 @@ class as_html_theme_base
 	public function user_search($search)
 	{
 		if (isset($search)) {
-			$this->output('<form role="form">');
+			$this->output('<form role="form" id="user_modal_search">');
 			$this->output('<div class="box-body">');
 			$this->output('<div class="form-group">');
-			$this->output('<label for="exampleInputEmail1">Search for a User</label>');
-			$this->output('<input type="text" class="form-control" id="search_term" placeholder="Enter an email address or name">');
-			$this->output('</div>', '</div>');
+			$this->output('<label>Search for a User</label>');
+			$this->output('<input type="text" class="form-control" id="usersearch" name="usersearch" placeholder="Enter an email address or name">');
+			$this->output('</div>');
+			$this->output('<div class="form-group">');
+			$this->output('<div id="userresults"></div>');
+			$this->output('</div>');
+			$this->output('</div>');
+
 			$this->output('<div class="box-footer">');
-			$this->output('<input class="btn btn-primary" value="ADD AS A MANAGER TO THIS BUSINESS" 
+			$this->output('<input class="btn btn-primary" value="ADD AS A MANAGER" 
 				name="doaddmanager" onclick="as_show_waiting_after(this, false); return as_add_manager(this);">');
 			$this->output('</div>', '</form>');
 		}

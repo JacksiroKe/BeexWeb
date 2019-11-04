@@ -29,47 +29,44 @@ $as_content = as_content_prepare();
 $as_content['title'] = 'Welcome to BeExpress';
 
 $handle = as_get_logged_in_handle();
+$userid = as_get_logged_in_userid();
 $defaulticon = as_opt('site_url') . '/as-media/appicon.png';
-	
+
+$user_notifys = as_db_notifications($userid);
+$notifys = array();
+foreach ($user_notifys as $notify){
+	switch ($notify['action']) {
+		case 'welcome-here':
+			$notify_title = 'Welcome to BeExpress';
+			break;
+			
+		case 'confrim-email':
+			$notify_title = 'Confirm your Email';
+			break;
+		
+		case 'user-level':
+			$notify_title = 'Change of your Priviledges';
+			break;
+			
+		case 'reset-password':
+			$notify_title = 'Reset Your Password';
+			break;
+		
+		case 'open-bs-page':
+			$notify_title = 'Your New Business is Ready!';
+			break;			
+	}
+	$notifys[] = array(
+		'img' => $defaulticon, 'label' => $notify_title, 'numbers' => '',
+		'description' => $notify['message']. ' <a href="' . $notify['link'] . '"> Learn more about this </a>',
+	);		
+}
+
+$notifications = array( 'type' => 'list', 'theme' => 'primary', 'title' => 'Your Notifications', 'body' => array( 'type' => 'product', 'items' => $notifys));
+
 $smallbox1 = array( 'type' => 'small-box', 'theme' => 'yellow', 
 	'count' => '44', 'title' => 'User Registrations', 
 	'icon' => 'person-add', 'link' => '#');
-
-$latestnews = array( 'type' => 'list', 'theme' => 'primary', 'title' => 'Latest News', 
-	'body' => array(
-		'type' => 'product',
-		'items' => array(
-			0 => array(
-				'img' => $defaulticon, 'label' => 'Panel Doors', 'numbers' => 'Kshs. 2500',
-				'description' => 'The best you need to be where ytou wanna be',
-			),
-			1 => array(
-				'img' => $defaulticon, 'label' => 'MDF Panel Doors', 'numbers' => 'Kshs. 2000',
-				'description' => 'The best you need to be where ytou wanna be',
-			),	
-			2 => array(
-				'img' => $defaulticon, 'label' => 'Flush Panel Doors', 'numbers' => 'Kshs. 2100',
-				'description' => 'The best you need to be where ytou wanna be',
-			),	
-			3 => array(
-				'img' => $defaulticon, 'label' => 'Flush Doors', 'numbers' => 'Kshs. 1600',
-				'description' => 'The best you need to be where ytou wanna be',
-			),	
-			4 => array(
-				'img' => $defaulticon, 'label' => 'Mahogany', 'numbers' => 'Kshs. 1800',
-				'description' => 'The best you need to be where ytou wanna be',
-			),	
-			5 => array(
-				'img' => $defaulticon, 'label' => 'Panel Doors', 'numbers' => 'Kshs. 2500',
-				'description' => 'The best you need to be where ytou wanna be',
-			),	
-			6 => array(
-				'img' => $defaulticon, 'label' => 'Block Boards', 'numbers' => 'Kshs. 3000',
-				'description' => 'The best you need to be where ytou wanna be',
-			),				
-		),
-	),
-);
 
 $latestoffers = array( 'type' => 'list', 'theme' => 'primary', 'title' => 'Latest Offers', 
 	'body' => array(
@@ -109,13 +106,13 @@ $latestoffers = array( 'type' => 'list', 'theme' => 'primary', 'title' => 'Lates
 
 $as_content['row_view'][] = array(
 	'colms' => array(
-		//1 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($smallbox1) ),
+		1 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($notifications) ),
 		//2 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($latestnews) ),
 		//3 => array('class' => 'col-lg-4 col-xs-6', 'c_items' => array($latestoffers) ),
 	),
 );
 
-$tabview = array( 'type' => 'nav-tabs-custom', 'right' => true, 
+/*$tabview = array( 'type' => 'nav-tabs-custom', 'right' => true, 
 	'navs' => array('revenue-chart' => 'Area', 'sales-chart' => 'Donut', 'header' => 'Sales') );
 
 
@@ -127,9 +124,8 @@ $tabview['body']['charts'] = array(
 $as_content['row_view'][] = array(
 	'section' => 'col-lg-7 connectedSortable',
 	'colms' => array(
-		//1 => array('class' => 'col-md-9', 'c_items' => array($tabview) ),
+		1 => array('class' => 'col-md-9', 'c_items' => array($tabview) ),
 	),
-);
-
+);*/
 
 return $as_content;

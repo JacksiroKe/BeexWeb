@@ -239,6 +239,7 @@ function as_default_option($name)
 		'comment_on_as' => 1,
 		'comment_on_qs' => 0,
 		'confirm_user_emails' => 1,
+		'confirm_user_required' => 1,
 		'do_write_check_qs' => 0,
 		'do_complete_tags' => 1,
 		'do_count_q_views' => 1,

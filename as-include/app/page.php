@@ -30,6 +30,13 @@ require_once AS_INCLUDE_DIR . 'app/users.php';
 require_once AS_INCLUDE_DIR . 'app/options.php';
 require_once AS_INCLUDE_DIR . 'db/selects.php';
 
+require_once AS_INCLUDE_DIR . 'APS/as-beex-business.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-department.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-cc.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-fin.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-hr.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-sale.php';
+require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-stock.php';
 
 define('AS_USER_TYPE', as_get_logged_in_type(false));
 define('AS_USER_TYPE_FULL', as_get_logged_in_type(true));
@@ -168,6 +175,18 @@ function as_check_page_clicks()
 	}
 }
 
+function as_default_page()
+{
+	$request = as_request_part(0);
+	if (as_is_logged_in()) return include AS_INCLUDE_DIR . 'pages/dashboard.php';
+	else {
+		if (empty($request)) return include AS_INCLUDE_DIR . 'pages/signin.php';
+		else if ($request == 'signin') return include AS_INCLUDE_DIR . 'pages/signin.php';
+		else if ($request == 'signup') return include AS_INCLUDE_DIR . 'pages/signup.php';
+		else if ($request == 'forgot') return include AS_INCLUDE_DIR . 'pages/forgot.php';
+		else return include AS_INCLUDE_DIR . 'pages/signin.php';
+	}
+}
 
 /**
  *	Run the appropriate /as-include/pages/*.php file for this request and return back the $as_content it passed
@@ -175,37 +194,39 @@ function as_check_page_clicks()
 function as_get_request_content()
 {
 	if (as_to_override(__FUNCTION__)) { $args=func_get_args(); return as_call_override(__FUNCTION__, $args); }
+	
+	if (as_is_logged_in()) {
+		$requestlower = strtolower(as_request());
+		$requestparts = as_request_parts();
+		$firstlower = strtolower($requestparts[0]);
+		$routing = as_page_routing();
 
-	$requestlower = strtolower(as_request());
-	$requestparts = as_request_parts();
-	$firstlower = strtolower($requestparts[0]);
-	$routing = as_page_routing();
+		if (isset($routing[$requestlower])) {
+			as_set_template($firstlower);
+			$as_content = require AS_INCLUDE_DIR . $routing[$requestlower];
 
-	if (isset($routing[$requestlower])) {
-		as_set_template($firstlower);
-		$as_content = require AS_INCLUDE_DIR . $routing[$requestlower];
+		} elseif (isset($routing[$firstlower . '/'])) {
+			as_set_template($firstlower);
+			$as_content = require AS_INCLUDE_DIR . $routing[$firstlower . '/'];
 
-	} elseif (isset($routing[$firstlower . '/'])) {
-		as_set_template($firstlower);
-		$as_content = require AS_INCLUDE_DIR . $routing[$firstlower . '/'];
+		} elseif (is_numeric($requestparts[0])) {
+			as_set_template('item');
+			$as_content = require AS_INCLUDE_DIR . 'pages/item.php';
 
-	} elseif (is_numeric($requestparts[0])) {
-		as_set_template('item');
-		$as_content = require AS_INCLUDE_DIR . 'pages/item.php';
+		} else {
+			as_set_template(strlen($firstlower) ? $firstlower : 'as'); // will be changed later
+			$as_content = as_default_page(); // handles many other pages, including custom pages and page modules
+		}
 
-	} else {
-		as_set_template(strlen($firstlower) ? $firstlower : 'as'); // will be changed later
-		$as_content = require AS_INCLUDE_DIR . 'pages/default.php'; // handles many other pages, including custom pages and page modules
+		if ($firstlower == 'admin') {
+			$_COOKIE['as_admin_last'] = $requestlower; // for navigation tab now...
+			setcookie('as_admin_last', $_COOKIE['as_admin_last'], 0, '/', AS_COOKIE_DOMAIN, (bool)ini_get('session.cookie_secure'), true); // ...and in future
+		}
+
+		if (isset($as_content))
+			as_set_form_security_key();
 	}
-
-	if ($firstlower == 'admin') {
-		$_COOKIE['as_admin_last'] = $requestlower; // for navigation tab now...
-		setcookie('as_admin_last', $_COOKIE['as_admin_last'], 0, '/', AS_COOKIE_DOMAIN, (bool)ini_get('session.cookie_secure'), true); // ...and in future
-	}
-
-	if (isset($as_content))
-		as_set_form_security_key();
-
+	else $as_content = as_default_page(); 
 	return $as_content;
 }
 
@@ -575,24 +596,8 @@ function as_content_prepare($voting = false, $categoryids = array())
     $as_content['navigation']['main']['home'] = array(
         'label' => as_lang_html('main/nav_home'),
         'url' => as_path_html(''),
-        'icon' => 'fa fa-dashboard',
+        'icon' => 'fa fa-home',
     );
-
-    if ($rules['baseuser']) {
-        $as_content['navigation']['main']['business'] = array(
-            'label' => as_lang_html('main/nav_bs'),
-            'url' => as_path_html('business'),
-            'icon' => 'fa fa-dashboard',
-        );
-    }
-
-    /*if ($rules['baseuser']) {
-        $as_content['navigation']['main']['sell'] = array(
-            'label' => as_lang_html('main/nav_sell'),
-            'url' => as_path_html('products'),
-            'icon' => 'fa fa-dashboard',
-        );
-    }*/
 
     if ($rules['superadmin']) {
 		$as_content['navigation']['main']['users'] = array(
@@ -602,7 +607,37 @@ function as_content_prepare($voting = false, $categoryids = array())
         );
         require_once AS_INCLUDE_DIR . 'app/admin.php';
 		$as_content['navigation']['main'] = as_admin_sub_navigation($as_content['navigation']['main']);
-    }
+    } else {
+		$businesses = BxBusiness::get_list(as_get_logged_in_userid());
+		$as_content['navigation']['main']['allbiz'] = array( 'label' => as_lang_html('main/nav_bs') );
+
+		$as_content['navigation']['main']['business'] = array(
+			'label' => as_lang_html('main/nav_bs_all'),
+			'url' => as_path_html('business'),
+			'icon' => 'fa fa-line-chart',
+		);
+
+		if (count($businesses)){				
+			foreach ($businesses as $business){
+				$as_content['navigation']['main'][$business->username] = array(
+					'label' => $business->title,
+					'url' => as_path_html('business/' . $business->businessid),
+					'icon' => 'fa fa-map-signs',
+				);
+				
+				$departments = BxDepartment::get_list($business->businessid);
+				if (count($departments)) {
+					foreach ($departments as $department){
+						$as_content['navigation']['main'][$business->username]['sub'][$department->departid] = array(
+							'label' => $department->title . ' DEPT',
+							'url' => as_path_html('department/' . $department->departid),
+							'icon' => 'fa fa-columns',
+						);
+					}
+				}
+			}
+		}
+	}
 	
 	$as_content['search'] = array(
 		'form_tags' => 'method="get" action="' . as_path_html('search') . '"',
@@ -752,9 +787,7 @@ function as_content_prepare($voting = false, $categoryids = array())
 		}
 	}
 
-	$notifications = as_db_notifications(as_get_logged_in_userid());
-	if (count($notifications)) 
-		$as_content['notifications'] = $notifications;
+	$as_content['notifications'] = as_db_notifications(as_get_logged_in_userid());
 	
 	if (AS_FINAL_EXTERNAL_USERS || !as_is_logged_in()) {
 		if (as_opt('show_notice_visitor') && (!isset($topath)) && (!isset($_COOKIE['as_noticed'])))

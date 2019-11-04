@@ -189,13 +189,6 @@ function as_create_department_supplier($userid, $title, $content, $field1, $fiel
 	as_db_user_set($userid, 'type', $usertype);
 	as_db_user_set($userid, 'profiles', $profiles);
 	
-	/*as_send_notification($userid, $firstname.' '.$lastname, $email, $handle, as_lang('emails/welcome_subject'), as_lang('emails/welcome_body'), array(
-		'^password' => isset($password) ? as_lang('main/hidden') : as_lang('users/password_to_set'),
-		'^url' => as_opt('site_url'),
-		'^custom' => strlen($custom) ? ($custom . "\n\n") : '',
-		'^confirm' => $confirm,
-	));*/
-
 	return $supplierid;
 }
 
@@ -246,13 +239,15 @@ function as_create_department_user($type, $firstname, $lastname, $gender, $count
 
 	// we no longer use the 'approve_user_required' option to set AS_USER_FLAGS_MUST_APPROVE; this can be handled by the Permissions settings
 
-	as_send_notification($userid, $firstname.' '.$lastname, $email, $handle, as_lang('emails/welcome_subject'), as_lang('emails/welcome_body'), array(
+	as_send_notification($userid, $firstname . " " . $lastname, $email, $handle, as_lang('emails/welcome_subject'), as_lang('emails/welcome_body'), array(
 		'^password' => isset($password) ? as_lang('main/hidden') : as_lang('users/password_to_set'),
 		'^url' => as_opt('site_url'),
 		'^custom' => strlen($custom) ? ($custom . "\n\n") : '',
 		'^confirm' => $confirm,
 	));
 
+	as_db_notification_create($userid, as_lang_html_sub('notify/welcome', as_opt('site_title')), 'welcome-here', as_opt('site_url'), '');
+	
 	as_report_event('u_signup', $userid, $handle, as_cookie_get(), array(
 		'email' => $email,
 		'level' => $level,
@@ -319,6 +314,7 @@ function as_send_new_confirm($userid)
 	))) {
 		as_fatal_error('Could not send email confirmation');
 	}
+	as_db_notification_create($userid, as_lang('notify/confirm_email'), 'confrim-email', as_opt('site_url'), '');    
 }
 
 
@@ -410,6 +406,8 @@ function as_set_user_level($userid, $fullname, $handle, $email, $level, $oldleve
 			'^url' => as_opt('site_url'),
 		));	
 	
+	as_db_notification_create($userid, ($oldlevel < $level) ? as_lang('notify/elevated_up') : as_lang('notify/elevated_down'), 'user-level', as_opt('site_url'), '');   
+
 	as_report_event('u_elevation', as_get_logged_in_userid(), as_get_logged_in_handle(), as_cookie_get(), array(
 		'userid' => $userid,
 		'handle' => $handle,
@@ -464,6 +462,7 @@ function as_start_reset_user($userid)
 	))) {
 		as_fatal_error('Could not send reset password email');
 	}
+	as_db_notification_create($userid, as_lang('notify/reset_password'), 'reset-password', as_opt('site_url'), '');   
 }
 
 
@@ -501,6 +500,7 @@ function as_complete_reset_user($userid)
 	as_report_event('u_reset', $userid, $userinfo['handle'], as_cookie_get(), array(
 		'email' => $userinfo['email'],
 	));
+	as_db_notification_create($userid, as_lang('notify/reset_password'), 'reset-password', as_opt('site_url'), '');   
 }
 
 

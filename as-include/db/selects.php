@@ -1080,16 +1080,15 @@ function as_db_list_orders_selectspec()
 
 function as_db_notifications( $userid, $unread = true, $limit = null )
 {
-	$selectspec['columns'] = array('notifyid', 'status', 'userid', 'title', 'content', 'action', 'link', 'format',
+	$selectspec['columns'] = array('notifyid', 'status', 'userid', 'message', 'action', 'link', 'format',
 		'created' => 'UNIX_TIMESTAMP(^notifications.created)', 'readon' => 'UNIX_TIMESTAMP(^notifications.readon)');
 	
 	if ($unread) {
 		$selectspec['source'] = '^notifications WHERE status="UNREAD" AND userid=#';
-		$selectspec['arguments'] = array($userid);
 	} else {
 		$selectspec['source'] = '^notifications WHERE userid=#';
-		$selectspec['arguments'] = array($userid);
 	}
+	$selectspec['arguments'] = array($userid);
 
 	if ($limit) $selectspec['source'] .= ' LIMIT=' . $limit;
 	$selectspec['sortasc'] = 'notifyid';
@@ -1662,6 +1661,29 @@ function as_db_user_profile($userid)
 	);
 }
 
+
+/**
+ * Return the selecspec to retrieve a single array with details of the account of the user identified by
+ * $useridhandle, which should be a userid if $isuserid is true, otherwise $useridhandle should be a handle.
+ * @param $useridhandle
+ * @param $isuserid
+ * @return array
+ */
+function as_db_user_search_selectspec($searchterm)
+{
+	return array(
+		'columns' => array(
+			'^users.userid', 'passsalt', 'passcheck' => 'HEX(passcheck)', 'passhash', 'usertype' => '^users.type', 'profiles', 'firstname', 'lastname', 'gender', 'country', 'mobile', 'email', 'level', 'emailcode', 'handle',
+			'created' => 'UNIX_TIMESTAMP(created)', 'sessioncode', 'sessionsource', 'flags', 'signedin' => 'UNIX_TIMESTAMP(signedin)',
+			'signinip', 'written' => 'UNIX_TIMESTAMP(written)', 'writeip',
+			'avatarblobid' => 'BINARY avatarblobid',
+			'avatarwidth', 'avatarheight', 'points', 'wallposts',
+		),
+
+		'source' => '^users LEFT JOIN ^userpoints ON ^userpoints.userid=^users.userid WHERE ^users.' . ((strpos($searchterm, '@') === 0) ? 'handle' : 'email') . '=$',
+		'arguments' => array($searchterm),
+	);
+}
 
 /**
  * Return the selecspec to retrieve a single array with details of the account of the user identified by

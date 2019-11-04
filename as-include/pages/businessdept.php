@@ -333,13 +333,25 @@ if (is_numeric($request)) {
 			$categoryslugs = as_get('cart');
 			$categories = as_db_select_with_pending(as_db_category_nav_selectspec($categoryslugs, false, false, true));
 
-			if (count($categories)){	
-				
+			if (count($categories)){				
 				$bodycontent['tools'] = array(
-					'add' => array( 'type' => 'link', 'label' => 'ADD STOCK',
-					'url' => as_path_html($rootpage.'/entry'), 
-					'class' => 'btn btn-primary btn-block')
-				);				
+					'products' => array(
+						'type' => 'link', 'label' => 'MANAGE PRODUCTS',
+						'url' => as_path_html('business/'. $department->businessid.'/products'), 
+						'class' => 'btn btn-primary btn-tool',
+					),
+					'' => array(
+						'type' => 'link', 'label' => ' ',
+						'url' => '#', 
+						'class' => 'btn btn-tool',
+					),
+					'stock' => array(
+						'type' => 'link', 'label' => 'MANAGE STOCK',
+						'url' => as_path_html($rootpage.'/entry'), 
+						'class' => 'btn btn-primary btn-tool',
+					),
+				);
+							
 				unset($as_content['form']['fields']['intro']);
 
 				$tablelist = array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Code', 'Suppllier', 'Date of Entry', 'Qty', 'Amount', '*') );		

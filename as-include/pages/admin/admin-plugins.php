@@ -248,8 +248,6 @@ if (!empty($fileSystemPlugins)) {
 	}
 }
 
-$as_content['navigation']['sub'] = as_admin_sub_navigation();
-
 $as_content['form'] = array(
 	'tags' => 'method="post" action="' . as_self_html() . '" name="plugins_form" onsubmit="as_get_enabled_plugins_hashes(); return true;"',
 
