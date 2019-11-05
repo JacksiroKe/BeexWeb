@@ -140,5 +140,77 @@ class BxCustomerCare extends BxDepartment
         return $list;
     }
 
+    public static function customers_view($department, $as_content)
+    {
+        $as_content['title'] = $department->business . ' ' . $department->title. '<small> DEPARTMENT</small>';
+        
+        $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
+        $bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
+
+        $bodycontent['icon'] = array(
+            'fa' => 'arrow-left',
+            'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+            'class' => 'btn btn-social btn-primary',
+            'label' => as_lang_html('main/back_button'),
+        );
+
+        $start = as_get_start();
+        $users = as_db_select_with_pending(as_db_newest_users_selectspec($start, as_opt_if_loaded('page_size_users')));
+        $usercount = as_opt('cache_userpointscount');
+        $pagesize = as_opt('page_size_users');
+        $users = array_slice($users, 0, $pagesize);
+        $usershtml = as_userids_handles_html($users);
+
+        if (count($users)){				
+            $bodycontent['tools'] = array(
+                'products' => array(
+                    'type' => 'link', 'label' => 'ADD A CUSTOMER',
+                    'url' => as_path_html('business/'. $department->businessid.'/cust_new'), 
+                    'class' => 'btn btn-primary btn-tool',
+                ),
+            );
+                        
+            unset($as_content['form']['fields']['intro']);
+
+            $tablelist = array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Name', 'Mobile', 'Email Address', 'Location', 'Registered', '*') );		
+
+            $navcategoryhtml = '';
+            $k = 1;
+            
+            foreach ($users as $user) {
+                $when = as_when_to_html($user['created'], 7);
+                $tablelist['rows'][$k] = array(
+                    'fields' => array(
+                        '*' => array( 'data' => ''),
+                        'id' => array( 'data' => $k),
+                        'avatar' => array( 'data' => as_get_media_html('user.jpg', 20, 20).' ' . $usershtml[$user['userid']] ),
+                        'mobile' => array( 'data' => $user['mobile'] ),
+                        'email' => array( 'data' => $user['email'] ),
+                        'location' => array( 'data' => '' ),
+                        'joined' => array( 'data' => $when['data'] ),
+                        'x' => array( 'data' => ''),
+                    ),
+                );
+
+                $k++;
+            }
+
+            $bodycontent['table']	= $tablelist;	
+        }
+
+        if (as_get('alert') != null) 
+            $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
+
+        if (as_get('callout') != null) 
+            $bodycontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
+
+        $as_content['row_view'][] = array(
+            'colms' => array(
+                0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
+            ),
+        );
+
+        return $as_content;
+    }
 
 }

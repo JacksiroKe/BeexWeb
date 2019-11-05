@@ -135,7 +135,6 @@ class BxDepartment
         return $departid;
     }
 
-
     /**
      * Fetches the a single of record in the department class
      */
@@ -172,11 +171,6 @@ class BxDepartment
         else return null;
     }
     
-    public static function is_stock( $userid, $departid ) 
-    {
-        if ($this->depttype == 'STK') return true;
-        else return false;
-    }
     /**
      * Fetches the list of record in the business class
      */
@@ -230,4 +224,109 @@ class BxDepartment
         );
     }
 
+    /*
+    * Is this a General Department?
+    */
+    public static function is_dept_general($depttype)
+    {
+        if ($depttype == 'GEN') return true;
+        else return false;
+    }
+
+    /*
+    * Is this a Stock Department?
+    */
+    public static function is_dept_stock($depttype)
+    {
+        if ($depttype == 'STK') return true;
+        else return false;
+    }
+
+    /*
+    * Is this a Sales Department?
+    */
+    public static function is_dept_sales($depttype)
+    {
+        if ($depttype == 'SALE') return true;
+        else return false;
+    }
+
+    /*
+    * Is this a Finance Department?
+    */
+    public static function is_dept_finance($depttype)
+    {
+        if ($depttype == 'FIN') return true;
+        else return false;
+    }
+
+    /*
+    * Is this a Human Resource Department?
+    */
+    public static function is_dept_hr($depttype)
+    {
+        if ($depttype == 'HR') return true;
+        else return false;
+    }
+
+    /*
+    * Is this a Customer Care Department?
+    */
+    public static function is_dept_cc($depttype)
+    {
+        if ($depttype == 'CC') return true;
+        else return false;
+    }
+
+    public static function general_view($department, $as_content, $sections, $request)
+    {
+        $as_content['title'] = $department->business . ' ' . $department->title. '<small> DEPARTMENT</small>';
+		$sincetime = as_time_to_string(as_opt('db_time') - $department->created);
+        $joindate = as_when_to_html($department->created, 0);
+        
+        $defaulticon ='appicon.png';	
+		
+		$bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
+		$bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
+		
+		$bodycontent['icon'] = array(
+			'fa' => 'arrow-left',
+			'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+			'class' => 'btn btn-social btn-primary',
+			'label' => as_lang_html('main/back_button'),
+		);
+        $bodycontent['title'] .= ' ' . count($sections) .' SUB-DEPARTMENT' . (count($sections) == 1 ? '' : 'S');
+			
+        $bodycontent['tools'] = array(
+            'add' => array( 'type' => 'link', 'label' => 'NEW SUB-DEPARTMENT',
+            'url' => as_path_html('department/'.$request.'/register'), 
+            'class' => 'btn btn-primary btn-block')
+        );	
+        
+        if (count($sections)){				
+            foreach ($sections as $section){
+                $bodycontent['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 
+                'label' => $section->title . ' Sub-Department', 'numbers' => '1 User', 
+                'description' => $section->content, 'link' => as_path_html('department/'.$section->departid),
+                    'infors' => array(
+                        'depts' => array('icount' => $section->sections, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
+                        'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
+                    ),
+                );
+            }
+        }
+
+        if (as_get('alert') != null) 
+            $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
+
+        if (as_get('callout') != null) 
+            $bodycontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
+
+		$as_content['row_view'][] = array(
+			'colms' => array(
+				0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
+			),
+		);
+        return $as_content;
+    }
 }

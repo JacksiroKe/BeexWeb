@@ -38,10 +38,6 @@ $requestlower = strtolower(as_request());
 $requestparts = as_request_parts();
 $request2 =as_request_part(2);
 
-$hasalert = as_get('alert');
-$hascallout = as_get('callout');
-$texttoshow = as_get('message');
-
 if (isset($requestparts[1])) $request = strtolower($requestparts[1]);
 $checkboxtodisplay = null;
 
@@ -313,133 +309,25 @@ if (is_numeric($request)) {
 			
 		}
 	} else {          
-		$as_content['title'] = $department->business . ' ' . $department->title. '<small> DEPARTMENT</small>';
-		//$as_content['title'] = ' <small>'. (isset($department->parentid) ? 'SUB-DEPARTMENT' : 'DEPARTMENT') . ' </small>';
-		$sincetime = as_time_to_string(as_opt('db_time') - $department->created);
-		$joindate = as_when_to_html($department->created, 0);
-		//$contacts = explode('xx', $business['contact']);		
 		
-		$bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
-		$bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
+		if (BxDepartment::is_dept_stock($department->depttype))
+			$as_content = BxStockDept::stocks_view($department, $as_content);
+
+		else if (BxDepartment::is_dept_sales($department->depttype))
+			$as_content = BxDepartment::general_view($department, $as_content, $sections, $request);
+
+		else if (BxDepartment::is_dept_finance($department->depttype))
+			$as_content = BxDepartment::general_view($department, $as_content, $sections, $request);
+
+		else if (BxDepartment::is_dept_hr($department->depttype))
+			$as_content = BxDepartment::general_view($department, $as_content, $sections, $request);
+
+		else if (BxDepartment::is_dept_cc($department->depttype))
+			$as_content = BxCustomerCare::customers_view($department, $as_content);
+
+		else 
+			$as_content = BxDepartment::general_view($department, $as_content, $sections, $request);
 		
-		$bodycontent['icon'] = array(
-			'fa' => 'arrow-left',
-			'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
-			'class' => 'btn btn-social btn-primary',
-			'label' => as_lang_html('main/back_button'),
-		);
-
-		if ($department->depttype == 'STK') {
-			$categoryslugs = as_get('cart');
-			$categories = as_db_select_with_pending(as_db_category_nav_selectspec($categoryslugs, false, false, true));
-
-			if (count($categories)){				
-				$bodycontent['tools'] = array(
-					'products' => array(
-						'type' => 'link', 'label' => 'MANAGE PRODUCTS',
-						'url' => as_path_html('business/'. $department->businessid.'/products'), 
-						'class' => 'btn btn-primary btn-tool',
-					),
-					'' => array(
-						'type' => 'link', 'label' => ' ',
-						'url' => '#', 
-						'class' => 'btn btn-tool',
-					),
-					'stock' => array(
-						'type' => 'link', 'label' => 'MANAGE STOCK',
-						'url' => as_path_html($rootpage.'/entry'), 
-						'class' => 'btn btn-primary btn-tool',
-					),
-				);
-							
-				unset($as_content['form']['fields']['intro']);
-
-				$tablelist = array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Code', 'Suppllier', 'Date of Entry', 'Qty', 'Amount', '*') );		
-
-				$navcategoryhtml = '';
-				$k = 1;
-				
-				foreach ($categories as $category) {
-					if (!isset($category['parentid'])) {
-						$tablelist['rows'][$k] = array(
-							'fields' => array(
-								'*' => array( 'data' => ($category['childcount'] ? ' (' . $category['childcount'] . ')' : '')),
-								'id' => array( 'data' => $k),
-								'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
-								'code' => array( 'data' => '' ),
-								'supp' => array( 'data' => '' ),
-								'code' => array( 'data' => '' ),
-								'entry' => array( 'data' => '' ),
-								'qty' => array( 'data' => ($category['pcount'])),
-								'amount' => array( 'data' => '' ),
-								'x' => array( 'data' => ''),
-							),
-						);
-
-						if ($category['childcount']) {
-							$subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));
-							$j = 1;
-							foreach ($subcarts as $subcart) {
-								$tablelist['rows'][$k]['sub'][$j] = array(
-									'fields' => array(
-										'*' => array( 'data' => ''),
-										'#' => array( 'data' => $j),
-										'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
-										'code' => array( 'data' => '' ),
-										'supp' => array( 'data' => '' ),
-										'code' => array( 'data' => '' ),
-										'entry' => array( 'data' => '' ),
-										'qty' => array( 'data' => ($category['pcount'])),
-										'amount' => array( 'data' => '' ),
-										'x' => array( 'data' => ''),
-									),
-								);
-								$checkboxtodisplay['child_' . $k . '_' . $j] = 'parent_' . $k ;
-								$j++;
-							}
-						}
-
-					}
-					$k++;
-				}
-
-				if (isset($checkboxtodisplay)) as_set_display_rules($as_content, $checkboxtodisplay);
-
-				$bodycontent['table']	= $tablelist;	
-			}
-				
-		} 
-		else {			
-			$bodycontent['title'] .= ' ' . count($sections) .' SUB-DEPARTMENT' . (count($sections) == 1 ? '' : 'S');
-			
-			$bodycontent['tools'] = array(
-				'add' => array( 'type' => 'link', 'label' => 'NEW SUB-DEPARTMENT',
-				'url' => as_path_html($rootpage.'/'.$request.'/register'), 
-				'class' => 'btn btn-primary btn-block')
-			);	
-			
-			if (count($sections)){				
-				foreach ($sections as $section){
-					$bodycontent['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 
-					'label' => $section->title . ' Sub-Department', 'numbers' => '1 User', 
-					'description' => $section->content, 'link' => as_path_html('department/'.$section->departid),
-						'infors' => array(
-							'depts' => array('icount' => $section->sections, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
-							'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
-						),
-					);
-				}
-			}
-		}
-		
-		if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
-		if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
-		
-		$as_content['row_view'][] = array(
-			'colms' => array(
-				0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
-			),
-		);
 	}
 }
 else {

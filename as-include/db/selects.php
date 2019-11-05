@@ -1833,7 +1833,7 @@ function as_db_newest_users_selectspec($start, $count = null)
 	$count = isset($count) ? min($count, AS_DB_RETRIEVE_USERS) : AS_DB_RETRIEVE_USERS;
 
 	return array(
-		'columns' => array('userid', 'handle', 'type', 'flags', 'email', 'created' => 'UNIX_TIMESTAMP(created)', 'avatarblobid' => 'BINARY avatarblobid', 'avatarwidth', 'avatarheight'),
+		'columns' => array('userid', 'handle', 'type', 'gender', 'mobile', 'flags', 'email', 'created' => 'UNIX_TIMESTAMP(created)', 'avatarblobid' => 'BINARY avatarblobid', 'avatarwidth', 'avatarheight'),
 		'source' => '^users ORDER BY created DESC, userid DESC LIMIT #,#',
 		'arguments' => array($start, $count),
 		'sortdesc' => 'created',
