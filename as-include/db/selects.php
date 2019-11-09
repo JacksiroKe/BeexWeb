@@ -157,7 +157,7 @@ function as_db_posts_basic_selectspec($likeuserid = null, $full = false, $user =
 			'^posts.postid', '^posts.categoryid', '^posts.type', 'basetype' => 'LEFT(^posts.type, 1)',
 			'hidden' => "INSTR(^posts.type, '_HIDDEN')>0", 'queued' => "INSTR(^posts.type, '_QUEUED')>0",
 			'^posts.rcount', '^posts.selchildid', '^posts.closedbyid', '^posts.positivelikes', '^posts.negativelikes', '^posts.netlikes', '^posts.views', '^posts.hotness', '^posts.flagcount', '^posts.catidpath1',
-			'icon' => '^posts.icon', 'category' => '^categories.title', '^posts.title', '^posts.itemcode', '^posts.volume', '^posts.mass', '^posts.texture', '^posts.images', 'created' => 'UNIX_TIMESTAMP(^posts.created)', '^posts.name', 'summary' => '^posts.content', 'categorybackpath' => "^categories.backpath",
+			'icon' => '^posts.icon', 'category' => '^categories.title', '^posts.title', '^posts.itemcode', '^posts.volume', '^posts.mass', '^posts.texture', '^posts.images', 'created' => 'UNIX_TIMESTAMP(^posts.created)', '^posts.name', 'content' => '^posts.content', 'categorybackpath' => "^categories.backpath",
 			'categoryname' => '(SELECT title FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 
 			'caticon' => '(SELECT icon FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 
 			'categoryids' => "CONCAT_WS(',', ^posts.catidpath1, ^posts.catidpath2, ^posts.catidpath3, ^posts.categoryid)",
@@ -338,7 +338,7 @@ function as_db_categoryslugs_sql_args($categoryslugs, &$arguments)
  * @param $count
  * @return array
  */
-function as_db_question_selectspec($likeuserid, $sort, $start, $categoryslugs = null, $createip = null, $specialtype = false, $full = false, $count = null, $stock = null)
+function as_db_products_selectspec($likeuserid, $sort, $search = null, $categoryslugs = null, $createip = null, $specialtype = false, $full = false, $count = null, $stock = null)
 {
 	if ($specialtype == 'P' || $specialtype == 'P_QUEUED') {
 		$type = $specialtype;
@@ -353,12 +353,15 @@ function as_db_question_selectspec($likeuserid, $sort, $start, $categoryslugs = 
 		case 'flagcount':
 		case 'netlikes':
 		case 'views':
-			$sortsql = 'ORDER BY ^posts.' . $sort . ' DESC, ^posts.created DESC';
+			$sortsql = 'ORDER BY ^posts.' . $sort . ' ASC, ^posts.created ASC';
 			break;
 
+		case 'title':
+		case 'postid':
+		case 'itemcode':
 		case 'created':
 		case 'hotness':
-			$sortsql = 'ORDER BY ^posts.' . $sort . ' DESC';
+			$sortsql = 'ORDER BY ^posts.' . $sort . ' ASC';
 			break;
 
 		default:
@@ -372,15 +375,15 @@ function as_db_question_selectspec($likeuserid, $sort, $start, $categoryslugs = 
 		" JOIN (SELECT postid FROM ^posts WHERE " .
 		as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) .
 		(isset($createip) ? "createip=UNHEX($) AND " : "") .
-		"type=$ " . $sortsql . " LIMIT #,#) y ON ^posts.postid=y.postid";
+		"type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
 
 	if (isset($createip)) {
 		$selectspec['arguments'][] = bin2hex(@inet_pton($createip));
 	}
 
-	array_push($selectspec['arguments'], $type, $start, $count);
+	array_push($selectspec['arguments'], $type);
 
-	$selectspec['sortdesc'] = $sort;
+	$selectspec['sortasc'] = $sort;
 
 	return $selectspec;
 }

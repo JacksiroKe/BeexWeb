@@ -40,18 +40,16 @@ if (!isset($editproductid))
 	$editproductid = as_get('addsub');
 
 $userid = as_get_logged_in_userid();
-$selectsort = 'created';
-$start = as_get_start();
+$selectsort = 'title';
 
-list($products, $categories) = as_db_select_with_pending(
-	as_db_question_selectspec($userid, $selectsort, $start),
-	as_db_category_nav_selectspec($editproductid, true, false, true)
+list($categories, $products) = as_db_select_with_pending(
+	as_db_category_nav_selectspec($editproductid, true, false, true),
+	as_db_products_selectspec($userid, $selectsort)
 );
 
 // Check admin privileges (do late to allow one DB query)
 
-if (!as_admin_check_privileges($as_content))
-	return $as_content;
+if (!as_admin_check_privileges($as_content)) return $as_content;
 
 
 // Work out the appropriate state for the page
@@ -240,7 +238,8 @@ if (as_clicked('docancel')) {
 
 			} else { // creating a new one
 				$categoryid = as_db_product_create($in['categoryid'], $userid, $cookieid, as_remote_ip_address(), $posticon, $inname, $inslug, $initemcode, $involume, $inmass, $intexture, $incontent);
-				as_redirect(as_request(), array('edit' => $in['categoryid'], 'added' => true));
+				//$editproduct = array();
+				as_redirect(as_request(), array('edit' => 'null', 'added' => true));
 			}
 		}
 	}
@@ -294,10 +293,10 @@ if ($setmissing) {
 		$categories, @$editproduct['categoryid']);
 
 
-} elseif (isset($editproduct)) {
+} elseif (isset($editproduct) || $editproductid == 'null') {
 	$iconoptions[''] = as_lang_html('admin/icon_none');
 	if ( isset($editproduct['icon']) && strlen($editproduct['icon'])){
-		$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' .as_get_media_html($editproduct['icon'], 35, 35) .
+		$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' . as_get_media_html($editproduct['icon'], 35, 35) .
 			'</span> <input name="file" type="file">';
 		$iconvalue = $iconoptions['uploaded'];
 	} else {
@@ -307,13 +306,11 @@ if ($setmissing) {
 	
 	$formtitle = (isset($editproduct['categoryid']) ? 'Edit Product: '.$editproduct['title'] : 'Add a Product' );
 	
-	$as_content['form'] = array(
+	$formcontent = array(
 		'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
-		'title' => $formtitle,
+		'title' => $formtitle, 'type' => 'form', 'style' => 'tall',
 
-		'style' => 'tall',
-
-		'ok' => as_get('saved') ? as_lang_html('admin/category_saved') : (as_get('added') ? as_lang_html('admin/category_added') : null),
+		'ok' => as_get('saved') ? as_lang_html('admin/product_saved') : (as_get('added') ? as_lang_html('admin/product_added') : null),
 
 		'fields' => array(
 			'category' => array(
@@ -323,41 +320,9 @@ if ($setmissing) {
 			'name' => array(
 				'id' => 'name_display',
 				'tags' => 'name="name" id="name"',
-				'label' => as_lang_html(count($categories) ? 'admin/product_name' : 'admin/product_name_first'),
+				'label' => as_lang_html(count($categories) ? 'admin/product_name' : 'admin/product_name_first') . ' (Optional)',
 				'value' => as_html(isset($inname) ? $inname : @$editproduct['title']),
 				'error' => as_html(@$errors['name']),
-			),
-			
-			'items' => array(),
-
-			'delete' => array(),
-
-			'reassign' => array(),
-
-			'slug' => array(
-				'id' => 'slug_display',
-				'tags' => 'name="slug"',
-				'label' => as_lang_html('admin/category_slug'),
-				'value' => as_html(isset($inslug) ? $inslug : @$editproduct['tags']),
-				'error' => as_html(@$errors['slug']),
-			),
-			
-			'posticon' => array(
-				'type' => 'select-radio',
-				'label' => as_lang_html('admin/product_icon'),
-				'tags' => 'name="posticon"',
-				'options' => $iconoptions,
-				'value' => $iconvalue,
-				'error' => as_html(@$errors['posticon']),
-			),
-			
-			'content' => array(
-				'id' => 'content_display',
-				'tags' => 'name="content"',
-				'label' => as_lang_html('admin/product_description'),
-				'value' => as_html(isset($incontent) ? $incontent : @$editproduct['content']),
-				'error' => as_html(@$errors['content']),
-				'rows' => 2,
 			),
 			
 			'itemcode' => array(
@@ -366,6 +331,14 @@ if ($setmissing) {
 				'label' => as_lang_html('admin/product_itemcode'),
 				'value' => as_html(isset($initemcode) ? $initemcode : @$editproduct['itemcode']),
 				'error' => as_html(@$errors['itemcode']),
+			),
+			
+			'content' => array(
+				'id' => 'content_display',
+				'tags' => 'name="content"',
+				'label' => as_lang_html('admin/product_description'),
+				'value' => as_html(isset($incontent) ? $incontent : @$editproduct['content']),
+				'error' => as_html(@$errors['content']),
 			),
 			
 			'volume' => array(
@@ -391,6 +364,30 @@ if ($setmissing) {
 				'value' => as_html(isset($intexture) ? $intexture : @$editproduct['texture']),
 				'error' => as_html(@$errors['texture']),
 			),
+
+			'items' => array(),
+
+			'delete' => array(),
+
+			'reassign' => array(),
+
+			'slug' => array(
+				'id' => 'slug_display',
+				'tags' => 'name="slug"',
+				'label' => as_lang_html('admin/category_slug'),
+				'value' => as_html(isset($inslug) ? $inslug : @$editproduct['tags']),
+				'error' => as_html(@$errors['slug']),
+			),
+			
+			'posticon' => array(
+				'type' => 'select-radio',
+				'label' => as_lang_html('admin/product_icon'),
+				'tags' => 'name="posticon"',
+				'options' => $iconoptions,
+				'value' => $iconvalue,
+				'error' => as_html(@$errors['posticon']),
+			),
+			
 		),
 
 		'buttons' => array(
@@ -414,16 +411,16 @@ if ($setmissing) {
 		),
 	);
 	
-	as_set_up_category_field($as_content, $as_content['form']['fields']['category'], 'category', $categories, $in['categoryid'], true, as_opt('allow_no_sub_category'));
+	as_set_up_category_field($as_content, $formcontent['fields']['category'], 'category', $categories, $in['categoryid'], true, as_opt('allow_no_sub_category'));
 
 	if (isset($editproduct['categoryid'])) { // existing category
 		if ($hassubcategory) {
-			$as_content['form']['fields']['name']['note'] = as_lang_html('admin/category_no_delete_subs');
-			unset($as_content['form']['fields']['delete']);
-			unset($as_content['form']['fields']['reassign']);
+			$formcontent['fields']['name']['note'] = as_lang_html('admin/category_no_delete_subs');
+			unset($formcontent['fields']['delete']);
+			unset($formcontent['fields']['reassign']);
 
 		} else {
-			$as_content['form']['fields']['delete'] = array(
+			$formcontent['fields']['delete'] = array(
 				'tags' => 'name="dodelete" id="dodelete"',
 				'label' =>
 					'<span id="reassign_shown">' . as_lang_html('admin/delete_category_reassign') . '</span>' .
@@ -432,16 +429,16 @@ if ($setmissing) {
 				'type' => 'checkbox',
 			);
 
-			$as_content['form']['fields']['reassign'] = array(
+			$formcontent['fields']['reassign'] = array(
 				'id' => 'reassign_display',
 				'tags' => 'name="reassign"',
 			);
 
-			as_set_up_category_field($as_content, $as_content['form']['fields']['reassign'], 'reassign',
+			as_set_up_category_field($as_content, $formcontent['fields']['reassign'], 'reassign',
 				$categories, $editproduct['parentid'], true, true, null, $editproduct['categoryid']);
 		}
 
-		$as_content['form']['fields']['items'] = array(
+		$formcontent['fields']['items'] = array(
 			'label' => as_lang_html('admin/total_qs'),
 			'type' => 'static',
 			'value' => '<a href="' . as_path_html('items/' . as_category_path_request($categories, $editproduct['categoryid'])) . '">' .
@@ -455,7 +452,7 @@ if ($setmissing) {
 			$nosubcount = as_db_count_categoryid_qs($editproduct['categoryid']);
 
 			if ($nosubcount) {
-				$as_content['form']['fields']['items']['error'] =
+				$formcontent['fields']['items']['error'] =
 					strtr(as_lang_html('admin/category_no_sub_error'), array(
 						'^q' => as_format_number($nosubcount),
 						'^1' => '<a href="' . as_path_html(as_request(), array('edit' => $editproduct['categoryid'], 'missing' => 1)) . '">',
@@ -475,14 +472,47 @@ if ($setmissing) {
 			'reassign_hidden' => '!dodelete',
 		));
 
-	} else { // new category
-		unset($as_content['form']['fields']['delete']);
-		unset($as_content['form']['fields']['reassign']);
-		unset($as_content['form']['fields']['slug']);
-		unset($as_content['form']['fields']['items']);
+	} else { // new product
+		unset($formcontent['fields']['delete']);
+		unset($formcontent['fields']['reassign']);
+		unset($formcontent['fields']['slug']);
+		unset($formcontent['fields']['items']);
 
 		$as_content['focusid'] = 'name';
 	}
+	$listcontent = array(
+		'id' => 'latest_products',
+		'type' => 'table',
+		'title' => 'Recent Added Products (' . count($products) . ')', 
+		'headers' => array('#', 'Product', 'Code', 'Volume', 'Mass', 'Texture'),
+	);
+
+	if (count($products)) {
+		$p = 1;
+		foreach ($products as $product) {
+			$listcontent['rows'][] = array(
+				'onclick' => ' title="Click on this product to edit or view"',
+				'fields' => array(
+					'id' => array( 'data' => as_get_media_html($product['icon'], 20, 20) ),
+					'title' => array( 'data' => '<a href="' . as_path_html('admin/products', array('edit' => $product['postid'])) . '">' . 
+					as_html($product['title'])  . ' ' . $product['category'] .'</a>' ),
+					'itemcode' => array( 'data' => $product['itemcode']),
+					'volume' => array( 'data' => $product['volume']),
+					'mass' => array( 'data' => $product['mass']),
+					'texture' => array( 'data' => $product['texture']),
+				),
+			);
+			$p++;
+		}
+
+	}
+
+	$as_content['row_view'][] = array(
+		'colms' => array(
+			0 => array('class' => 'col-lg-6 col-xs-12', 'c_items' => array($formcontent) ),
+			1 => array('class' => 'col-lg-6 col-xs-12', 'c_items' => array($listcontent) ),
+		),
+	);
 
 } else {
 	$as_content['form'] = array(
@@ -492,15 +522,9 @@ if ($setmissing) {
 
 		'style' => 'tall',
 
-		'fields' => array(
-			'intro' => array(
-				'label' => as_lang_html('admin/products_introduction'),
-				'type' => 'static',
-			),
-		),
-		
-		'table' => array( 'id' => 'allproducts', 'headers' => array('', 'Title','Category',  
-			'Item Code', 'Volume', 'Mass', 'Texture', 'Items') ),
+		'table' => array( 'id' => 'allproducts', 'inline' => true,
+			'headers' => array('#', 'ProductID', 'Category', 'Code', 'Length', 'Width', 'Height/Thickness', 
+			'Fill', 'Fill-material', 'Weight', 'Color', 'Type/Pattern', '*') ),
 
 		'tools' => array(
 			'add' => array(
@@ -516,30 +540,40 @@ if ($setmissing) {
 	);
 
 	if (count($products)) {
-		unset($as_content['form']['fields']['intro']);
 		$as_content['title'] .= ' ('.count($products).')';
 		$navcategoryhtml = '';
 		$p = 1;
 		foreach ($products as $product) {
-			//$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($product['pcount']));
-			$as_content['form']['table']['rows'][] = array(
+			$volume = explode('by', $product['volume']);
+			$mass = explode(';', $product['mass']);
+			$texture = explode(';', $product['texture']);
+
+			$as_content['form']['table']['rows'][$p] = array(
 				'onclick' => ' title="Click on this product to edit or view"',
 				'fields' => array(
 					'id' => array( 'data' => $p),
 					'title' => array( 'data' => as_get_media_html($product['icon'], 20, 20) .'<a href="' . as_path_html('admin/products', array('edit' => $product['postid'])) . '">' . as_html($product['title']) .'</a>' ),
 					'cat' => array( 'data' => $product['category']),
 					'itemcode' => array( 'data' => $product['itemcode']),
-					'volume' => array( 'data' => $product['volume']),
-					'mass' => array( 'data' => $product['mass']),
-					'texture' => array( 'data' => $product['texture']),
-					'count' => array( 'data' => '0 items'),
+					'length' => array( 'data' => trim($volume[0])),
+					'width' => array( 'data' => trim($volume[1])),
+					'height' => array( 'data' => trim($volume[2])),
+					'fill' => array( 'data' => trim($mass[0])),
+					'fill-material' => array( 'data' => trim($mass[1])),
+					'weight' => array( 'data' => trim($mass[2])),
+					'color' => array( 'data' => trim($texture[0])),
+					'pattern' => array( 'data' => trim($texture[1])),
+					'*' => array( 'data' => '' ),
 				),
 			);
 			$p++;
-		}
 
-	} else
-		unset($as_content['form']['buttons']['save']);
+		}
+		
+		$as_content['script_onloads'][] = array(
+			"$(function () { $('#allproducts').DataTable() })"
+		  );
+	} else unset($as_content['form']['buttons']['save']);
 }
 
 if (as_get('recalc')) {

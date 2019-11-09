@@ -19,28 +19,39 @@
 
 // General page functions
 
-function as_username_change(value)
+
+// Ask form
+/*
+$("#as-table tfoot input").on( 'keyup change', function () {
+		table
+			.column( $(this).parent().index()+':visible' )
+			.search( this.value )
+			.draw();
+	} );
+	*/
+function as_searchitem_change()
 {
-	as_ajax_post('usersearch', {namesearch: value}, function(lines) {
-		if (lines[0] == '1') {
-			if (lines[1].length) {
-				as_tags_examples = lines[1];
-				as_tag_hints(true);
+	var searchedthis = document.getElementById('searchitem');
+	var params = {};
+	params.searchtext = searchedthis.value;
+
+	if(params.searchtext=='') {}
+	else
+	{ 
+		as_ajax_post('searchitem', params, function(lines) {
+			if (lines[0] == '1') {
+				var simelem = document.getElementById('similar');
+				simelem.innerHTML = '';
+				simelem.innerHTML = lines.slice(1).join('\n');
+				as_show_waiting_after(elem, false);
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+			} else {
+				as_ajax_error();
 			}
-
-			if (lines.length > 2) {
-				var simelem = document.getElementById('userresults');
-				if (simelem)
-					simelem.innerHTML = lines.slice(2).join('\n');
-			}
-
-		} else if (lines[0] == '0')
-			alert(lines[1]);
-		else
-			as_ajax_error();
-	});
-
-	as_show_waiting_after(document.getElementById('userresults'), true);
+		});
+	}
+	//as_show_waiting_after(document.getElementById('similar'), true);
 }
 
 function as_add_manager(businessid, elem)
@@ -69,6 +80,30 @@ function as_add_manager(businessid, elem)
 	as_show_waiting_after(document.getElementById('refreshsubmit'), true);
 
 	return false;
+}
+
+function as_username_change(value)
+{
+	as_ajax_post('searchuser', {namesearch: value}, function(lines) {
+		if (lines[0] == '1') {
+			if (lines[1].length) {
+				as_tags_examples = lines[1];
+				as_tag_hints(true);
+			}
+
+			if (lines.length > 2) {
+				var simelem = document.getElementById('userresults');
+				if (simelem)
+					simelem.innerHTML = lines.slice(2).join('\n');
+			}
+
+		} else if (lines[0] == '0')
+			alert(lines[1]);
+		else
+			as_ajax_error();
+	});
+
+	as_show_waiting_after(document.getElementById('userresults'), true);
 }
 
 function as_order_now(category, item, elem)
@@ -920,78 +955,3 @@ function as_pm_click(messageid, target, box)
 
 	return false;
 }
-
-$(document).ready(function() {
-	var table = $('#as-table').DataTable( {
-		"lengthMenu": [[10,25,50,100,500, -1], [10,25,50,100,500, "All"]],
-		dom: 'Bfrtlip',
-		"order": [[ 1, "desc" ]],
-
-		colVis: {
-			order: 'alpha',
-			exclude: [ 0 ],
-			restore: "Restore",
-			showAll: "Show all",
-			showNone: "Show none"
-		},
-		buttons: [
-			{
-				extend: 'copyHtml5',
-				exportOptions: {
-					columns: ':visible'
-				}
-			},
-			{
-				extend: 'excelHtml5',
-				exportOptions: {
-					columns: ':visible'
-				}
-			},
-			{
-				extend: 'csvHtml5',
-				exportOptions: {
-					columns: ':visible'
-				}
-			},
-			{
-				extend: 'pdfHtml5',
-				exportOptions: {
-					columns: ':visible'
-				}
-			},
-			'colvis'
-		],
-		aoColumnDefs: [
-			{ aTargets: [0], bSortable: false }
-		],
-	});
-	// Apply the filter
-	$("#as-table tfoot input").on( 'keyup change', function () {
-		table
-			.column( $(this).parent().index()+':visible' )
-			.search( this.value )
-			.draw();
-	} );
-	
-	// select checkboxes 
-	$('#check-button').click(function(event) {
-		$('.chk-item').each(function() {
-			this.checked = true;
-		});
-		$('#check-button').hide();
-		$('#uncheck-button').show();
-		event.preventDefault();
-	});
-	$('#uncheck-button').click(function(event) {
-		$('.chk-item').each(function() {
-			this.checked = false;					  
-		});	
-		$('#uncheck-button').hide();
-		$('#check-button').show();	
-		event.preventDefault();
-	});
-} );
-
-(function ($) {
-
-})(jQuery);

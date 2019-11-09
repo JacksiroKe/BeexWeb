@@ -155,8 +155,7 @@ if (is_numeric($request)) {
 			),
 		),
 	);
-	;
-	
+		
 	if ($business->userid == $userid)
 	{
 		$profile1['body']['items']['link1'] = array( 
@@ -749,8 +748,8 @@ else {
 			
 			$businesses = BxBusiness::get_list($userid);
 
-			$dashlist = array( 'type' => 'dashlist', 'theme' => 'primary', 
-				'title' => count($businesses) .' BUSINESS' . (count($businesses) == 1 ? '' : 'ES'), 
+			$dashlist = array( 'type' => 'bslist', 'theme' => 'primary', 
+				'title' => count($businesses) .' BUSINESS' . as_many(count($businesses), 'ES'), 
 				'tools' => array(
 					'add' => array( 'type' => 'link', 'label' => 'NEW BUSINESS',
 					'url' => as_path_html($rootpage.'/register'), 'class' => 'btn btn-primary btn-block' )
@@ -759,14 +758,35 @@ else {
 				
 			if (count($businesses)){				
 				foreach ($businesses as $business){
-					$dashlist['items'][] = array('img' => as_get_media_html($defaulticon, 20, 20), 'label' => $business->title, 'numbers' => '1 User', 
-					'description' => ($business->userid == $userid ? 'Role: OWNER' : 'Role: MANAGER'). '<br>'. $business->content, 
-						'link' => 'business/'.$business->businessid,
-						'infors' => array(
-							'depts' => array('icount' => $business->departments, 'ilabel' => 'Departments', 'ibadge' => 'columns'),
-							'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
+					$managers = explode(',', $business->managers);
+					$dashlist['items'][$business->businessid] = array('img' => as_path_html('./as-media/' . $defaulticon ), 
+						'label' => $business->title . '| Your Role: ' . ($business->userid == $userid ? 'OWNER' : 'MANAGER'),
+						'description' => $business->content, 'link' => 'business/'.$business->businessid,
+						'numbers' => array(
+							'users' => array('ncount' => count($managers), 'nlabel' => 'Manager'.as_many(count($managers))),
+							'depts' => array('ncount' => $business->departments, 'nlabel' => 'Department'.as_many($business->departments)),
 						),
 					);
+					
+					$departments = BxDepartment::get_list($business->businessid);
+					if (count($departments)) {				
+						$navdepartmenthtml = '';
+						$k = 1;
+						foreach ($departments as $department) {
+							if (!isset($department->parentid)) {
+								if ($department->content == null) $department->content = "...";
+								$dashlist['items'][$business->businessid]['parts'][] = array(
+									'label' => as_html($department->title).' DEPT', 
+									'description' => $department->content,
+									'link' => as_path_html('department/' . $department->departid),
+									'managers' => $department->managers,
+									'sections' => $department->sections,
+								);
+							}
+							$k++;
+						}
+				
+					}
 				}
 			}
 			if (isset($hasalert)) $dashlist['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);

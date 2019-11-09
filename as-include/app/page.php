@@ -598,46 +598,48 @@ function as_content_prepare($voting = false, $categoryids = array())
         'url' => as_path_html(''),
         'icon' => 'fa fa-home',
     );
-
-    if ($rules['superadmin']) {
+	if ($rules['superadmin'] || $rules['baseadmin']) {
 		$as_content['navigation']['main']['users'] = array(
             'label' => as_lang_html('main/nav_users'),
             'url' => as_path_html('users'),
             'icon' => 'fa fa-users',
-        );
-        require_once AS_INCLUDE_DIR . 'app/admin.php';
-		$as_content['navigation']['main'] = as_admin_sub_navigation($as_content['navigation']['main']);
-    } else {
-		$businesses = BxBusiness::get_list(as_get_logged_in_userid());
-		$as_content['navigation']['main']['allbiz'] = array( 'label' => as_lang_html('main/nav_bs') );
-
-		$as_content['navigation']['main']['business'] = array(
-			'label' => as_lang_html('main/nav_bs_all'),
-			'url' => as_path_html('business'),
-			'icon' => 'fa fa-line-chart',
 		);
+	}
 
-		if (count($businesses)){				
-			foreach ($businesses as $business){
-				$as_content['navigation']['main'][$business->username] = array(
-					'label' => $business->title,
-					'url' => as_path_html('business/' . $business->businessid),
-					'icon' => 'fa fa-map-signs',
-				);
-				
-				$departments = BxDepartment::get_list($business->businessid);
-				if (count($departments)) {
-					foreach ($departments as $department){
-						$as_content['navigation']['main'][$business->username]['sub'][$department->departid] = array(
-							'label' => $department->title . ' DEPT',
-							'url' => as_path_html('department/' . $department->departid),
-							'icon' => 'fa fa-columns',
-						);
-					}
+	$businesses = BxBusiness::get_list(as_get_logged_in_userid());
+	$as_content['navigation']['main']['allbiz'] = array( 'label' => as_lang_html('main/nav_bs') );
+
+	$as_content['navigation']['main']['business'] = array(
+		'label' => as_lang_html('main/nav_bs_all'),
+		'url' => as_path_html('business'),
+		'icon' => 'fa fa-line-chart',
+	);
+
+	if (count($businesses)){				
+		foreach ($businesses as $business){
+			$as_content['navigation']['main'][$business->username] = array(
+				'label' => $business->title,
+				'url' => as_path_html('business/' . $business->businessid),
+				'icon' => 'fa fa-map-signs',
+			);
+			
+			$departments = BxDepartment::get_list($business->businessid);
+			if (count($departments)) {
+				foreach ($departments as $department){
+					$as_content['navigation']['main'][$business->username]['sub'][$department->departid] = array(
+						'label' => $department->title . ' DEPT',
+						'url' => as_path_html('department/' . $department->departid),
+						'icon' => 'fa fa-columns',
+					);
 				}
 			}
 		}
 	}
+
+    if ($rules['superadmin'] || $rules['baseadmin']) {
+		require_once AS_INCLUDE_DIR . 'app/admin.php';
+		$as_content['navigation']['main'] = as_admin_sub_navigation($as_content['navigation']['main']);
+    } 
 	
 	$as_content['search'] = array(
 		'form_tags' => 'method="get" action="' . as_path_html('search') . '"',

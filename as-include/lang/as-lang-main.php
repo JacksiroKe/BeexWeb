@@ -53,6 +53,7 @@ return array(
 	'add_sub_department_button' => 'ADD A SUB DEPARTMENT',
 	'add_a_department_button' => 'Add Department',
 	'add_a_sub_department_button' => 'Add Sub-Department',
+	'add_stock_button' => 'ADD STOCK',
 	'anonymous' => 'anonymous',
 	'back_button' => 'BACK',
 	'review_edited' => 'review edited',

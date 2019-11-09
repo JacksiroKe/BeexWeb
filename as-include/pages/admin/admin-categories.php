@@ -577,7 +577,7 @@ if ($setmissing) {
 			),
 		),
 		
-		'table' => array( 'id' => 'allcategories', 'headers' => array('*',  '#', 'Title', 'Items', '*') ),
+		'table' => array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Code', 'Suppllier', 'Date of Entry', 'Qty', 'Amount', '*') ),		
 
 		'tools' => array(
 			'add' => array(
@@ -600,19 +600,49 @@ if ($setmissing) {
 		foreach ($categories as $category) {
 			if (!isset($category['parentid'])) {
 				$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($category['pcount']));
-				$as_content['form']['table']['rows'][] = array(
+				$as_content['form']['table']['rows'][$k] = array(
 					'onclick' => ' title="Click on this item to edit or view"',
 					'fields' => array(
-						'*' => array( 'data' => ''),
+						'*' => array( 'data' => ($category['childcount'] ? ' (' . $category['childcount'] . ')' : '')),
 						'id' => array( 'data' => $k),
 						'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
-						'count' => array( 'data' => ($count)),
+						'code' => array( 'data' => '' ),
+						'supp' => array( 'data' => '' ),
+						'code' => array( 'data' => '' ),
+						'entry' => array( 'data' => '' ),
+						'qty' => array( 'data' => ($category['pcount'])),
+						'amount' => array( 'data' => '' ),
 						'x' => array( 'data' => ''),
 					),
 				);
+				
+				if ($category['childcount']) {
+					$subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));
+					$j = 1;
+					foreach ($subcarts as $subcart) {
+						$as_content['form']['table']['rows'][$k]['sub'][$j] = array(
+							'fields' => array(
+								'*' => array( 'data' => ''),
+								'#' => array( 'data' => as_num_to_let($j) . '.'),
+								'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
+								'code' => array( 'data' => '' ),
+								'supp' => array( 'data' => '' ),
+								'code' => array( 'data' => '' ),
+								'entry' => array( 'data' => '' ),
+								'qty' => array( 'data' => ($category['pcount'])),
+								'amount' => array( 'data' => '' ),
+								'x' => array( 'data' => ''),
+							),
+						);
+						$checkboxtodisplay['child_' . $k . '_' . $j] = 'parent_' . $k ;
+						$j++;
+					}
+				}
 			}
 			$k++;
 		}
+
+		if (isset($checkboxtodisplay)) as_set_display_rules($as_content, $checkboxtodisplay);
 
 	} else
 		unset($as_content['form']['buttons']['save']);

@@ -22,6 +22,8 @@ $manager['firstname']<?php
 require_once AS_INCLUDE_DIR . 'app/cookies.php';
 require_once AS_INCLUDE_DIR . 'app/users.php';
 require_once AS_INCLUDE_DIR . 'db/selects.php';
+require_once AS_INCLUDE_DIR . 'db/users.php';
+require_once AS_INCLUDE_DIR . 'app/emails.php';
 require_once AS_INCLUDE_DIR . 'app/post-update.php';
 require_once AS_INCLUDE_DIR . 'APS/as-beex-business.php';
 

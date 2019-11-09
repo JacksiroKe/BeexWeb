@@ -1381,6 +1381,10 @@ class as_html_theme_base
 					case 'dashlist':
 						$this->dashlist_view($c_item);
 						break;
+
+					case 'bslist':
+						$this->bslist_view($c_item);
+						break;
 						
 					case 'small-box':
 						$this->smallbox_view($c_item);
@@ -1671,8 +1675,9 @@ class as_html_theme_base
 					$this->output('<li class="item">');
 					$this->output('<div class="product-img">'.$item['img'].'</div>');
 					$this->output('<div class="product-info">');
-					$this->output('<a href="'.$item['link'].'" class="product-title" style="font-size: 20px;">'.$item['label'].'</a>');
-					//$this->output('<span class="label label-warning pull-right">'.$item['numbers'].'</span>');
+					$labels = explode('|', $item['label']);
+					$this->output('<a href="'.$item['link'].'" class="product-title" style="font-size: 20px;">'.$labels[0].'</a> ');
+					if (isset($labels[1])) $this->output( strtoupper($labels[1]));
 					if (isset($item['description'])) $this->output('<span class="product-description">'.$item['description'].'</span>');
 					$this->output('</div><br>');
 
@@ -1692,6 +1697,98 @@ class as_html_theme_base
 		}
 	}
 	
+	public function bslist_view($dashlist)
+	{
+		if (!empty($dashlist)) {
+			$this->output('<div class="box box-'.$dashlist['theme'].'">');
+			
+			if (isset($dashlist['title'])) $this->box_title($dashlist);
+			
+			if (isset($dashlist['items'])) {
+				$this->output('<div class="box-body">');
+				$this->output('<ul class="products-list product-list-in-box">');
+				
+				foreach ($dashlist['items'] as $bi => $item) {
+					$labels = explode('|', $item['label']);
+					$this->output('<div class="row">');
+
+					$this->output('<div class="col-lg-4 col-xs-12">');
+
+					$this->output('<div class="box box-widget widget-user">');
+					$this->output('<div class="widget-user-header bg-aqua-active">
+					  <h3 class="widget-user-username">'.$labels[0].'</h3>
+					  <h5 class="widget-user-desc">'.$labels[1].'</h5>
+					</div>');
+					$this->output('<div class="widget-user-image">
+					  <img class="img-circle" src="'.$item['img'].'" alt="Business Icon">
+					</div>');
+					$this->output('<div class="box-footer">');
+					$this->output('<div class="row">');
+					if (isset($item['numbers'])) {						
+						foreach ($item['numbers'] as $nitem) {
+							$this->output('<div class="col-sm-'.(12 / count($item['numbers'])).' border-right">');
+							$this->output('<div class="description-block">');
+							$this->output('<h5 class="description-header">'.$nitem['ncount'].'</h5>');
+							$this->output('<span class="description-text">'.$nitem['nlabel'].'</span>');
+							$this->output('</div>', '</div>');
+						}
+					}
+					$this->output('</div>', '</div>','</div>');
+					$this->output('</div>');
+
+					$this->output('<div class="col-lg-8 col-xs-12">');
+					if (isset($item['parts'])) {
+						$this->output('<div class="row" style="background: #eee; margin:5px;padding: 5px;border-radius: 5px;">');		
+						foreach ($item['parts'] as $part) {
+							$this->output('<a href="'.$part['link'].'"><div class="col-md-3">');
+							$this->output('<div class="box box-widget widget-user-2">');
+							$this->output('<div class="widget-user-header bg-yellow" style="padding:5px;">');
+							$this->output('<h3 class="widget-user-username" style="margin-left:0px;">'.$part['label'].'</h3>');
+							$this->output('<h5 class="widget-user-desc" style="margin-left:0px;">'.$part['description'].'</h5>');
+							$this->output('</div>');
+							$this->output('<div class="box-footer no-padding">', '<ul class="nav nav-stacked">');
+							$this->output('<li><a href="#">Managers <span class="pull-right badge bg-blue">'.$part['managers'].'</span></a></li>');
+							$this->output('</ul>', '</div>', '</div>');
+							$this->output('</div></a>');
+						}
+						$this->output('</div>');
+					}
+					$this->output('</div>');
+
+					$this->output('</div>');
+					/*$this->output('<li class="item">');
+					$this->output('<div class="product-img">'.$item['img'].'</div>');
+					$this->output('<div class="product-info">');
+					$labels = explode('|', $item['label']);
+					$this->output('<a href="'.$item['link'].'" class="product-title" style="font-size: 20px;">'.$labels[0].'</a> ');
+					if (isset($labels[1])) $this->output( strtoupper($labels[1]));
+					if (isset($item['description'])) $this->output('<span class="product-description">'.$item['description'].'</span>');
+
+					if (isset($item['infors'])) {
+						foreach ($item['infors'] as $info) {
+							$this->output('<a class="btn btn-app" style="height: 100px; margin-right:10px;">');
+							if (isset($info['inew'])) $this->output('<span class="badge bg-green">'.$info['inew'].'</span>');
+							$this->output('<i class="fa fa-'.$info['ibadge'].'"></i><h4>'.$info['icount'].'</h4>'.$info['ilabel'].'</a>');
+						}
+					}
+					$this->output('</div><br>');*/
+
+					/*if (isset($item['infors'])) {
+						foreach ($item['infors'] as $info) {
+							$this->output('<a class="btn btn-app" style="height: 100px; margin-right:10px;">');
+							if (isset($info['inew'])) $this->output('<span class="badge bg-green">'.$info['inew'].'</span>');
+							$this->output('<i class="fa fa-'.$info['ibadge'].'"></i><h4>'.$info['icount'].'</h4>'.$info['ilabel'].'</a>');
+						}
+					}*/
+					$this->output('</li>');
+				}
+				$this->output('</ul>');
+			}
+			
+            $this->output('</div>');
+		}
+	}
+
 	public function alert_view($type, $message, $title = null)
 	{
 		$this->output('<div class="alert alert-'.$type.' alert-dismissible">');
@@ -1889,8 +1986,10 @@ class as_html_theme_base
 	public function table($table)
 	{
 		if (!empty($table)) {
-			$this->output('<div class="box box-info">');
-			if (isset($table['title'])) $this->box_title($table);
+			if (!isset($table['inline'])) {
+				$this->output('<div class="box box-info">');
+				if (isset($table['title'])) $this->box_title($table);
+			}
 			
 			$this->output('<div class="box-body">');
             $this->output('<table id="'.$table['id'].'" class="table table-bordered table-striped">');
@@ -1929,9 +2028,11 @@ class as_html_theme_base
 					
 					if (isset($row['sub'])) {
 						foreach ( $row['sub'] as $k => $sub ) {
-							$this->output('<tr id="child_'.$ra.'_'.$k.'" style="display:none;">');
-							foreach ($sub['fields'] as $rw) 
-								$this->output('<td valign="top">'.$rw['data'].'</td>');
+							$this->output('<tr id="child_'.$ra.'_'.$k.'" style="display:none; background: #222d32; color: #fff;">');
+							foreach ($sub['fields'] as $rq => $rw) {
+								if ($rq == '#') $this->output('<td valign="top" style="text-align:right;">'.$rw['data'].'</td>');
+								else $this->output('<td valign="top">'.$rw['data'].'</td>');
+							}
 							$this->output('</tr>');
 						};
 					}
@@ -1958,8 +2059,8 @@ class as_html_theme_base
 				$this->output('</tr>', '</tfoot>');
 			}
 			
-			$this->output('</table>');
-			$this->output('</div>');
+			$this->output('</table>', '</div>');
+			if (!isset($table['inline'])) $this->output('</div>');
 		}
 	}
 
@@ -1976,12 +2077,10 @@ class as_html_theme_base
 
 	public function form_body($form)
 	{
-		$this->output('<div class="box-body">');
-
 		$columns = $this->form_columns($form);
 		$this->form_ok($form, $columns);
+
 		$this->form_fields($form, $columns);
-		$this->output('</div>');
 		if (isset($form['table'])) $this->table($form['table']);
 		if (isset($form['navlist'])) $this->navlist($form['navlist']);
 		else if (isset($form['dash'])) $this->dashlist_view($form['dash']);
@@ -1995,11 +2094,10 @@ class as_html_theme_base
 	{
 		if (!empty($form['ok'])) {
 			$this->output(
-				'<tr>',
-				'<td colspan="' . $columns . '" class="as-form-' . $form['style'] . '-ok">',
+				'<div class="alert alert-success alert-dismissible">',
+				'<button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>',
 				$form['ok'],
-				'</td>',
-				'</tr>'
+				'</div>'
 			);
 		}
 	}
@@ -2022,7 +2120,8 @@ class as_html_theme_base
 
 	public function form_fields($form, $columns)
 	{
-		if (!empty($form['fields'])) {
+		if (!empty($form['fields'])) {			
+			$this->output('<div class="box-body">');
 			foreach ($form['fields'] as $key => $field) {
 				$this->output('<div class="form-group">');
 				if ($columns == 1) 
@@ -2054,6 +2153,7 @@ class as_html_theme_base
 				}
 				$this->output('</div>');
 			}
+			$this->output('</div>');
 		}
 	}
 

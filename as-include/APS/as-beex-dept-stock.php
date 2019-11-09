@@ -143,107 +143,161 @@ class BxStockDept extends BxDepartment
     public static function stocks_view($department, $as_content)
     {
         $as_content['title'] = $department->business . ' ' . $department->title. '<small> DEPARTMENT</small>';
-        
+        $in = array();
+        $in['searchitem'] = as_get_post_title('searchitem');
+
+        $userid = as_get_logged_in_userid();
+        $selectsort = 'title';
+        $categoryslugs = as_get('cart');
+        $section = as_get('section');
+
+        list($categories, $products) = as_db_select_with_pending(
+            as_db_category_nav_selectspec($categoryslugs, true, false, true),
+            as_db_products_selectspec($userid, $selectsort)
+        );
+
         $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
         $bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
 
-        $bodycontent['icon'] = array(
-            'fa' => 'arrow-left',
-            'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
-            'class' => 'btn btn-social btn-primary',
-            'label' => as_lang_html('main/back_button'),
-        );
-
-        $categoryslugs = as_get('cart');
-        $categories = as_db_select_with_pending(as_db_category_nav_selectspec($categoryslugs, false, false, true));
-
-        if (count($categories)){				
-            $bodycontent['tools'] = array(
-                'products' => array(
-                    'type' => 'link', 'label' => 'MANAGE PRODUCTS',
-                    'url' => as_path_html('business/'. $department->businessid.'/products'), 
-                    'class' => 'btn btn-primary btn-tool',
-                ),
-                '' => array(
-                    'type' => 'link', 'label' => ' ',
-                    'url' => '#', 
-                    'class' => 'btn btn-tool',
-                ),
-                'stock' => array(
-                    'type' => 'link', 'label' => 'MANAGE STOCK',
-                    'url' => as_path_html('department/entry'), 
-                    'class' => 'btn btn-primary btn-tool',
-                ),
-            );
-                        
-            unset($as_content['form']['fields']['intro']);
-
-            $tablelist = array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Code', 'Suppllier', 'Date of Entry', 'Qty', 'Amount', '*') );		
-
-            $navcategoryhtml = '';
-            $k = 1;
-            
-            foreach ($categories as $category) {
-                if (!isset($category['parentid'])) {
-                    $tablelist['rows'][$k] = array(
-                        'fields' => array(
-                            '*' => array( 'data' => ($category['childcount'] ? ' (' . $category['childcount'] . ')' : '')),
-                            'id' => array( 'data' => $k),
-                            'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
-                            'code' => array( 'data' => '' ),
-                            'supp' => array( 'data' => '' ),
-                            'code' => array( 'data' => '' ),
-                            'entry' => array( 'data' => '' ),
-                            'qty' => array( 'data' => ($category['pcount'])),
-                            'amount' => array( 'data' => '' ),
-                            'x' => array( 'data' => ''),
+        switch ($section) {
+            case 'stockentry':
+                $bodycontent = array(
+                    'title' => 'ADD A STOCK ENTRY', 'type' => 'form', 'style' => 'tall',                    
+                    'icon' => array(
+                        'fa' => 'arrow-left',
+                        'url' => as_path_html( 'department/' . $department->departid ),
+                        'class' => 'btn btn-social btn-primary',
+                        'label' => as_lang_html('main/back_button'),
+                    ),
+                    
+                    'fields' => array(
+                        'searchitem' => array(
+                            'label' => 'Search a Product by Item Name, Code or Category',
+                            'tags' => 'id="searchitem" autocomplete="off"',
+                            'value' => as_html(@$in['searchitem']),
                         ),
-                    );
+                        
+                        'searchresult' => array(
+                            'type' => 'custom',
+                            'html' => '<div id="similar"></div>',
+                        ),
 
-                    if ($category['childcount']) {
-                        $subcarts = as_db_select_with_pending(as_db_category_sub_selectspec($category['categoryid']));
-                        $j = 1;
-                        foreach ($subcarts as $subcart) {
-                            $tablelist['rows'][$k]['sub'][$j] = array(
-                                'fields' => array(
-                                    '*' => array( 'data' => ''),
-                                    '#' => array( 'data' => $j),
-                                    'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
-                                    'code' => array( 'data' => '' ),
-                                    'supp' => array( 'data' => '' ),
-                                    'code' => array( 'data' => '' ),
-                                    'entry' => array( 'data' => '' ),
-                                    'qty' => array( 'data' => ($category['pcount'])),
-                                    'amount' => array( 'data' => '' ),
-                                    'x' => array( 'data' => ''),
-                                ),
-                            );
-                            $checkboxtodisplay['child_' . $k . '_' . $j] = 'parent_' . $k ;
-                            $j++;
-                        }
+                    ),
+                );
+                
+                /*&$qa_content['form']['fields']['title']['tags'] .= ' onchange="qa_title_change(this.value);"';
+
+                if (strlen(@$in['title'])) {
+                    $qa_content['script_onloads'][] = 'as_searchitem_change();';
+                }*/
+
+                $as_content['script_onloads'][] = 'as_searchitem_change();';
+
+                if (as_get('alert') != null) 
+                    $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
+
+                if (as_get('callout') != null) 
+                    $bodycontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
+
+                $as_content['row_view'][] = array(
+                    'colms' => array(
+                        0 => array('class' => 'col-lg-6 col-xs-12', 'c_items' => array($bodycontent) ),
+                    ),
+                );
+
+                break;
+            
+            default:
+                $bodycontent = array(
+                    'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
+                    'type' => 'form', 'title' => $as_content['title'], 'style' => 'tall',
+            
+                    'table' => array( 'id' => 'allproducts', 'inline' => true,
+                        'headers' => array('#', 'ProductID', 'Category', 'Item Code', 'Length', 'Width', 'Height / <br>Thickness', 
+                        'Fill', 'Fill-material', 'Weight', 'Color', 'Type / <br>Pattern', 'Date of Entry', 'Qty', '*') ),
+                   
+                    'icon' => array(
+                        'fa' => 'arrow-left',
+                        'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+                        'class' => 'btn btn-social btn-primary',
+                        'label' => as_lang_html('main/back_button'),
+                    ),
+                    
+                    'tools' => array(
+                        /*'products' => array(
+                            'type' => 'link', 'label' => 'MANAGE PRODUCTS',
+                            'url' => as_path_html('business/'. $department->businessid.'/products'), 
+                            'class' => 'btn btn-primary btn-tool',
+                        ),
+                        '' => array(
+                            'type' => 'link', 'label' => ' ',
+                            'url' => '#', 
+                            'class' => 'btn btn-tool',
+                        ),*/
+                        'stock' => array(
+                            'type' => 'link', 'label' => 'MANAGE STOCK',
+                            'url' => as_path_html('department/'. $department->departid, array('section' => 'stockentry')), 
+                            'class' => 'btn btn-primary btn-tool',
+                        ),
+                    ),
+                    
+                    'hidden' => array(
+                        'code' => as_get_form_security_code('admin/products'),
+                    ),
+                );
+            
+                if (count($products)) {
+                    //$as_content['title'] .= ' ('.count($products).')';
+                    $p = 1;
+                    foreach ($products as $product) {
+                        $volume = explode('by', $product['volume']);
+                        $mass = explode(';', $product['mass']);
+                        $texture = explode(';', $product['texture']);
+            
+                        $bodycontent['table']['rows'][$p] = array(
+                            'onclick' => ' title="Click on this product to edit or view"',
+                            'fields' => array(
+                                'id' => array( 'data' => $p),
+                                'title' => array( 'data' => as_get_media_html($product['icon'], 20, 20) .'<a href="' . as_path_html('admin/products', array('edit' => $product['postid'])) . '">' . as_html($product['title']) .'</a>' ),
+                                'cat' => array( 'data' => $product['category']),
+                                'itemcode' => array( 'data' => $product['itemcode']),
+                                'length' => array( 'data' => trim($volume[0])),
+                                'width' => array( 'data' => trim($volume[1])),
+                                'height' => array( 'data' => trim($volume[2])),
+                                'fill' => array( 'data' => trim($mass[0])),
+                                'fill-material' => array( 'data' => trim($mass[1])),
+                                'weight' => array( 'data' => trim($mass[2])),
+                                'color' => array( 'data' => trim($texture[0])),
+                                'pattern' => array( 'data' => trim($texture[1])),
+                                'date' => array( 'data' => '' ),
+                                'qty' => array( 'data' => '' ),
+                                '*' => array( 'data' => '' ),
+                            ),
+                        );
+                        $p++;
+            
                     }
-
+                    
+                    $as_content['script_onloads'][] = array(
+                        "$(function () { $('#allproducts').DataTable() })"
+                    );
                 }
-                $k++;
-            }
+                
+                if (as_get('alert') != null) 
+                    $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
 
-            if (isset($checkboxtodisplay)) as_set_display_rules($as_content, $checkboxtodisplay);
+                if (as_get('callout') != null) 
+                    $bodycontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
 
-            $bodycontent['table']	= $tablelist;	
+                $as_content['row_view'][] = array(
+                    'colms' => array(
+                        0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
+                    ),
+                );
+
+                break;
         }
-
-        if (as_get('alert') != null) 
-            $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
-
-        if (as_get('callout') != null) 
-            $bodycontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
-
-        $as_content['row_view'][] = array(
-            'colms' => array(
-                0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
-            ),
-        );
-
+        
         return $as_content;
     }
 
