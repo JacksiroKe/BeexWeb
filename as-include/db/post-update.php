@@ -29,6 +29,19 @@ require_once AS_INCLUDE_DIR . 'app/updates.php';
 
 
 /**
+ * Set the author in the database of $postid to $userid, and set the lastuserid to $userid as well if appropriate
+ * @param $postid
+ * @param $userid
+ */
+function as_db_stock_update($stockid, $userid, $quantity)
+{
+	as_db_query_sub(
+		'UPDATE ^stock SET quantity=#, lastuserid=#, updated=NOW() WHERE stockid=#',
+		$quantity, $userid, $stockid
+	);
+}
+
+/**
  * Set $field of $rowid to $value in the database users table. If the $fields parameter is an array, the $value
  * parameter is ignored and each element of the array is treated as a key-value pair of user fields and values.
  * @param string|null $table

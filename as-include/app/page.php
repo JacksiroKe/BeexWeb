@@ -619,10 +619,14 @@ function as_content_prepare($voting = false, $categoryids = array())
 		foreach ($businesses as $business){
 			$as_content['navigation']['main'][$business->username] = array(
 				'label' => $business->title,
-				'url' => as_path_html('business/' . $business->businessid),
 				'icon' => 'fa fa-map-signs',
 			);
-			
+			$as_content['navigation']['main'][$business->username]['sub'][0] = array(
+				'label' => 'Business HOME',
+				'url' => as_path_html('business/' . $business->businessid),
+				'icon' => 'fa fa-home',
+			);
+
 			$departments = BxDepartment::get_list($business->businessid);
 			if (count($departments)) {
 				foreach ($departments as $department){

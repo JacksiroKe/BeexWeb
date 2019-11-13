@@ -19,29 +19,16 @@
 
 // General page functions
 
-
-// Ask form
-/*
-$("#as-table tfoot input").on( 'keyup change', function () {
-		table
-			.column( $(this).parent().index()+':visible' )
-			.search( this.value )
-			.draw();
-	} );
-	*/
-function as_searchitem_change()
+function as_searchuser_change()
 {
-	var searchedthis = document.getElementById('searchitem');
 	var params = {};
-	params.searchtext = searchedthis.value;
-
-	if(params.searchtext=='') {}
-	else
+	params.item_biz = document.getElementById('business_id').value;
+	params.searchtext = document.getElementById('searchuser').value;
+	if(params.searchtext.length > 3)
 	{ 
-		as_ajax_post('searchitem', params, function(lines) {
+		as_ajax_post('searchuser', params, function(lines) {
 			if (lines[0] == '1') {
-				var simelem = document.getElementById('similar');
-				simelem.innerHTML = '';
+				var simelem = document.getElementById('userresults');
 				simelem.innerHTML = lines.slice(1).join('\n');
 				as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
@@ -51,7 +38,7 @@ function as_searchitem_change()
 			}
 		});
 	}
-	//as_show_waiting_after(document.getElementById('similar'), true);
+	//as_show_waiting_after(document.getElementById('userresults'), true);
 }
 
 function as_add_manager(businessid, elem)
@@ -60,7 +47,6 @@ function as_add_manager(businessid, elem)
 	var params = {};
 	params.business = businessid;
 	params.manager = handle.value;
-	//as_conceal('#refreshsubmit', 'form');
 	
 	as_ajax_post('addmanager', params, function(lines) 
 		{
@@ -74,12 +60,74 @@ function as_add_manager(businessid, elem)
 			} else {
 				as_ajax_error();
 			}
-
 		}
 	);
 	as_show_waiting_after(document.getElementById('refreshsubmit'), true);
 
 	return false;
+}
+
+function as_searchitem_change()
+{
+	var params = {};
+	params.item_biz = document.getElementById('business_id').value;
+	params.searchtext = document.getElementById('searchitem').value;
+	if(params.searchtext.length > 3)
+	{ 
+		as_ajax_post('searchitem', params, function(lines) {
+			if (lines[0] == '1') {
+				var simelem = document.getElementById('similar');
+				simelem.innerHTML = lines.slice(1).join('\n');
+				as_show_waiting_after(elem, false);
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+			} else {
+				as_ajax_error();
+			}
+		});
+	}
+	//as_show_waiting_after(document.getElementById('similar'), true);
+}
+
+function as_show_stock_form(itemid)
+{
+	as_reveal('#form_' + itemid);
+	//as_conceal('#searchdiv');
+}
+
+function as_add_stock(itemid)
+{
+	var searchitem = document.getElementById('searchitem');
+	var params = {};
+	params.item_id = itemid;
+	params.item_biz = document.getElementById('business_id').value;
+	params.item_type = document.getElementById('type_' + itemid ).value;
+	params.item_qty = document.getElementById('quantity_' + itemid ).value;
+	params.item_cdn = document.getElementById('condition_' + itemid ).value;
+	
+	as_ajax_post('addstock', params, function(lines) 
+		{
+			if (lines[0] == '1') {
+				var simelem = document.getElementById('similar');
+				simelem.innerHTML = lines.slice(1).join('\n');
+				//searchitem.value = '';
+				as_show_waiting_after(elem, false);
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+			} else {
+				as_ajax_error();
+			}
+		}
+	);
+	as_show_waiting_after(document.getElementById('similar'), true);
+
+	return false;
+}
+
+function as_cancel_adding()
+{	
+	as_conceal('#similar');
+	//as_reveal('#searchdiv');
 }
 
 function as_username_change(value)

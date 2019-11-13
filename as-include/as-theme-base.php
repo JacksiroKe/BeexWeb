@@ -1262,16 +1262,17 @@ class as_html_theme_base
 			$this->output('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-close"></i></button>');
 			$this->output('<h4 class="modal-title">'.$modal['header']['title'].'</h4>', '</div>');
 			$this->output('<div class="modal-body">');
-					
-			if ($modal['view']['type'] = 'form') $this->form($modal['view']);
+			
+			switch ($modal['view']['type']) {
+				case 'form':
+					$this->form($modal['view']);
+					break;
+				default:
+					//$this->output($modal['view']['html']);
+					break;
+			}
 
-			$this->output('</div>');
-			$this->output('<div class="modal-footer">');
-			$this->output('<button type="button" class="btn btn-default" data-dismiss="modal">DONE</button>');
-			//$this->output('<button type="button" class="btn btn-default pull-left" data-dismiss="modal">DONE</button>');
-			//$this->output('<button type="button" class="btn btn-primary">Save changes</button>');
-			$this->output('</div>', '</div>');
-			$this->output('</div>', '</div>');
+			$this->output('</div></div></div></div>');
 		}
 	}
 	
@@ -1299,7 +1300,7 @@ class as_html_theme_base
 	public function form($form)
 	{
 		if (!empty($form)) {
-			$this->output('<div class="box box-info">');
+			if (isset($form['title'])) $this->output('<div class="box box-info">');
 			
 			if (isset($form['tags']))
 				$this->output('<form class="form-horizontal" ' . $form['tags'] . '>');
@@ -1309,7 +1310,7 @@ class as_html_theme_base
 
 			if (isset($form['tags']))
 				$this->output('</form>');
-			$this->output('</div>');
+			if (isset($form['title'])) $this->output('</div>');
 		}
 	}
 
@@ -1404,6 +1405,10 @@ class as_html_theme_base
 						
 					case 'table':
 						$this->table($c_item);
+						break;
+
+					case 'modals':
+						$this->modal($c_item);
 						break;
 							
 					case 'carousel':
@@ -1565,7 +1570,15 @@ class as_html_theme_base
 							case 'link':
 								$this->output('<a href="'.$item['href'].'" class="'.$item['tag'][1].'"><b>'.$item['label'].'</b></a>');
 								break;
-								
+									
+							case 'button':
+								$this->output('<button type="button" class="'.$item['tag'][1].' data-toggle="modal" data-target="#modal-default">'.$item['label'].'</button>');
+								break;
+										
+							case 'modalbtn':
+								$this->output('<button type="button" class="'.$item['tag'][1].'" data-toggle="modal" data-target="#'.$bi.'"><b>'.$item['label'].'</b></button>');
+								break;
+									
 							case 'list':
 								$this->output('<'.$item['tag'][0].
 									(isset($item['tag'][1]) ? ' class="'.$item['tag'][1].'"' : '').'>');
@@ -1726,7 +1739,7 @@ class as_html_theme_base
 					$this->output('<div class="row">');
 					if (isset($item['numbers'])) {						
 						foreach ($item['numbers'] as $nitem) {
-							$this->output('<div class="col-sm-'.(12 / count($item['numbers'])).' border-right">');
+							$this->output('<div class="col-sm-'.(12 / count($item['numbers'])).' border-right" '.$nitem['tags'].' style="cursor:pointer;">');
 							$this->output('<div class="description-block">');
 							$this->output('<h5 class="description-header">'.$nitem['ncount'].'</h5>');
 							$this->output('<span class="description-text">'.$nitem['nlabel'].'</span>');
@@ -1992,7 +2005,7 @@ class as_html_theme_base
 			}
 			
 			$this->output('<div class="box-body">');
-            $this->output('<table id="'.$table['id'].'" class="table table-bordered table-striped">');
+            $this->output('<table id="'.$table['id'].'" class="table table-bordered">');
 			
 			if (isset($table['headers'])) {
 				$this->output('<thead>', '<tr>');
@@ -2016,7 +2029,9 @@ class as_html_theme_base
 			if (isset($table['rows'])) {
 				$this->output('<tbody>');
 				foreach ($table['rows'] as $ra => $row) {
-					$this->output('<tr>');
+					$this->output('<tr'.
+						(isset($row['tags']) ? ' '.$row['tags'] : ''). 
+						(isset($row['title']) ? ' title="'.$row['title'].'"' : '').' class="row-item">');
 					foreach ($row['fields'] as $rb => $rd) {
 						$this->output('<td valign="top">');
 						if (isset($row['sub']) && $rb == '*')
@@ -2028,7 +2043,7 @@ class as_html_theme_base
 					
 					if (isset($row['sub'])) {
 						foreach ( $row['sub'] as $k => $sub ) {
-							$this->output('<tr id="child_'.$ra.'_'.$k.'" style="display:none; background: #222d32; color: #fff;">');
+							$this->output('<tr id="child_'.$ra.'_'.$k.'" class="sub-item-first">');
 							foreach ($sub['fields'] as $rq => $rw) {
 								if ($rq == '#') $this->output('<td valign="top" style="text-align:right;">'.$rw['data'].'</td>');
 								else $this->output('<td valign="top">'.$rw['data'].'</td>');

@@ -324,6 +324,56 @@ function as_db_categoryslugs_sql_args($categoryslugs, &$arguments)
 
 
 /**
+ * Return the common selectspec used to build any selectspecs which retrieve posts from the database.
+ * If $likeuserid is set, retrieve the like made by a particular that user on each post.
+ * If $full is true, get full information on the posts, instead of just information for listing pages.
+ * If $user is true, get information about the user who wrote the post (or cookie if anonymous).
+ * @param $likeuserid
+ * @param bool $full
+ * @param bool $user
+ * @return array
+ */
+function as_db_products_basic_selectspec($business = null)
+{
+	if (as_to_override(__FUNCTION__)) { $args=func_get_args(); return as_call_override(__FUNCTION__, $args); }
+
+	$selectspec = array(
+		'columns' => array(
+			'^posts.postid', '^posts.categoryid', '^posts.type', 'basetype' => 'LEFT(^posts.type, 1)',
+			'hidden' => "INSTR(^posts.type, '_HIDDEN')>0", 'queued' => "INSTR(^posts.type, '_QUEUED')>0",
+			'^posts.rcount', '^posts.selchildid', '^posts.closedbyid', '^posts.positivelikes', '^posts.negativelikes', '^posts.netlikes', '^posts.views', '^posts.hotness', '^posts.flagcount', '^posts.catidpath1', '^stock.quantity', 'delivered' => 'UNIX_TIMESTAMP(^stock.created)', 
+			'icon' => '^posts.icon', 'category' => '^categories.title', '^posts.title', '^posts.itemcode', '^posts.volume', '^posts.mass', '^posts.texture', '^posts.images', 'created' => 'UNIX_TIMESTAMP(^posts.created)', '^posts.name', 'content' => '^posts.content', 'categorybackpath' => "^categories.backpath", 'business' => '^stock.business',
+			'categoryname' => '(SELECT title FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 
+			'caticon' => '(SELECT icon FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 
+			'categoryids' => "CONCAT_WS(',', ^posts.catidpath1, ^posts.catidpath2, ^posts.catidpath3, ^posts.categoryid)",
+		),
+		'arraykey' => 'postid',
+		'source' => '^posts LEFT JOIN ^categories ON ^categories.categoryid=^posts.categoryid',
+		'arguments' => array(),
+	);
+	if (isset($business))
+	{
+		$selectspec['source'] .= ' LEFT JOIN ^stock ON ^posts.postid=^stock.itemid';
+		//$selectspec['source'] .= ' LEFT JOIN ^stock ON ^posts.postid=^stock.business';
+		//SELECT postid FROM as_posts WHERE type='P' ORDER BY as_posts.title ASC
+	}
+	return $selectspec;
+}
+
+/**
+ * Return the ids of all stock items in the database which match $handle (=username), should be one or none
+ * @param $handle
+ * @return array
+ */
+function as_db_find_by_stockitem($itemid, $business)
+{
+	return as_db_read_all_values(as_db_query_sub(
+		'SELECT stockid FROM ^stock WHERE itemid=$ AND business=$',
+		$itemid, $business
+	));
+}
+
+/**
  * Return the selectspec to retrieve items (of type $specialtype if provided, or 'P' by default) sorted by $sort,
  * restricted to $createip (if not null) and the category for $categoryslugs (if not null), with the corresponding like
  * made by $likeuserid (if not null) and including $full content or not. Return $count (if null, a default is used)
@@ -338,56 +388,53 @@ function as_db_categoryslugs_sql_args($categoryslugs, &$arguments)
  * @param $count
  * @return array
  */
-function as_db_products_selectspec($likeuserid, $sort, $search = null, $categoryslugs = null, $createip = null, $specialtype = false, $full = false, $count = null, $stock = null)
+function as_db_products_selectspec($sort, $business = null, $search = null, $categoryslugs = null, $createip = null, $specialtype = false, $full = false, $count = null, $stock = null)
 {
-	if ($specialtype == 'P' || $specialtype == 'P_QUEUED') {
-		$type = $specialtype;
-	} else {
-		$type = $specialtype ? 'P_HIDDEN' : 'P'; // for backwards compatibility
-	}
+	if ($specialtype == 'P' || $specialtype == 'P_QUEUED') $type = $specialtype;
+	else $type = $specialtype ? 'P_HIDDEN' : 'P';
 
 	$count = isset($count) ? min($count, AS_DB_RETRIEVE_QS_AS) : AS_DB_RETRIEVE_QS_AS;
+	$sortsql = 'ORDER BY ^posts.' . $sort . ' ASC';
 
-	switch ($sort) {
-		case 'rcount':
-		case 'flagcount':
-		case 'netlikes':
-		case 'views':
-			$sortsql = 'ORDER BY ^posts.' . $sort . ' ASC, ^posts.created ASC';
-			break;
-
-		case 'title':
-		case 'postid':
-		case 'itemcode':
-		case 'created':
-		case 'hotness':
-			$sortsql = 'ORDER BY ^posts.' . $sort . ' ASC';
-			break;
-
-		default:
-			as_fatal_error('as_db_question_selectspec() called with illegal sort value');
-			break;
-	}
-
-	$selectspec = as_db_posts_basic_selectspec($likeuserid, $full);
-
+	$selectspec = as_db_products_basic_selectspec($business);
+	
 	$selectspec['source'] .=
-		" JOIN (SELECT postid FROM ^posts WHERE " .
-		as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) .
-		(isset($createip) ? "createip=UNHEX($) AND " : "") .
-		"type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
-
-	if (isset($createip)) {
-		$selectspec['arguments'][] = bin2hex(@inet_pton($createip));
-	}
+		" JOIN (SELECT postid FROM ^posts WHERE " . as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) .
+		(isset($createip) ? "createip=UNHEX($) AND " : "") . "type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
+	
+	if (isset($business)) $selectspec['source'] .= ' WHERE ^stock.business=' . $business;
+	else if (isset($search)) $selectspec['source'] .= ' WHERE ^posts.title LIKE "' . $search . '" OR ^posts.content LIKE "' . $search . '"';
 
 	array_push($selectspec['arguments'], $type);
-
 	$selectspec['sortasc'] = $sort;
 
 	return $selectspec;
 }
 
+/**
+ * Return the selecspec to retrieve a single array with details of the account of the user identified by
+ * $useridhandle, which should be a userid if $isuserid is true, otherwise $useridhandle should be a handle.
+ * @param $useridhandle
+ * @param $isuserid
+ * @return array
+ */
+function as_db_user_search_selectspec($search)
+{
+	$selectspec = array(
+		'columns' => array(
+			'^users.userid', 'usertype' => '^users.type', 'profiles', 'firstname', 'lastname', 'gender', 'country', 'mobile', 'email', 'level', 'handle', 
+			'created' => 'UNIX_TIMESTAMP(created)', 'flags', 'signedin' => 'UNIX_TIMESTAMP(signedin)', 'signinip', 'written' => 'UNIX_TIMESTAMP(written)', 
+			'writeip', 'avatarblobid' => 'BINARY avatarblobid', 'avatarwidth', 'avatarheight', 'wallposts',
+		),
+
+		'source' => '^users WHERE ^users.firstname LIKE "' . $search . '" OR ^users.lastname LIKE "' . $search . 
+		'" OR ^users.email LIKE "' . $search . '" OR ^users.handle LIKE "' . $search . '"',
+	);
+	
+	//$selectspec['source'] .= ' WHERE ^users.title LIKE "' . $search . '" OR ^posts.content LIKE "' . $search . '"';
+
+	return $selectspec;
+}
 
 function as_db_os_selectspec($likeuserid, $count = null, $start = 0)
 {
@@ -1661,30 +1708,6 @@ function as_db_user_profile($userid)
 		'source' => '^users WHERE userid=$',
 		'arguments' => array($userid),
 		'single' => true,
-	);
-}
-
-
-/**
- * Return the selecspec to retrieve a single array with details of the account of the user identified by
- * $useridhandle, which should be a userid if $isuserid is true, otherwise $useridhandle should be a handle.
- * @param $useridhandle
- * @param $isuserid
- * @return array
- */
-function as_db_user_search_selectspec($searchterm)
-{
-	return array(
-		'columns' => array(
-			'^users.userid', 'passsalt', 'passcheck' => 'HEX(passcheck)', 'passhash', 'usertype' => '^users.type', 'profiles', 'firstname', 'lastname', 'gender', 'country', 'mobile', 'email', 'level', 'emailcode', 'handle',
-			'created' => 'UNIX_TIMESTAMP(created)', 'sessioncode', 'sessionsource', 'flags', 'signedin' => 'UNIX_TIMESTAMP(signedin)',
-			'signinip', 'written' => 'UNIX_TIMESTAMP(written)', 'writeip',
-			'avatarblobid' => 'BINARY avatarblobid',
-			'avatarwidth', 'avatarheight', 'points', 'wallposts',
-		),
-
-		'source' => '^users LEFT JOIN ^userpoints ON ^userpoints.userid=^users.userid WHERE ^users.' . ((strpos($searchterm, '@') === 0) ? 'handle' : 'email') . '=$',
-		'arguments' => array($searchterm),
 	);
 }
 

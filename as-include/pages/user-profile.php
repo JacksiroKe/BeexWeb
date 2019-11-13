@@ -123,7 +123,7 @@ if ($handle == $username)
 	$profile1['body']['items'][] = array( 
 		'tag' => array('link', 'btn btn-primary btn-block'),
 		'href' => '#',
-		'label' => '<b>Edit Your Account</b>',
+		'label' => 'Edit Your Account';
 	);
 
 }
@@ -131,7 +131,7 @@ else {
 	$profile1['body']['items'][] = array( 
 		'tag' => array('link', 'btn btn-primary btn-block'),
 		'href' => '#',
-		'label' => '<b>Follow</b>',
+		'label' => 'Follow';
 	);
 }
 
@@ -142,7 +142,7 @@ if (AS_USER_TYPE == 'A' || AS_USER_TYPE == 'SA')
 		$profile1['body']['items'][] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
 			'href' => $handle.'/edit',
-			'label' => '<b>Edit This User</b>',
+			'label' => 'Edit This User';
 		);
 	}	
 }

@@ -86,6 +86,7 @@ if (as_clicked('doregister')) {
 if (is_numeric($request)) {
 	$business = BxBusiness::get_single($userid, $request);
 	$departments = BxDepartment::get_list($request);
+	$managers = explode(',', $business->managers);	
 
 	if (as_clicked('dodeletedept')) {
 		require_once AS_INCLUDE_DIR . 'app/post-update.php';
@@ -140,11 +141,12 @@ if (is_numeric($request)) {
 			}
 		}
 	}
+	
 	$as_content['title'] = $business->title.' <small>BUSINESS</small>';
 	$sincetime = as_time_to_string(as_opt('db_time') - $business->created);
 	$joindate = as_when_to_html($business->created, 0);
 	$contacts = explode('xx', $business->contact);		
-	$profile1 = array( 'type' => 'box', 'theme' => 'primary', 
+	$profile1 = array( 'type' => 'box', 'theme' => 'primary',
 		'body' => array(
 			'type' => 'box-body box-profile',
 			'items' => array(
@@ -155,25 +157,24 @@ if (is_numeric($request)) {
 			),
 		),
 	);
-		
+	
 	if ($business->userid == $userid)
 	{
 		$profile1['body']['items']['link1'] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
 			'href' => as_path_html($rootpage . '/' . $request . '/edit'),
-			'label' => '<b>Edit Your Business</b>',
+			'label' => 'Edit Your Business',
 		);
-		$profile1['body']['items']['link2'] = array( 
-			'tag' => array('link', 'btn btn-primary btn-block'),
-			'href' => as_path_html($rootpage . '/' . $request.'/managers'),
-			'label' => '<b>Add or Remove Manager(s)</b>',
+		$profile1['body']['items']['modal-managers'] = array( 
+			'tag' => array('modalbtn', 'btn btn-primary btn-block'),
+			'label' => 'Add or Remove Manager(s)',
 		);
 	}
 	else {
 		$profile1['body']['items'][] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
 			'href' => as_path_html('#'),
-			'label' => '<b>Contact them</b>',
+			'label' => 'Contact them',
 		);
 	}
 
@@ -228,119 +229,70 @@ if (is_numeric($request)) {
 	
 	$profile2 = array( 'type' => 'tabs', 'navs' => array( 'aboutus' => 'About Us', 'contactus' => 'Contact Us'), 'pane' => $navtabs );
 	
-	switch ($request2) {
-		case 'managers':
-			$profile1['body']['items']['link2'] = null;
-			$managers = explode(',', $business->managers);		
-			$in['userfinder'] = as_get_post_title('usersearch');
+	$managershtml = '<ul class="products-list product-list-in-box" style="border-top: 1px solid #000">';
+	$owner = as_db_select_with_pending(as_db_user_profile($userid));
+	
+	$managershtml .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $owner).'</div>';
+	$managershtml .= '<div class="product-info"><a href="'.as_path_html('user/' . $owner['handle']).'" class="product-title" style="font-size: 20px;">';
+	$managershtml .= $owner['firstname'].' '.$owner['lastname'].'</a><span class="product-description">BUSINESS OWNER</span>';
+	$managershtml .= "</div><br></li>\n";
 
-			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
-			if (isset($hascallout)) $formcontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
-
-			$bodycontent = array(
-				'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
-				'title' => count($managers) .' MANAGER' . (count($managers) == 1 ? '' : 'S'),
-				'type' => 'form',
-				'style' => 'tall',
-				'ok' => $savedoptions ? as_lang_html('main/options_saved') : null,
-		
-				'style' => 'tall',
-		
-				'dash' => array( 'theme' => 'primary'),
-
-				'icon' => array(
-					'fa' => 'arrow-left',
-					'url' => as_path_html($rootpage),
-					'class' => 'btn btn-social btn-primary',
-					'label' => as_lang_html('main/back_button'),
-				),
-		
-				'tools' => array(
-					'add' => array(
-						'type' => 'button_md',
-						'url' => '#modal-default',
-						'class' => 'btn btn-primary btn-block',
-						'label' => 'ADD/REMOVE MANAGER(S)',
-					),
-				),
-				
-				'modals' => array(
-					'modal-default' => array(
-						'class' => 'modal fade',
-						'header' => array(
-							'title' => 'ADD MANAGERS',
-						),
-						'view' => array(
-							'type' => 'form', 'style' => 'tall',
-							'fields' => array(
-								'namesearch' => array(
-									'label' => 'Enter a username or Email',
-									'tags' => 'name="namesearch" id="namesearch" autocomplete="off"',
-								),
-								
-								'userresults' => array(
-									'type' => 'custom',
-									'html' => '<span id="userresults"></span>',
-								),
-
-								'useraction' => array(
-									'type' => 'custom',
-									'html' => '<span id="refreshsubmit"><input class="btn btn-primary" value="ADD AS A MANAGER" name="doaddmanager" onclick="as_show_waiting_after(this, false); return as_add_manager('.$business->businessid.', this);"></span>',
-								),
-							),
-						),
-					),
-				),
-
-				'hidden' => array( 'code' => as_get_form_security_code('business-departments')),
-			);
-			$as_content['script_onloads'][] = 'as_username_change('.as_js($in['userfinder']).');';
-
-			$owner = as_db_select_with_pending(as_db_user_profile($userid));
-			
-			$bodycontent['dash']['items'][] = array(
-				'img' => as_avatar(20, 'profile-user-img img-responsive', $owner), 
-				'label' => $owner['firstname'].' '.$owner['lastname'], 
-				'description' => 'BUSINESS OWNER',
-				'link' => as_path_html('user/' . $owner['handle']),
-			);
-			if (count($managers)) {
-				unset($bodycontent['fields']['intro']);
-		
-				foreach ($managers as $mid) {
-					if (!empty($mid) && $userid != $mid) {
-						$manager = as_db_select_with_pending(as_db_user_profile($mid));
-			
-						$bodycontent['dash']['items'][$mid] = array(
-							'img' => as_avatar(20, 'profile-user-img img-responsive', $manager), 
-							'label' => $manager['firstname'].' '.$manager['lastname'], 
-							'description' => 'BUSINESS MANAGER',
-							'link' => as_path_html('user/' . $manager['handle']),
-						);
-					}
-				}
-		
+	if (count($managers)) {
+		foreach ($managers as $mid) {
+			if (!empty($mid) && $userid != $mid) {
+				$manager = as_db_select_with_pending(as_db_user_profile($mid));
+				$managershtml .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
+				$managershtml .= '<div class="product-info"><a href="'.as_path_html('user/' . $manager['handle']).'" class="product-title" style="font-size: 20px;">';
+				$managershtml .= $manager['firstname'].' '.$manager['lastname'].'</a><span class="product-description">BUSINESS MANAGER</span>';
+				$managershtml .= "</div><br></li>\n";
 			}
+		}
+	}
 
-			if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
-			if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
-			
-			$as_content['row_view'][] = array(
-				'colms' => array(
-					0 => array('class' => 'col-md-3', 'c_items' => array($profile1, $profile2) ),
-					2 => array('class' => 'col-lg-9 col-xs-6', 'c_items' => array($bodycontent) ),
+	$managershtml .= '</ul>';
+
+	$modalboxes = array(
+		'modal-managers' => array(
+			'class' => 'modal fade',
+			'header' => array(
+				'title' => 'BUSINESS MANAGERS',
+			),
+			'view' => array(
+				'type' => 'form', 'style' => 'tall',
+				'fields' => array(
+					'namesearch' => array(
+						'type' => 'custom',
+						'html' => '<div class="form-group" id="searchdiv">
+						<div class="col-sm-12">
+						<label for="searchuser">Enter a User\'s Name, or Email Address</label>
+						<input id="searchuser" autocomplete="off" onkeyup="as_searchuser_change(this.value);" type="text" value="" class="form-control">
+						<input id="business_id" type="hidden" value="' . $business->businessid . '">
+						</div>
+						</div>
+						<div class="form-group" id="results">
+						<div class="col-sm-12">
+						<div id="userresults"></div>
+						</div>',
+					),
+					'managerlist' => array(
+						'type' => 'custom',
+						'html' => '<span id="managerlist">'.$managershtml.'</span>',
+					),
 				),
-			);
-			break;
+			),
+		),
+	);
 
+	switch ($request2) {
 		case 'edit':
 			$as_content['title'] = 'Edit: ' .$business->title.' <small>BUSINESS</small>';
 			$profile1['body']['items']['link1'] = array( 
 				'tag' => array('link', 'btn btn-primary btn-block'),
 				'href' => as_path_html($rootpage . '/' . $request ),
-				'label' => '<b>View Your Business</b>',
+				'label' => 'View Your Business',
 			);
 
+			if (isset($modalboxes)) $formcontent['modals'] = $modalboxes;
 			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $formcontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
 			
@@ -475,7 +427,7 @@ if (is_numeric($request)) {
 							4 => array( 
 								'tag' => array('link', 'btn btn-primary btn-block'),
 								'href' => as_path_html('department/' . $department->departid),
-								'label' => '<b>View This Department</b>',
+								'label' => 'View This Department',
 							),			
 						),
 					),
@@ -565,6 +517,7 @@ if (is_numeric($request)) {
 					'label' => as_lang_html('main/delete_button'),
 				);
 			}
+			if (isset($modalboxes)) $bodycontent['modals'] = $modalboxes;
 			if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
 			
@@ -640,6 +593,7 @@ if (is_numeric($request)) {
 		
 			}
 
+			if (isset($modalboxes)) $bodycontent['modals'] = $modalboxes;
 			if (isset($hasalert)) $bodycontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $bodycontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
 			
@@ -733,6 +687,7 @@ else {
 					'code' => as_get_form_security_code('business-register'),
 				),
 			);
+			if (isset($modalboxes)) $formcontent['modals'] = $modalboxes;
 			if (isset($hasalert)) $formcontent['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $formcontent['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
 			
@@ -763,8 +718,10 @@ else {
 						'label' => $business->title . '| Your Role: ' . ($business->userid == $userid ? 'OWNER' : 'MANAGER'),
 						'description' => $business->content, 'link' => 'business/'.$business->businessid,
 						'numbers' => array(
-							'users' => array('ncount' => count($managers), 'nlabel' => 'Manager'.as_many(count($managers))),
-							'depts' => array('ncount' => $business->departments, 'nlabel' => 'Department'.as_many($business->departments)),
+							'users' => array('ncount' => count($managers), 'nlabel' => 'Manager'.as_many(count($managers)), 
+								'tags' => 'data-toggle="modal" data-target="#managers_'.$business->businessid.'"'),
+							'depts' => array('ncount' => $business->departments, 'nlabel' => 'Department'.as_many($business->departments),
+								'tags' => 'data-toggle="modal" data-target="#modal-danger"'),
 						),
 					);
 					
@@ -781,6 +738,7 @@ else {
 									'link' => as_path_html('department/' . $department->departid),
 									'managers' => $department->managers,
 									'sections' => $department->sections,
+									'tags' => ' style="cursor:pointer;"',
 								);
 							}
 							$k++;
@@ -789,6 +747,7 @@ else {
 					}
 				}
 			}
+			if (isset($modalboxes)) $dashlist['modals'] = $modalboxes;
 			if (isset($hasalert)) $dashlist['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $dashlist['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);
 			

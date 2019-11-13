@@ -147,13 +147,12 @@ class BxStockDept extends BxDepartment
         $in['searchitem'] = as_get_post_title('searchitem');
 
         $userid = as_get_logged_in_userid();
-        $selectsort = 'title';
         $categoryslugs = as_get('cart');
         $section = as_get('section');
 
         list($categories, $products) = as_db_select_with_pending(
             as_db_category_nav_selectspec($categoryslugs, true, false, true),
-            as_db_products_selectspec($userid, $selectsort)
+            as_db_products_selectspec('title', $department->businessid)
         );
 
         $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
@@ -171,28 +170,23 @@ class BxStockDept extends BxDepartment
                     ),
                     
                     'fields' => array(
-                        'searchitem' => array(
-                            'label' => 'Search a Product by Item Name, Code or Category',
-                            'tags' => 'id="searchitem" autocomplete="off"',
-                            'value' => as_html(@$in['searchitem']),
-                        ),
-                        
                         'searchresult' => array(
                             'type' => 'custom',
-                            'html' => '<div id="similar"></div>',
+                            'html' => '<div class="form-group" id="searchdiv">
+                            <div class="col-sm-12">
+                            <label for="searchitem">Search a Product by Item Name, Code or Category</label>
+                            <input id="searchitem" autocomplete="off" onkeyup="as_searchitem_change(this.value);" type="text" value="" class="form-control">
+                            <input id="business_id" type="hidden" value="' . $department->businessid . '">
+                            </div>
+                            </div>
+                            <div class="form-group" style="min-height: 300px;" id="results">
+                            <div class="col-sm-12">
+                            <div id="similar"></div>
+                            </div>',
                         ),
-
                     ),
                 );
                 
-                /*&$qa_content['form']['fields']['title']['tags'] .= ' onchange="qa_title_change(this.value);"';
-
-                if (strlen(@$in['title'])) {
-                    $qa_content['script_onloads'][] = 'as_searchitem_change();';
-                }*/
-
-                $as_content['script_onloads'][] = 'as_searchitem_change();';
-
                 if (as_get('alert') != null) 
                     $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
 
@@ -213,8 +207,7 @@ class BxStockDept extends BxDepartment
                     'type' => 'form', 'title' => $as_content['title'], 'style' => 'tall',
             
                     'table' => array( 'id' => 'allproducts', 'inline' => true,
-                        'headers' => array('#', 'ProductID', 'Category', 'Item Code', 'Length', 'Width', 'Height / <br>Thickness', 
-                        'Fill', 'Fill-material', 'Weight', 'Color', 'Type / <br>Pattern', 'Date of Entry', 'Qty', '*') ),
+                        'headers' => array('#', 'ProductID', 'Category', 'Item Code', 'Date of Entry', 'Qty', '*') ),
                    
                     'icon' => array(
                         'fa' => 'arrow-left',
@@ -250,11 +243,31 @@ class BxStockDept extends BxDepartment
                     //$as_content['title'] .= ' ('.count($products).')';
                     $p = 1;
                     foreach ($products as $product) {
+                        $delivery = as_when_to_html($product['delivered'], 0);
+                        $deliverydate = isset($product['delivered']) ? $delivery['data'] : '';
+                        $deliveryago = as_time_to_string(as_opt('db_time') - $product['delivered']);
+
+                        $bodycontent['table']['rows'][$p] = array(
+                            'title' => 'Click on this product to edit or view',
+                            'tags' => 'data-toggle="modal" data-target="#product_'.$product['postid'].'" ',
+                            'fields' => array(
+                                'id' => array( 'data' => $p),
+                                'title' => array( 'data' => as_get_media_html($product['icon'], 20, 20) . as_html($product['title']) ),
+                                'cat' => array( 'data' => $product['category']),
+                                'itemcode' => array( 'data' => $product['itemcode']),
+                                'date' => array( 'data' => $deliverydate . ' (' .$deliveryago . ' ago)' ),
+                                'qty' => array( 'data' => $product['quantity'] ),
+                                '*' => array( 'data' => '' ),
+                            ),
+                        );
+                        $p++;            
+                    }
+                    foreach ($products as $product) {
                         $volume = explode('by', $product['volume']);
                         $mass = explode(';', $product['mass']);
                         $texture = explode(';', $product['texture']);
             
-                        $bodycontent['table']['rows'][$p] = array(
+                        /*$bodycontent['table']['rows'][$p] = array(
                             'onclick' => ' title="Click on this product to edit or view"',
                             'fields' => array(
                                 'id' => array( 'data' => $p),
@@ -269,15 +282,29 @@ class BxStockDept extends BxDepartment
                                 'weight' => array( 'data' => trim($mass[2])),
                                 'color' => array( 'data' => trim($texture[0])),
                                 'pattern' => array( 'data' => trim($texture[1])),
-                                'date' => array( 'data' => '' ),
-                                'qty' => array( 'data' => '' ),
+                                'date' => array( 'data' => $product['delivered'] ),
+                                'qty' => array( 'data' => $product['quantity'] ),
                                 '*' => array( 'data' => '' ),
                             ),
                         );
                         $p++;
-            
+                        */
+                        $bodycontent['modals']['product_'.$product['postid']] = array(
+                            'class' => 'modal fade',
+                            'header' => array(
+                                'title' => strtoupper($product['title'] . ' [' . $product['itemcode'].']'),
+                            ),
+                            'view' => array(
+                                'type' => 'html', 
+                                'html' => 
+                                    '<h4>' . $product['content'] . '</h4>'.
+                                    '<h5>Volume: ' . $product['volume'] . '</h5>'.
+                                    '<h5>Mass: ' . $product['mass'] . '</h5>'.
+                                    '<h5>Texture: ' . $product['texture'] . '</h5>'
+                                    ,
+                            ),
+                        );
                     }
-                    
                     $as_content['script_onloads'][] = array(
                         "$(function () { $('#allproducts').DataTable() })"
                     );

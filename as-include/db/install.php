@@ -408,13 +408,6 @@ function as_db_table_definitions()
 			'created' => 'DATETIME NOT NULL',
 			'updated' => 'DATETIME', // time of last update
 			'updatetype' => 'CHAR(1) CHARACTER SET ascii', // see /as-include/app/updates.php
-			//'buyprice' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0',
-			//'saleprice' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0',
-			//'state' => 'VARCHAR(' . AS_DB_MAX_TEXT_LENGTH . ')',
-			//'quantity' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0',
-			//'stockin' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0',
-			//'stockout' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0',
-			//'manufacturer' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ')',
 			'name' => 'VARCHAR(' . AS_DB_MAX_NAME_LENGTH . ')', // name of author if post anonymonus
 			'notify' => 'VARCHAR(' . AS_DB_MAX_EMAIL_LENGTH . ')', // email address, or @ to get from user, or NULL for none
 			'parentid' => 'INT UNSIGNED', // for follow on items, all reviews and comments
@@ -424,8 +417,6 @@ function as_db_table_definitions()
 			'rcount' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0', // number of reviews (for items)
 			'rmaxlike' => 'SMALLINT UNSIGNED NOT NULL DEFAULT 0', // highest netlikes of child reviews (for items)
 			'selchildid' => 'INT UNSIGNED', // selected review (for items)
-			// if closed due to being a duplicate, this is the postid of that other item
-			// if closed for another reason, that reason should be added as a comment on the item, and this field is the comment's id
 			'closedbyid' => 'INT UNSIGNED', // not null means item is closed
 			'cookieid' => 'BIGINT UNSIGNED', // which cookie wrote it, if an anonymous post
 			'createip' => 'VARBINARY(16)', // INET6_ATON of IP address used to create the post
@@ -483,6 +474,32 @@ function as_db_table_definitions()
 			'created' => 'DATETIME NOT NULL',
 			'updated' => 'DATETIME',
 			'PRIMARY KEY (orderid)',
+		),
+
+		'stock' => array( //type, business, itemid, userid, quantity, created
+			'stockid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'type' => "ENUM('CSTOCK', 'IHSTOCK', 'OTHER') NOT NULL DEFAULT 'CSTOCK'",
+			'business' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'itemid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'userid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'lastuserid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'quantity' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'created' => 'DATETIME NOT NULL',
+			'updated' => 'DATETIME',
+			'PRIMARY KEY (stockid)',
+		),
+
+		'stockactivity' => array(  //type, stockid, itemid, userid, quantity, state, created
+			'activityid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'type' => "ENUM('ENTRY', 'EXIT', 'MANAGE', 'NOTE') NOT NULL DEFAULT 'ENTRY'",
+			'stockid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'itemid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'userid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'quantity' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'state' => 'INT UNSIGNED NOT NULL DEFAULT 1',
+			'created' => 'DATETIME NOT NULL',
+			'updated' => 'DATETIME',
+			'PRIMARY KEY (activityid)',
 		),
 
 		'blobs' => array(

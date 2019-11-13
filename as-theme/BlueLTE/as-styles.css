@@ -8,3 +8,21 @@
 	Theme License: GPLv2
 	Theme Update Check URI: 
 */
+
+.stock-item-result {
+	cursor: pointer;
+	border: #eee;
+}
+.row-item {
+	cursor: pointer;
+	border: #eee;
+}
+.row-item:hover {
+	color: #fff;
+	background: #222d32;
+}
+.sub-item-first{
+	display:none; 
+	background: #222d32; 
+	color: #fff;
+}

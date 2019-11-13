@@ -79,6 +79,25 @@ function as_db_item_create($type, $parentid, $userid, $cookieid, $ip, $icon, $vo
 	return as_db_last_insert_id();
 }
 
+function as_db_stock_add($type, $business, $itemid, $userid, $quantity)
+{
+	as_db_query_sub(
+		'INSERT INTO ^stock (type, business, itemid, userid, quantity, created) ' .
+		'VALUES ($, #, #, #, #, NOW())',
+		$type, $business, $itemid, $userid, $quantity
+	);
+	return as_db_last_insert_id();
+}
+
+function as_db_stock_entry($type, $stockid, $itemid, $userid, $quantity, $state)
+{
+	as_db_query_sub(
+		'INSERT INTO ^stockactivity (type, stockid, itemid, userid, quantity, state, created) ' .
+		'VALUES ($, #, #, #, #, #, NOW())',
+		$type, $stockid, $itemid, $userid, $quantity, $state
+	);
+}
+
 function as_db_order_create($userid, $cookieid, $ip, $itemid, $quantity, $address)
 {
 	as_db_query_sub(

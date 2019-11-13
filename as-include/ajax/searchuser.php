@@ -1,9 +1,10 @@
-<?php
+$manager['firstname']<?php
 /*
 	AppSmata by AppSmata Sol.
 	http://www.appsmata.org/
 
-	Description: Server-side response to Ajax request based on user name or email
+	Description: Server-side response to Ajax single clicks on comments
+
 
 	This program is free software; you can redistribute it and/or
 	modify it under the terms of the GNU General Public License
@@ -23,16 +24,35 @@ require_once AS_INCLUDE_DIR . 'util/string.php';
 require_once AS_INCLUDE_DIR . 'app/users.php';
 require_once AS_INCLUDE_DIR . 'app/format.php';
 
+$insearchitem = as_post_text('searchtext');
+$businessid = as_post_text('item_biz');
 
-// Collect the information we need from the database
-
-$insearch = as_post_text('namesearch');
-$userresult = as_db_select_with_pending( as_db_user_search_selectspec($insearch) );
-$userlist = array();
-foreach ($userresult as $user) {
-    $userlist[] = $user['fistname'] . ' ' . $user['lastname'] . ',';
-}
+$userid = as_get_logged_in_userid();
+$itemresults = as_db_select_with_pending( as_db_user_search_selectspec($insearchitem));
 
 echo "AS_AJAX_RESPONSE\n1\n";
 
-echo strtr(as_html(implode(',', $userlist)), "\r\n", '  ') . "\n";
+$htmlresult = '<div class="box-body">';
+$htmlresult .= '<ul class="products-list product-list-in-box">';
+
+foreach ($itemresults as $result) 
+{
+	$gender = $result['gender'] == 1 ? ' ('.as_lang('users/gender_male').')' : ' ('.as_lang('users/gender_female').')';
+	$sincetime = as_time_to_string(as_opt('db_time') - $result['created']);
+	$joindate = as_when_to_html($result['created'], 0);
+	   
+	$htmlresult .= '<li class="item stock-item-result" alt="Click to Proceed with Stock Entry">';
+	$htmlresult .= '<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $result).'</div>';
+	$htmlresult .= '<div class="product-info">';
+	$htmlresult .= '<span class="product-title" style="font-size: 20px;">'.$result['firstname'].' '.$result['lastname'].' - ' .$gender. ' ' .
+	as_html(as_user_level_string($result['level'])).'</span>';
+	
+	$htmlresult .= '<span class="product-description">';
+	$htmlresult .= $result['email'].' [@' .$result['handle'].'] | User for '.$sincetime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')';
+	$htmlresult .= '</span>';
+
+	$htmlresult .= '</li>';
+}
+
+$htmlresult .= '</div>';
+echo $htmlresult;

@@ -209,7 +209,7 @@ if (is_numeric($request)) {
 							4 => array( 
 								'tag' => array('link', 'btn btn-primary btn-block'),
 								'href' => as_path_html('department/' . $department->departid),
-								'label' => '<b>View This Department</b>',
+								'label' => 'View This Department',
 							),			
 						),
 					),
