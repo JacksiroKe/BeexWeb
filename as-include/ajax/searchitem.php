@@ -23,6 +23,7 @@ require_once AS_INCLUDE_DIR . 'db/selects.php';
 require_once AS_INCLUDE_DIR . 'util/string.php';
 require_once AS_INCLUDE_DIR . 'app/users.php';
 require_once AS_INCLUDE_DIR . 'app/format.php';
+require_once AS_INCLUDE_DIR . 'APS/as-views.php';
 
 $insearchitem = as_post_text('searchtext');
 $businessid = as_post_text('item_biz');
@@ -37,58 +38,50 @@ $htmlresult .= '<ul class="products-list product-list-in-box">';
 
 foreach ($itemresults as $result) 
 {
-	$htmlresult .= '<li class="item stock-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_stock_form('.$result['postid'].')">';
+	$result['stock'] = (isset($result['quantity']) ? $result['quantity'] : 0);
+	$htmlresult .= '<li class="item stock-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form('.$result['postid'].')">';
 	$htmlresult .= '<div class="product-img">'.as_get_media_html($result['icon'], 200, 200).'</div>';
 	$htmlresult .= '<div class="product-info">';
-	$htmlresult .= '<span class="product-title" style="font-size: 20px;">'.$result['category']. ' - ' . $result['itemcode']. ' [' .$result['title'].']</span>';
+	$htmlresult .= '<span class="product-title" style="font-size: 20px;"><span style="color: #006400;">'.$result['category']. '</span> - ';
+	$htmlresult .= '<span style="color: #f00;">' . $result['itemcode']. '</span> - ' .$result['title'].'</span>';
 	
+	$htmlresult .= '<span class="label label-info pull-right"><h5>QTY</h5><span style="font-size: 30px">'.$product['stock']. '</span></span>';
 	$htmlresult .= '<span class="product-description">';
-	if ($result['content'] != '') $htmlresult .= $result['content'].'<br>';
-	$htmlresult .= '<b>VOLUME:</b>' .$result['volume'].' <b>MASS:</b> ' . $result['mass'];
-	$htmlresult .= '</span>';
-
-	$htmlresult .= '<br><div class="box box-info" id="form_'.$result['postid'].'" style="display:none;">';
-	$htmlresult .= '<div class="box-header with-border">
-	  <h3 class="box-title">ADD NEW STOCK FOR THIS PRODUCT</h3>
-	</div>';
+	if ($result['content'] != '') $htmlresult .= '<span style="color: #151B8D; font-size: 22px;">' . $result['content'] . '</span>';
+	$htmlresult .= '<table><tr><td><b>VOLUME</b></td><td><b> : </b></td><td> ' .$result['volume'].'</td></tr>';
+	$htmlresult .= '<tr><td><b>MASS</b></td><td><b> : </b></td><td> ' . $result['mass'].'</td></tr>';
+	$htmlresult .= '<tr><td><b>TEXTURE</b></td><td><b> : </b></td><td> ' . $result['texture'].'</td></tr>';
+	$htmlresult .= '</table></span>';	
+	$htmlresult .= '</li>';
 	
-	$htmlresult .= '<form class="form-horizontal" method="post">
-	  <div class="box-body">';
-	$htmlresult .= '<div class="form-group">
-		  <label class="col-sm-3 control-label">Quantity</label>
-		  <div class="col-sm-9">
-			<input type="number" class="form-control" id="quantity_'.$result['postid'].'" placeholder="1" min="1" required>
-		  </div>
-		</div>';
+	$htmlresult .= '<li id="form_'.$result['postid'].'" style="display:none; background: #eee;">';	
+	$htmlresult .= '<div id="itemresults_'.$result['postid'].'"></div>';
+	$htmlresult .= '<div class="nav-tabs-custom">';
 
-	$htmlresult .= '<div class="form-group">
-		  <label class="col-sm-3 control-label">Condition</label>
-		  <div class="col-sm-9">
-			<select class="form-control" id="condition_'.$result['postid'].'" required>
-			<option value="1"> New </option>
-			<option value="3"> Damaged </option>
-			<option value="4"> Reject </option>
-			</select>
-		  </div>
-		</div>';
+	$htmlresult .= '<ul class="nav nav-tabs pull-right">';
+	$htmlresult .= '<li class="active"><a href="#stock-entry" data-toggle="tab">ADD STOCK</a></li>';
+	$htmlresult .= '<li><a href="#stock-history" data-toggle="tab">STOCK HISTORY</a></li>';
+	$htmlresult .= '<li class="pull-left header"><i class="fa fa-info"></i> ACTIONS</li>';
+	$htmlresult .= '</ul>';
 
-	$htmlresult .= '<div class="form-group">
-			<label class="col-sm-3 control-label">Type of Stock</label>
-			<div class="col-sm-9">
-			<select class="form-control" id="type_'.$result['postid'].'" required>
-			<option value="CSTOCK"> Commercial Stock </option>
-			<option value="IHSTOCK"> In-House Stock </option>
-			</select>
-			</div>
-		</div>';
+	$htmlresult .= '<div class="tab-content no-padding">';
 
-	$htmlresult .= '</div>';
+	$htmlresult .= '<div class="tab-pane active" id="stock-entry" style="position: relative;">';	
+	$htmlresult .= as_stock_add_form($result).'</div>';
+
+	$htmlresult .= '<div class="chart tab-pane" id="stock-history" style="position: relative;">';
 	
-	$htmlresult .= '<div class="box-footer">
-		<input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Submit This Entry" onclick="as_show_waiting_after(this, false); return as_add_stock('.$result['postid'].');"/>
-		<input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_cancel_adding();"/>
-	  </div>';
-	$htmlresult .= '</form>';
+	$stockids = as_db_find_by_stockitem($result['postid'], $businessid);
+	if (count($stockids))
+	{
+		$history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
+		$htmlresult .= as_stock_history($history) . '</div>';
+	}
+	else
+	{
+		$htmlresult .= '<h3>No Stock History for this product at the moment</h3></div>';
+	}
+
 	$htmlresult .= '</div>';
 	$htmlresult .= '</div>';
 	$htmlresult .= '</li>';

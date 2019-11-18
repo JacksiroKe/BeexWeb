@@ -264,7 +264,7 @@ if (is_numeric($request)) {
 						'type' => 'custom',
 						'html' => '<div class="form-group" id="searchdiv">
 						<div class="col-sm-12">
-						<label for="searchuser">Enter a User\'s Name, or Email Address</label>
+						<label for="searchuser">Search by a User\'s Name, or Email Address</label>
 						<input id="searchuser" autocomplete="off" onkeyup="as_searchuser_change(this.value);" type="text" value="" class="form-control">
 						<input id="business_id" type="hidden" value="' . $business->businessid . '">
 						</div>

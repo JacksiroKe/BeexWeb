@@ -66,6 +66,7 @@ $routing = array(
 	'version' => 'version.php',
 	'category' => 'category.php',
 	'writetitle' => 'writetitle.php',
+	'newcustomer' => 'newcustomer.php',
 	'review' => 'review.php',
 	'comment' => 'comment.php',
 	'click_a' => 'click-review.php',

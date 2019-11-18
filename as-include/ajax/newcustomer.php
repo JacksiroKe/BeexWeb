@@ -24,26 +24,27 @@ require_once AS_INCLUDE_DIR . 'db/selects.php';
 require_once AS_INCLUDE_DIR . 'db/post-create.php';
 require_once AS_INCLUDE_DIR . 'db/post-update.php';
 
-$itemid = as_post_text('item_id');
-$business = as_post_text('item_biz');
-$quantity = as_post_text('item_qty');
-$state = as_post_text('item_cdn');
-$type = as_post_text('item_type');
+$business = as_post_text('cust_bsid');
+$title = as_post_text('cust_title');
+$type = as_post_text('cust_type');
+$idnumber = as_post_text('cust_idnumber');
+$mobile = as_post_text('cust_mobile');
+$email = as_post_text('cust_email');
+$region = as_post_text('cust_region');
+$city = as_post_text('cust_city');
+$road = as_post_text('cust_road');
+
+$contact = $mobile . ' xx ' . $email;
+$location = $region . ' xx ' . $city . ' xx ' . $road;
+
 $userid = as_get_logged_in_userid();
 
-$stockids = as_db_find_by_stockitem($itemid, $business);
-if (count($stockids))
-{
-   as_db_stock_entry('ENTRY', $stockids[0], $itemid, $userid, $quantity, $bprice, $sprice, $state);
-}
-else
-{
-    $stockid = as_db_stock_add($type, $business, $itemid, $userid, $quantity);
-    as_db_stock_entry('ENTRY', $stockid, $itemid, $userid, $quantity, $bprice, $sprice, $state);
-}
+$customerid = as_db_customer_register($userid, $business, $title, $type, $idnumber, $contact, $location);
 
-echo "AS_AJAX_RESPONSE\n1\n";
-$resulthtml = '<div class="alert alert-success alert-dismissible"> <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> ';
-$resulthtml .= 'Stock for the item added successfully!</div>';
-
+if ($customerid) {
+	echo "AS_AJAX_RESPONSE\n1\n";
+	$resulthtml = '<div class="alert alert-success alert-dismissible"> <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button> ';
+	$resulthtml .= 'Customer ' . $title . ' has been registered successfully!</div>';
+}
+else echo "AS_AJAX_RESPONSE\n0\n";
 echo $resulthtml;

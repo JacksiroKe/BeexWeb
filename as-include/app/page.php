@@ -30,6 +30,7 @@ require_once AS_INCLUDE_DIR . 'app/users.php';
 require_once AS_INCLUDE_DIR . 'app/options.php';
 require_once AS_INCLUDE_DIR . 'db/selects.php';
 
+require_once AS_INCLUDE_DIR . 'APS/as-views.php';
 require_once AS_INCLUDE_DIR . 'APS/as-beex-business.php';
 require_once AS_INCLUDE_DIR . 'APS/as-beex-department.php';
 require_once AS_INCLUDE_DIR . 'APS/as-beex-dept-cc.php';

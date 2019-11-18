@@ -402,12 +402,57 @@ function as_db_products_selectspec($sort, $business = null, $search = null, $cat
 		" JOIN (SELECT postid FROM ^posts WHERE " . as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) .
 		(isset($createip) ? "createip=UNHEX($) AND " : "") . "type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
 	
-	if (isset($business)) $selectspec['source'] .= ' WHERE ^stock.business=' . $business;
-	else if (isset($search)) $selectspec['source'] .= ' WHERE ^posts.title LIKE "' . $search . '" OR ^posts.content LIKE "' . $search . '"';
+	if (isset($search)) {
+		$selectspec['source'] .= ' WHERE ^posts.title LIKE "%' . $search . '%"';
+		$selectspec['source'] .= ' OR ^posts.itemcode LIKE "%' . $search . '%"';
+		$selectspec['source'] .= ' OR ^categories.title LIKE "%' . $search . '%"';
+		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%" LIMIT 10';
+	}
+	else if (isset($business)) $selectspec['source'] .= ' WHERE ^stock.business=' . $business;
 
 	array_push($selectspec['arguments'], $type);
 	$selectspec['sortasc'] = $sort;
 
+	return $selectspec;
+}
+
+/**
+ * Return the stock activity for an item.
+ * @param $stockid
+ * @return array
+ */
+function as_db_product_stock_activity($stockid)
+{
+	$selectspec = array(
+		'columns' => array(
+			'activityid', 'type', 'stockid', 'itemid', 'userid', 'quantity', 'bprice', 'sprice', 'state', 'created' => 'UNIX_TIMESTAMP(created)',
+		),
+
+		'source' => "^stockactivity WHERE ^stockactivity.stockid=#",
+		'arguments' => array($stockid),
+		'sortdesc' => 'activityid'
+	);
+	
+	return $selectspec;
+}
+
+/**
+ * Return the stock activity for an item.
+ * @param $stockid
+ * @return array
+ */
+function as_db_recent_customers($business)
+{
+	$selectspec = array(
+		'columns' => array(
+			'customerid', 'type', 'business', 'userid', 'title', 'idnumber', 'content', 'location', 'contact', 'created' => 'UNIX_TIMESTAMP(created)',
+		),
+
+		'source' => "^customers WHERE ^customers.business=#",
+		'arguments' => array($business),
+		'sortdesc' => 'customerid'
+	);
+	
 	return $selectspec;
 }
 
@@ -427,12 +472,10 @@ function as_db_user_search_selectspec($search)
 			'writeip', 'avatarblobid' => 'BINARY avatarblobid', 'avatarwidth', 'avatarheight', 'wallposts',
 		),
 
-		'source' => '^users WHERE ^users.firstname LIKE "' . $search . '" OR ^users.lastname LIKE "' . $search . 
-		'" OR ^users.email LIKE "' . $search . '" OR ^users.handle LIKE "' . $search . '"',
+		'source' => '^users WHERE ^users.firstname LIKE "%' . $search . '%" OR ^users.lastname LIKE "%' . $search . 
+		'%" OR ^users.email LIKE "%' . $search . '%" OR ^users.handle LIKE "%' . $search . '%"',
 	);
 	
-	//$selectspec['source'] .= ' WHERE ^users.title LIKE "' . $search . '" OR ^posts.content LIKE "' . $search . '"';
-
 	return $selectspec;
 }
 

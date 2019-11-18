@@ -134,19 +134,6 @@ function as_db_table_definitions()
 			'KEY created (created, level, type, flags)',
 		),
 
-		'customers' => array(
-			'customerid' => $useridcoltype . ' NOT NULL AUTO_INCREMENT',
-			'userid' => $useridcoltype . ' NOT NULL',
-			'title' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
-			'content' => 'VARCHAR(' . AS_DB_MAX_PROFILE_CONTENT_LENGTH . ') NOT NULL',
-			'location' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
-			'contact' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
-			'field1' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
-			'field2' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
-			'field3' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
-			'PRIMARY KEY (customerid)',
-		),
-
 		'businesses' => array(//businessid, type, title, contact, location, username, content, icon, images, tags, userid, created
 			'businessid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'bstype' => 'VARCHAR(' . AS_DB_MAX_TITLE_LENGTH . ') NOT NULL DEFAULT \'PUBLIC\'',
@@ -476,6 +463,24 @@ function as_db_table_definitions()
 			'PRIMARY KEY (orderid)',
 		),
 
+		'customers' => array( //type, business, userid, title, idnumber, content, location, contact, created
+			'customerid' => $useridcoltype . ' NOT NULL AUTO_INCREMENT',
+			'type' => "ENUM('INDIVIDUAL', 'BUSINESS', 'OTHER') NOT NULL DEFAULT 'BUSINESS'",
+			'business' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'userid' => $useridcoltype . ' NOT NULL',
+			'title' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
+			'idnumber' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
+			'content' => 'VARCHAR(' . AS_DB_MAX_PROFILE_CONTENT_LENGTH . ')',
+			'location' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
+			'contact' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
+			'field1' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
+			'field2' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
+			'field3' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
+			'created' => 'DATETIME NOT NULL',
+			'updated' => 'DATETIME',
+			'PRIMARY KEY (customerid)',
+		),
+
 		'stock' => array( //type, business, itemid, userid, quantity, created
 			'stockid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('CSTOCK', 'IHSTOCK', 'OTHER') NOT NULL DEFAULT 'CSTOCK'",
@@ -489,13 +494,15 @@ function as_db_table_definitions()
 			'PRIMARY KEY (stockid)',
 		),
 
-		'stockactivity' => array(  //type, stockid, itemid, userid, quantity, state, created
+		'stockactivity' => array(  //type, stockid, itemid, userid, quantity, bprice, sprice, state, created
 			'activityid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('ENTRY', 'EXIT', 'MANAGE', 'NOTE') NOT NULL DEFAULT 'ENTRY'",
 			'stockid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'itemid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'userid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'quantity' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'bprice' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'sprice' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'state' => 'INT UNSIGNED NOT NULL DEFAULT 1',
 			'created' => 'DATETIME NOT NULL',
 			'updated' => 'DATETIME',

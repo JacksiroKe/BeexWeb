@@ -19,6 +19,55 @@
 
 // General page functions
 
+function as_new_customer()
+{
+	var field_bsid = document.getElementById('business');
+	var field_title = document.getElementById('title');
+	var field_type = document.getElementById('type');
+	var field_idno = document.getElementById('idnumber');
+	var field_mobile = document.getElementById('mobile');
+	var field_email = document.getElementById('email');
+	var field_region = document.getElementById('region');
+	var field_city = document.getElementById('city');
+	var field_road = document.getElementById('road');
+
+	var params = {};
+	params.cust_bsid = field_bsid.value;
+	params.cust_title = field_title.value;
+	params.cust_type = field_type.value;
+	params.cust_idnumber = field_idno.value;
+	params.cust_mobile = field_mobile.value;
+	params.cust_email = field_email.value;
+	params.cust_region = field_region.value;
+	params.cust_city = field_city.value;
+	params.cust_road = field_road.value;
+	
+	as_ajax_post('newcustomer', params, function(lines) 
+		{
+			if (lines[0] == '1') {
+				var refresh = document.getElementById('userresult');
+				refresh.innerHTML = lines.slice(1).join('\n');
+				field_title.value = '';
+				field_type.value = '';
+				field_idno.value = '';
+				field_mobile.value = '';
+				field_region.value = '';
+				field_city.value = '';
+				field_road.value = '';
+
+				as_show_waiting_after(elem, false);
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+			} else {
+				as_ajax_error();
+			}
+		}
+	);
+	//as_show_waiting_after(document.getElementById('userresult'), true);
+
+	return false;
+}
+
 function as_searchuser_change()
 {
 	var params = {};
@@ -39,6 +88,32 @@ function as_searchuser_change()
 		});
 	}
 	//as_show_waiting_after(document.getElementById('userresults'), true);
+}
+
+function as_assign_role(userid)
+{
+	var handle = document.getElementById('namesearch');
+	var params = {};
+	params.business = businessid;
+	params.manager = handle.value;
+	
+	as_ajax_post('addmanager', params, function(lines) 
+		{
+			if (lines[0] == '1') {
+				var refresh = document.getElementById('refreshsubmit');
+				refresh.innerHTML = lines.slice(1).join('\n');
+				handle.value = '';
+				as_show_waiting_after(elem, false);
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+			} else {
+				as_ajax_error();
+			}
+		}
+	);
+	as_show_waiting_after(document.getElementById('refreshsubmit'), true);
+
+	return false;
 }
 
 function as_add_manager(businessid, elem)
@@ -76,7 +151,7 @@ function as_searchitem_change()
 	{ 
 		as_ajax_post('searchitem', params, function(lines) {
 			if (lines[0] == '1') {
-				var simelem = document.getElementById('similar');
+				var simelem = document.getElementById('itemresults');
 				simelem.innerHTML = lines.slice(1).join('\n');
 				as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
@@ -86,31 +161,36 @@ function as_searchitem_change()
 			}
 		});
 	}
-	//as_show_waiting_after(document.getElementById('similar'), true);
+	//as_show_waiting_after(document.getElementById('itemresults'), true);
 }
 
-function as_show_stock_form(itemid)
+function as_show_quick_form(itemid)
 {
-	as_reveal('#form_' + itemid);
-	//as_conceal('#searchdiv');
+	var formX = document.getElementById('form_' + itemid);
+	if (formX.style.display === "none") as_reveal('#form_' + itemid);
+	else as_conceal('#form_' + itemid);
 }
 
 function as_add_stock(itemid)
 {
 	var searchitem = document.getElementById('searchitem');
+	var qty = document.getElementById('quantity_' + itemid);
+	var stock = document.getElementById('stock_' + itemid);
+	var result = document.getElementById('itemresults_' + itemid);
 	var params = {};
 	params.item_id = itemid;
+	params.item_qty = qty.value;
+	params.item_stk = stock.value;
 	params.item_biz = document.getElementById('business_id').value;
 	params.item_type = document.getElementById('type_' + itemid ).value;
-	params.item_qty = document.getElementById('quantity_' + itemid ).value;
 	params.item_cdn = document.getElementById('condition_' + itemid ).value;
 	
 	as_ajax_post('addstock', params, function(lines) 
 		{
 			if (lines[0] == '1') {
-				var simelem = document.getElementById('similar');
-				simelem.innerHTML = lines.slice(1).join('\n');
-				//searchitem.value = '';
+				result.innerHTML = lines.slice(1).join('\n');
+				qty.value = '';
+				stock.value = '';
 				as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
 				as_show_waiting_after(elem, false);
@@ -122,12 +202,6 @@ function as_add_stock(itemid)
 	as_show_waiting_after(document.getElementById('similar'), true);
 
 	return false;
-}
-
-function as_cancel_adding()
-{	
-	as_conceal('#similar');
-	//as_reveal('#searchdiv');
 }
 
 function as_username_change(value)

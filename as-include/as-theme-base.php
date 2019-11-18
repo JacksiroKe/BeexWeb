@@ -1248,19 +1248,21 @@ class as_html_theme_base
 			}
 			$this->output('</div>');
 		}
-		if (isset($box['modals'])) $this->modal($box['modals']);
+		if (isset($box['modals'])) $this->modal_view($box['modals']);
 		$this->output('</div>');
 	}
 
-	public function modal($modals)
+	public function modal_view($modals)
 	{
 		foreach ($modals as $md => $modal)  {
 			$this->output('<div class="'.$modal['class'].'" id="'.$md.'">');
 			$this->output('<div class="modal-dialog">');
 			$this->output('<div class="modal-content">');
 			$this->output('<div class="modal-header">');
+
 			$this->output('<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-close"></i></button>');
 			$this->output('<h4 class="modal-title">'.$modal['header']['title'].'</h4>', '</div>');
+			
 			$this->output('<div class="modal-body">');
 			
 			switch ($modal['view']['type']) {
@@ -1268,11 +1270,10 @@ class as_html_theme_base
 					$this->form($modal['view']);
 					break;
 				default:
-					//$this->output($modal['view']['html']);
+					$this->output($modal['view']['html']);
 					break;
 			}
-
-			$this->output('</div></div></div></div>');
+			$this->output('</div>', '</div>', '</div>', '</div>', '</div>');
 		}
 	}
 	
@@ -1354,6 +1355,7 @@ class as_html_theme_base
 					foreach ($column['extras'] as $xt => $extras) $this->output($extras);
 				
 				if (isset($column['c_items'])) $this->column_view($column['c_items']);
+				if (isset($column['modals'])) $this->modal_view($column['modals']);
 				$this->output('</div>');
 			}
 			if (isset($row['section'])) $this->output('</section>');
@@ -1408,7 +1410,7 @@ class as_html_theme_base
 						break;
 
 					case 'modals':
-						$this->modal($c_item);
+						$this->modal_view($c_item);
 						break;
 							
 					case 'carousel':

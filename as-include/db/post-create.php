@@ -89,12 +89,22 @@ function as_db_stock_add($type, $business, $itemid, $userid, $quantity)
 	return as_db_last_insert_id();
 }
 
-function as_db_stock_entry($type, $stockid, $itemid, $userid, $quantity, $state)
+function as_db_customer_register($userid, $business, $title, $type, $idnumber, $contact, $location)
 {
 	as_db_query_sub(
-		'INSERT INTO ^stockactivity (type, stockid, itemid, userid, quantity, state, created) ' .
-		'VALUES ($, #, #, #, #, #, NOW())',
-		$type, $stockid, $itemid, $userid, $quantity, $state
+		'INSERT INTO ^customers (userid, business, title, type, idnumber, contact, location, created) ' .
+		'VALUES (#, #, $, $, $, $, $, NOW())',
+		$userid, $business, $title, $type, $idnumber, $contact, $location
+	);
+	return as_db_last_insert_id();
+}
+
+function as_db_stock_entry($type, $stockid, $itemid, $userid, $quantity, $bprice, $sprice, $state)
+{
+	as_db_query_sub(
+		'INSERT INTO ^stockactivity (type, stockid, itemid, userid, quantity, bprice, sprice, state, created) ' .
+		'VALUES ($, #, #, #, #, #, #, #, NOW())',
+		$type, $stockid, $itemid, $userid, $quantity, $bprice, $sprice, $state
 	);
 }
 
