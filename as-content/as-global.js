@@ -43,26 +43,25 @@ function as_new_customer()
 	params.cust_road = field_road.value;
 	
 	as_ajax_post('newcustomer', params, function(lines) 
-		{
-			if (lines[0] == '1') {
-				var refresh = document.getElementById('userresult');
-				refresh.innerHTML = lines.slice(1).join('\n');
-				field_title.value = '';
-				field_type.value = '';
-				field_idno.value = '';
-				field_mobile.value = '';
-				field_region.value = '';
-				field_city.value = '';
-				field_road.value = '';
+	{
+		if (lines[0] == '1') {
+			var refresh = document.getElementById('userresult');
+			refresh.innerHTML = lines.slice(1).join('\n');
+			field_title.value = '';
+			field_type.value = '';
+			field_idno.value = '';
+			field_mobile.value = '';
+			field_region.value = '';
+			field_city.value = '';
+			field_road.value = '';
 
-				as_show_waiting_after(elem, false);
-			} else if (lines[0] == '0') {
-				as_show_waiting_after(elem, false);
-			} else {
-				as_ajax_error();
-			}
+			as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
 		}
-	);
+	});
 	//as_show_waiting_after(document.getElementById('userresult'), true);
 
 	return false;
@@ -77,9 +76,9 @@ function as_searchuser_change()
 	{ 
 		as_ajax_post('searchuser', params, function(lines) {
 			if (lines[0] == '1') {
-				var simelem = document.getElementById('userresults');
-				simelem.innerHTML = lines.slice(1).join('\n');
-				as_show_waiting_after(elem, false);
+				var resultsview = document.getElementById('manager_results');
+				resultsview.innerHTML = lines.slice(1).join('\n');
+				//as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
 				as_show_waiting_after(elem, false);
 			} else {
@@ -87,58 +86,78 @@ function as_searchuser_change()
 			}
 		});
 	}
-	//as_show_waiting_after(document.getElementById('userresults'), true);
+	//as_show_waiting_after(document.getElementById('manager_results'), true);
+}
+
+function as_searchuser_change_d()
+{
+	var params = {};
+	params.item_dept = document.getElementById('department_id').value;
+	params.searchtext = document.getElementById('searchuser').value;
+	if(params.searchtext.length > 3)
+	{ 
+		as_ajax_post('searchuser_d', params, function(lines) {
+			if (lines[0] == '1') {
+				var resultsview = document.getElementById('manager_results');
+				resultsview.innerHTML = lines.slice(1).join('\n');
+				//as_show_waiting_after(elem, false);
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+			} else {
+				as_ajax_error();
+			}
+		});
+	}
+	//as_show_waiting_after(document.getElementById('manager_results'), true);
 }
 
 function as_assign_role(userid)
 {
-	var handle = document.getElementById('namesearch');
 	var params = {};
-	params.business = businessid;
-	params.manager = handle.value;
+	params.manager = userid;
+	params.business = document.getElementById('business_id').value;
 	
 	as_ajax_post('addmanager', params, function(lines) 
-		{
-			if (lines[0] == '1') {
-				var refresh = document.getElementById('refreshsubmit');
-				refresh.innerHTML = lines.slice(1).join('\n');
-				handle.value = '';
-				as_show_waiting_after(elem, false);
-			} else if (lines[0] == '0') {
-				as_show_waiting_after(elem, false);
-			} else {
-				as_ajax_error();
-			}
+	{
+		if (lines[0] == '1') {
+			var feedback = document.getElementById('itemresults_' + userid);
+			var listview = document.getElementById('manager_list');
+			var fbstr = lines.slice(1).join('\n').split('xqx');
+			feedback.innerHTML = fbstr[0];
+			listview.innerHTML = fbstr[1];//lines.slice(2).join('\n');
+			//as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
 		}
-	);
-	as_show_waiting_after(document.getElementById('refreshsubmit'), true);
-
+	});
+	//as_show_waiting_after(document.getElementById('managers_feedback'), true);
 	return false;
 }
 
-function as_add_manager(businessid, elem)
+function as_assign_role_d(userid)
 {
-	var handle = document.getElementById('namesearch');
 	var params = {};
-	params.business = businessid;
-	params.manager = handle.value;
+	params.manager = userid;
+	params.department = document.getElementById('department_id').value;
 	
-	as_ajax_post('addmanager', params, function(lines) 
-		{
-			if (lines[0] == '1') {
-				var refresh = document.getElementById('refreshsubmit');
-				refresh.innerHTML = lines.slice(1).join('\n');
-				handle.value = '';
-				as_show_waiting_after(elem, false);
-			} else if (lines[0] == '0') {
-				as_show_waiting_after(elem, false);
-			} else {
-				as_ajax_error();
-			}
+	as_ajax_post('addmanager_d', params, function(lines) 
+	{
+		if (lines[0] == '1') {
+			var feedback = document.getElementById('itemresults_' + userid);
+			var listview = document.getElementById('manager_list');
+			var fbstr = lines.slice(1).join('\n').split('xqx');
+			feedback.innerHTML = fbstr[0];
+			listview.innerHTML = fbstr[1];
+			//as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
 		}
-	);
-	as_show_waiting_after(document.getElementById('refreshsubmit'), true);
-
+	});
+	//as_show_waiting_after(document.getElementById('managers_feedback'), true);
 	return false;
 }
 
@@ -173,33 +192,32 @@ function as_show_quick_form(itemid)
 
 function as_add_stock(itemid)
 {
-	var searchitem = document.getElementById('searchitem');
-	var qty = document.getElementById('quantity_' + itemid);
-	var stock = document.getElementById('stock_' + itemid);
 	var result = document.getElementById('itemresults_' + itemid);
+	var stock = document.getElementById('stock_' + itemid);
+
 	var params = {};
 	params.item_id = itemid;
-	params.item_qty = qty.value;
-	params.item_stk = stock.value;
+	params.item_qty = document.getElementById('qty_' + itemid).value;
+	params.item_bprice = document.getElementById('bprice_' + itemid).value;
+	params.item_sprice = document.getElementById('sprice_' + itemid).value;
 	params.item_biz = document.getElementById('business_id').value;
 	params.item_type = document.getElementById('type_' + itemid ).value;
-	params.item_cdn = document.getElementById('condition_' + itemid ).value;
+	params.item_cdn = document.getElementById('state_' + itemid ).value;
 	
 	as_ajax_post('addstock', params, function(lines) 
-		{
-			if (lines[0] == '1') {
-				result.innerHTML = lines.slice(1).join('\n');
-				qty.value = '';
-				stock.value = '';
-				as_show_waiting_after(elem, false);
-			} else if (lines[0] == '0') {
-				as_show_waiting_after(elem, false);
-			} else {
-				as_ajax_error();
-			}
+	{
+		if (lines[0] == '1') {
+			var fbstr = lines.slice(1).join('\n').split('xqx');
+			result.innerHTML = fbstr[0];
+			stock.innerHTML = fbstr[1];
+			as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
 		}
-	);
-	as_show_waiting_after(document.getElementById('similar'), true);
+	});
+	//as_show_waiting_after(document.getElementById('similar'), true);
 
 	return false;
 }

@@ -341,7 +341,7 @@ function as_db_products_basic_selectspec($business = null)
 		'columns' => array(
 			'^posts.postid', '^posts.categoryid', '^posts.type', 'basetype' => 'LEFT(^posts.type, 1)',
 			'hidden' => "INSTR(^posts.type, '_HIDDEN')>0", 'queued' => "INSTR(^posts.type, '_QUEUED')>0",
-			'^posts.rcount', '^posts.selchildid', '^posts.closedbyid', '^posts.positivelikes', '^posts.negativelikes', '^posts.netlikes', '^posts.views', '^posts.hotness', '^posts.flagcount', '^posts.catidpath1', '^stock.quantity', 'delivered' => 'UNIX_TIMESTAMP(^stock.created)', 
+			'^posts.rcount', '^posts.selchildid', '^posts.closedbyid', '^posts.positivelikes', '^posts.negativelikes', '^posts.netlikes', '^posts.views', '^posts.hotness', '^posts.flagcount', '^posts.catidpath1', '^stock.actual', '^stock.available', 'delivered' => 'UNIX_TIMESTAMP(^stock.created)', 
 			'icon' => '^posts.icon', 'category' => '^categories.title', '^posts.title', '^posts.itemcode', '^posts.volume', '^posts.mass', '^posts.texture', '^posts.images', 'created' => 'UNIX_TIMESTAMP(^posts.created)', '^posts.name', 'content' => '^posts.content', 'categorybackpath' => "^categories.backpath", 'business' => '^stock.business',
 			'categoryname' => '(SELECT title FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 
 			'caticon' => '(SELECT icon FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 

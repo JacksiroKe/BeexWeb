@@ -71,7 +71,7 @@ if (is_numeric($page)) {
 	$as_content['title'] = ($papercount == 1) ? as_lang_html_sub('main/paper_in_x', $stockitem['title'], '1') : 
 		$papercount . ' ' . as_lang_html_sub('main/papers_in_x', $stockitem['title']);
 	$as_content['script_src'][] = '../as-content/as-tables.js?'.AS_VERSION;
-	$as_content['script'][] = '<script>
+	$as_content['script'][] = "\t\t".'<script>
 $(\'#exam_change\').change(funtion() {
 	window.location.href = $(this).val();
 });

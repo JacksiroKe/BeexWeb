@@ -229,6 +229,16 @@ if (is_numeric($request)) {
 	
 	$profile2 = array( 'type' => 'tabs', 'navs' => array( 'aboutus' => 'About Us', 'contactus' => 'Contact Us'), 'pane' => $navtabs );
 	
+	$searchhtml = '<div class="form-group" id="searchdiv">
+	<div class="col-sm-12">
+	<label for="searchuser">Search by a User\'s Name, or Email Address</label>
+	<input id="searchuser" autocomplete="off" onkeyup="as_searchuser_change(this.value);" type="text" value="" class="form-control">
+	<input id="business_id" type="hidden" value="' . $business->businessid . '">
+	</div>
+	</div>
+	<div class="form-group" id="managers_feedback">
+	<div class="col-sm-12"><div id="manager_results"></div></div>';
+
 	$managershtml = '<ul class="products-list product-list-in-box" style="border-top: 1px solid #000">';
 	$owner = as_db_select_with_pending(as_db_user_profile($userid));
 	
@@ -262,21 +272,11 @@ if (is_numeric($request)) {
 				'fields' => array(
 					'namesearch' => array(
 						'type' => 'custom',
-						'html' => '<div class="form-group" id="searchdiv">
-						<div class="col-sm-12">
-						<label for="searchuser">Search by a User\'s Name, or Email Address</label>
-						<input id="searchuser" autocomplete="off" onkeyup="as_searchuser_change(this.value);" type="text" value="" class="form-control">
-						<input id="business_id" type="hidden" value="' . $business->businessid . '">
-						</div>
-						</div>
-						<div class="form-group" id="results">
-						<div class="col-sm-12">
-						<div id="userresults"></div>
-						</div>',
+						'html' => htmLawed($searchhtml, array('tidy'=>'  '))
 					),
 					'managerlist' => array(
 						'type' => 'custom',
-						'html' => '<span id="managerlist">'.$managershtml.'</span>',
+						'html' => '<span id="manager_list">'.htmLawed($managershtml, array('tidy'=>'  ')).'</span>',
 					),
 				),
 			),
@@ -575,6 +575,7 @@ if (is_numeric($request)) {
 				$navdepartmenthtml = '';
 				$k = 1;
 				foreach ($departments as $department) {
+					$managers = explode(',', $department->managers);
 					if (!isset($department->parentid)) {
 						if ($department->content == null) $department->content = "...";
 						$bodycontent['dash']['items'][$department->departid] = array(
@@ -583,8 +584,8 @@ if (is_numeric($request)) {
 							'numbers' => '1 User', 'description' => $department->content,
 							'link' => as_path_html('department/' . $department->departid),
 							'infors' => array(
-								'depts' => array('icount' => $department->sections, 'ilabel' => 'Sub-Departments', 'ibadge' => 'columns'),
-								'users' => array('icount' => 1, 'ilabel' => 'Users', 'ibadge' => 'users', 'inew' => 3),
+								'depts' => array('icount' => $department->sections, 'ilabel' => 'Sub-Dept'.as_many($department->sections), 'ibadge' => 'columns'),
+								'managers' => array('icount' => count($managers), 'ilabel' => 'Manager'.as_many(count($managers)), 'ibadge' => 'users', 'inewx' => 3),
 							),
 						);
 					}
@@ -712,16 +713,48 @@ else {
 			);
 				
 			if (count($businesses)){				
+				/*foreach ($businesses as $business){					
+					$modalboxes = array(
+						'modal-managers-'.$business->businessid => array(
+							'class' => 'modal fade',
+							'header' => array(
+								'title' => 'BUSINESS MANAGERS',
+							),
+							'view' => array(
+								'type' => 'form', 'style' => 'tall',
+								'fields' => array(
+									'namesearch' => array(
+										'type' => 'custom',
+										'html' => '<div class="form-group" id="searchdiv">
+										<div class="col-sm-12">
+										<label for="searchuser">Search by a User\'s Name, or Email Address</label>
+										<input id="searchuser" autocomplete="off" onkeyup="as_searchuser_change(this.value);" type="text" value="" class="form-control">
+										<input id="business_id" type="hidden" value="' . $business->businessid . '">
+										</div>
+										</div>
+										<div class="form-group" id="managers_feedback">
+										<div class="col-sm-12"><div id="manager_results"></div></div>',
+									),
+									'managerlist' => array(
+										'type' => 'custom',
+										'html' => '<span id="manager_list">.managershtml.</span>',
+									),
+								),
+							),
+						),
+					);
+				}*/
+
 				foreach ($businesses as $business){
 					$managers = explode(',', $business->managers);
 					$dashlist['items'][$business->businessid] = array('img' => as_path_html('./as-media/' . $defaulticon ), 
 						'label' => $business->title . '| Your Role: ' . ($business->userid == $userid ? 'OWNER' : 'MANAGER'),
 						'description' => $business->content, 'link' => 'business/'.$business->businessid,
 						'numbers' => array(
-							'users' => array('ncount' => count($managers), 'nlabel' => 'Manager'.as_many(count($managers)), 
+							'managers' => array('ncount' => count($managers), 'nlabel' => 'Manager'.as_many(count($managers)), 
 								'tags' => 'data-toggle="modal" data-target="#managers_'.$business->businessid.'"'),
 							'depts' => array('ncount' => $business->departments, 'nlabel' => 'Department'.as_many($business->departments),
-								'tags' => 'data-toggle="modal" data-target="#modal-danger"'),
+								'tags' => 'data-toggle="modal" data-target="#modal-managers-'.$business->businessid.'"'),
 						),
 					);
 					

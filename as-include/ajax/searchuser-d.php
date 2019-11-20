@@ -25,7 +25,7 @@ require_once AS_INCLUDE_DIR . 'app/users.php';
 require_once AS_INCLUDE_DIR . 'app/format.php';
 
 $insearchitem = as_post_text('searchtext');
-$businessid = as_post_text('item_biz');
+$departmentid = as_post_text('item_dept');
 
 $userid = as_get_logged_in_userid();
 $itemresults = as_db_select_with_pending( as_db_user_search_selectspec($insearchitem));
@@ -56,7 +56,7 @@ foreach ($itemresults as $result)
 	$htmlresult .= '<div id="itemresults_'.$result['userid'].'"></div>';
 	$htmlresult .= '<form class="form-horizontal"><div class="box-body">';
 
-	$htmlresult .= '<input type="hidden" id="business_id" value="'.$businessid.'">';
+	$htmlresult .= '<input type="hidden" id="department_id" value="'.$departmentid.'">';
 	
 	$htmlresult .= '<div class="row">
                 <div class="col-lg-6">
@@ -72,7 +72,7 @@ foreach ($itemresults as $result)
                 
                 <div class="col-lg-6">
                   <div class="input-group">
-				  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Assign this Role" onclick="return as_assign_role('.$result['userid'].');"/>
+				  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Assign this Role" onclick="return as_assign_role_d('.$result['userid'].');"/>
 				  <input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form('.$result['userid'].');"/>
 			</div>
 		</div>

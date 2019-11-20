@@ -185,6 +185,7 @@ function as_initialize_constants_1()
 		as_fatal_error('The config file could not be found. Please read the instructions in as-config-example.php.');
 
 	require_once AS_BASE_DIR . 'as-config.php';
+	require_once 'vendor/htmLawed.php';
 
 	$as_request_map = isset($AS_CONST_PATH_MAP) && is_array($AS_CONST_PATH_MAP) ? $AS_CONST_PATH_MAP : array();
 
@@ -981,6 +982,59 @@ function as_load_modules_with($type, $method)
 	return $modules;
 }
 
+/**
+ * Output each passed parameter on a separate line - see output_array() comments.
+ */
+function as_output() // other parameters picked up via func_get_args()
+{
+	$args = func_get_args();
+	as_output_array($args);
+}
+
+
+/**
+ * Output $html at the current indent level, but don't change indent level based on the markup within.
+ * Useful for user-entered HTML which is unlikely to follow the rules we need to track indenting.
+ * @param $html
+ */
+function as_output_raw($html)
+{
+	if (strlen($html))
+		echo str_repeat("\t", max(0, $this->indent)) . $html . "\n";
+}
+
+
+/**
+ * Output each element in $elements on a separate line, with automatic HTML indenting.
+ * This should be passed markup which uses the <tag/> form for unpaired tags, to help keep
+ * track of indenting, although its actual output converts these to <tag> for W3C validation.
+ * @param $elements
+ */
+function output_array($elements)
+{
+	foreach ($elements as $element) {
+		$line = str_replace('/>', '>', $element);
+
+		if ($this->minifyHtml) {
+			if (strlen($line))
+				echo $line . "\n";
+		} else {
+			$delta = substr_count($element, '<') - substr_count($element, '<!') - 2 * substr_count($element, '</') - substr_count($element, '/>');
+
+			if ($delta < 0) {
+				$this->indent += $delta;
+			}
+
+			echo str_repeat("\t", max(0, $this->indent)) . $line . "\n";
+
+			if ($delta > 0) {
+				$this->indent += $delta;
+			}
+		}
+
+		$this->lines++;
+	}
+}
 
 // HTML and Javascript escaping and sanitization
 
@@ -1017,8 +1071,6 @@ function as_html($string, $multiline = false)
 function as_sanitize_html($html, $linksnewwindow = false, $storage = false)
 {
 	if (as_to_override(__FUNCTION__)) { $args=func_get_args(); return as_call_override(__FUNCTION__, $args); }
-
-	require_once 'vendor/htmLawed.php';
 
 	global $as_sanitize_html_newwindow;
 

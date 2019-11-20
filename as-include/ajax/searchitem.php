@@ -19,11 +19,11 @@ $manager['firstname']<?php
 	More about this license: http://www.appsmata.org/license.php
 */
 
+require_once AS_INCLUDE_DIR . 'app/format.php';
+require_once AS_INCLUDE_DIR . 'APS/as-views.php';
 require_once AS_INCLUDE_DIR . 'db/selects.php';
 require_once AS_INCLUDE_DIR . 'util/string.php';
 require_once AS_INCLUDE_DIR . 'app/users.php';
-require_once AS_INCLUDE_DIR . 'app/format.php';
-require_once AS_INCLUDE_DIR . 'APS/as-views.php';
 
 $insearchitem = as_post_text('searchtext');
 $businessid = as_post_text('item_biz');
@@ -45,17 +45,21 @@ foreach ($itemresults as $result)
 	$htmlresult .= '<span class="product-title" style="font-size: 20px;"><span style="color: #006400;">'.$result['category']. '</span> - ';
 	$htmlresult .= '<span style="color: #f00;">' . $result['itemcode']. '</span> - ' .$result['title'].'</span>';
 	
-	$htmlresult .= '<span class="label label-info pull-right"><h5>QTY</h5><span style="font-size: 30px">'.$product['stock']. '</span></span>';
-	$htmlresult .= '<span class="product-description">';
+	$htmlresult .= '<table style="width:100%"><tr><td>';
+	$htmlresult .= '<span class="product-description" style="width:320px;">';
 	if ($result['content'] != '') $htmlresult .= '<span style="color: #151B8D; font-size: 22px;">' . $result['content'] . '</span>';
 	$htmlresult .= '<table><tr><td><b>VOLUME</b></td><td><b> : </b></td><td> ' .$result['volume'].'</td></tr>';
 	$htmlresult .= '<tr><td><b>MASS</b></td><td><b> : </b></td><td> ' . $result['mass'].'</td></tr>';
 	$htmlresult .= '<tr><td><b>TEXTURE</b></td><td><b> : </b></td><td> ' . $result['texture'].'</td></tr>';
-	$htmlresult .= '</table></span>';	
-	$htmlresult .= '</li>';
+	$htmlresult .= '</table></span></td><td id="stock_'.$result['postid'].'">';
+
+	$htmlresult .= '<table><tr><td><span class="label label-info pull-right" style="width: 100px;"><b>ACTUAL</b><br><span style="font-size: 22px">'.$result['actual']. '</span></span><br></td></tr>';
+	$htmlresult .= '<tr><td><span class="label label-warning pull-right" style="width: 100px;"><b>AVAILABLE</b><br><span style="font-size: 22px">'.$result['available']. '</span></span></td></tr></table>';
 	
-	$htmlresult .= '<li id="form_'.$result['postid'].'" style="display:none; background: #eee;">';	
-	$htmlresult .= '<div id="itemresults_'.$result['postid'].'"></div>';
+	$htmlresult .= '</td></tr></table></li>';
+	
+	$htmlresult .= '<li id="form_'.$result['postid'].'" style="display:none;">';	
+	$htmlresult .= '<div id="itemresults_'.$result['postid'].'">';
 	$htmlresult .= '<div class="nav-tabs-custom">';
 
 	$htmlresult .= '<ul class="nav nav-tabs pull-right">';
@@ -82,6 +86,7 @@ foreach ($itemresults as $result)
 		$htmlresult .= '<h3>No Stock History for this product at the moment</h3></div>';
 	}
 
+	$htmlresult .= '</div>';
 	$htmlresult .= '</div>';
 	$htmlresult .= '</div>';
 	$htmlresult .= '</li>';

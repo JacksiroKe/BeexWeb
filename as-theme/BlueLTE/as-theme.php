@@ -42,10 +42,10 @@
 		function head()
         {
             $this->output(
-                    '<head>',
-                    '<meta http-equiv="X-UA-Compatible" content="IE=edge"/>',
-					'<meta charset="utf-8">',
-                    '<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">'
+                    "\t<head>",
+                    "\t\t".'<meta http-equiv="X-UA-Compatible" content="IE=edge"/>',
+					"\t\t".'<meta charset="utf-8">',
+                    "\t\t".'<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">'
             );
             $this->head_title();
             $this->head_metas();
@@ -54,7 +54,7 @@
             $this->head_lines();
             $this->head_script();
             $this->head_custom();
-            $this->output( '</head>' );
+            $this->output( "\t</head>" );
         }
         
 		function head_css()
@@ -85,7 +85,7 @@
 		function head_custom()
         {
             parent::head_custom();
-			$this->output('<style>.accordian{position:relative;border-radius:0px;background:#ffffff;border-top:0px;margin-bottom:0px;width:100%;box-shadow:0 0px 0px rgba(0,0,0,0.1)}</style>');
+			$this->output("\t\t".'<style>.accordian{position:relative;border-radius:0px;background:#ffffff;border-top:0px;margin-bottom:0px;width:100%;box-shadow:0 0px 0px rgba(0,0,0,0.1)}</style>');
 		}
 		
         function bluelte_resources( $paths, $type = 'css', $external = false )
@@ -109,7 +109,7 @@
                 $full_path = THEME_URL . $path;
             }
             if ( !empty( $path ) ) {
-                $this->output( '<script src="' . $full_path . '" type="text/javascript"></script>' );
+                $this->output( "\t\t".'<script src="' . $full_path . '" type="text/javascript"></script>' );
             }
         }
         
@@ -121,48 +121,34 @@
                 $full_path = THEME_URL . $path;
             }
             if ( !empty( $path ) ) {
-                $this->output( '<link rel="stylesheet" type="text/css" href="' . $full_path . '"/>' );
+                $this->output( "\t\t".'<link rel="stylesheet" type="text/css" href="' . $full_path . '"/>' );
             }
-        }
-        
-        public function body_tags()
-        {
-            $class = 'as-template-' . as_html($this->template);
-            $class .= empty($this->theme) ? '' : ' as-theme-' . as_html($this->theme);
-
-            if (isset($this->content['categoryids'])) {
-                foreach ($this->content['categoryids'] as $categoryid) {
-                    $class .= ' as-category-' . as_html($categoryid);
-                }
-            }
-            $this->output('class="' . $class . ' as-body-js-off ');
-            if (as_is_logged_in()) $this->output('hold-transition skin-yellow sidebar-mini"');
-            else $this->output('hold-transition login-page"');
         }
         
         public function body_content()
         {
             if (as_is_logged_in()) {
-                $this->output('<div class="wrapper">');
+                $this->output("\t\t".'<div class="wrapper">');
                 $this->header();
                 $this->sidepanel();
                 $this->main();
                 $this->footer();
                 $this->controls();
-                $this->output('<div class="control-sidebar-bg"></div>', '</div>');
+                $this->output("\t\t".'</div> <!-- END body-wrapper -->');
             }
             else {
-              $this->output('<div class="login-box">');
-              $this->output('<div class="login-logo">', '<a href=".">'.$this->content['site_title'].'</a>', '</div>');
+                $this->output("\t\t".'<div class="login-box">');
+                $this->output("\t\t\t".'<div class="login-logo">', '<a href=".">'.$this->content['site_title'].'</a>', '</div>');
               
-              $this->guest();
+                $this->guest();
               
-              $this->output('</div>');
+		        $this->output("\t\t".'</div> <!-- END body-wrapper -->');
             }          
         }
 
-        function body_footer() 
+        function body_hidden() 
         {
+            parent::body_hidden();
             $js_paths = array(
                     'select2'     => 'bower_components/select2/dist/js/select2.full.min.js',
                     'jquery'     => 'bower_components/jquery/dist/jquery.min.js',
@@ -191,108 +177,108 @@
 
         public function footer()
         {
-            $this->output( '<footer class="main-footer">');
+            $this->output( "\t\t\t".'<footer class="main-footer">');
             $this->attribution();
-            $this->output('</footer>');
+            $this->output("\t\t\t".'</footer>');
         }
         
         public function attribution()
         {
-            $this->output('<div class="pull-right hidden-xs">BeExpress <b>Version</b> 2.4.13 </div>',
-            '<strong>Copyright &copy; '.date('Y').' <a href="https://www.appsmata.com">AppSmata</a>.</strong>',
-            'All rights reserved.'
+            $this->output("\t\t\t\t".'<div class="pull-right hidden-xs">BeExpress <b>Version</b> 2.4.13 </div>'.
+            '<strong>Copyright &copy; '.date('Y').' <a href="https://www.appsmata.com">AppSmata</a>.</strong>All rights reserved.'
             );
         }
 
         public function useraccount()
         {
             $this->output('<li class="dropdown user user-menu">');
-            $this->output('<a href="#" class="dropdown-toggle" data-toggle="dropdown">'.as_avatar(20, 'user image', $this->user));
-            $this->output('<span class="hidden-xs">'.$this->fullname.'</span>', '</a>');
-            $this->output('<ul class="dropdown-menu">', '<li class="user-header">'.as_avatar(50, 'user image', $this->user));
+            $this->output("\t\t".'<a href="#" class="dropdown-toggle" data-toggle="dropdown">'.as_avatar(20, 'user image', $this->user));
+            $this->output("\t\t".'<span class="hidden-xs">'.$this->fullname.'</span>', '</a>');
+            $this->output("\t\t".'<ul class="dropdown-menu">', '<li class="user-header">'.as_avatar(50, 'user image', $this->user));
 
             $gender = $this->user['gender'] == 1 ? ' ('.as_lang('users/gender_male').')' : ' ('.as_lang('users/gender_female').')';
-            $this->output('<p>'.$this->fullname.$gender.' - '. AS_USER_TYPE_FULL);
-            $this->output('<br>'.$this->user['mobile']. ', '. $this->user['country']);
+            $this->output("\t\t".'<p>'.$this->fullname.$gender.' - '. AS_USER_TYPE_FULL);
+            $this->output("\t\t".'<br>'.$this->user['mobile']. ', '. $this->user['country']);
 
             $usertime = as_time_to_string(as_opt('db_time') - $this->user['created']);
             $joindate = as_when_to_html($this->user['created'], 0);
             
-            $this->output('<small>'.as_lang_html('users/user_for').' '.$usertime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')</small>');
+            $this->output("\t\t".'<small>'.as_lang_html('users/user_for').' '.$usertime . ' (' . as_lang_sub('main/since_x', $joindate['data']) . ')</small>');
             $doconfirms = as_opt('confirm_user_emails') && $this->user['level'] < AS_USER_LEVEL_EXPERT;
             $isconfirmed = ($this->user['flags'] & AS_USER_FLAGS_EMAIL_CONFIRMED) > 0;
             $htmlemail = as_html(isset($inemail) ? $inemail : $this->user['email']);
             
-            $this->output('<small>'.$htmlemail.''.($doconfirms ? (as_lang_html($isconfirmed ? 'users/email_confirmed' : 'users/email_not_confirmed') . 
+            $this->output("\t\t".'<small>'.$htmlemail.''.($doconfirms ? (as_lang_html($isconfirmed ? 'users/email_confirmed' : 'users/email_not_confirmed') . 
                 ' ') : '').'</small>');
     
-            $this->output('</p>', '</li>');
-            $this->output('<li class="user-body">', '<div class="row">');
-            $this->output('<div class="col-xs-4 text-center">', '<a href="#">Link #1</a>', '</div>'); 
-            $this->output('<div class="col-xs-4 text-center">', '<a href="#">Link #2</a>', '</div>'); 
-            $this->output('<div class="col-xs-4 text-center">', '<a href="#">Link #3</a>', '</div>');                
-            $this->output('</div>', '</li>');
+            $this->output("\t\t".'</p>', '</li>');
+            $this->output("\t\t".'<li class="user-body">', '<div class="row">');
+            $this->output("\t\t".'<div class="col-xs-4 text-center">', '<a href="#">Link #1</a>', '</div>'); 
+            $this->output("\t\t".'<div class="col-xs-4 text-center">', '<a href="#">Link #2</a>', '</div>'); 
+            $this->output("\t\t".'<div class="col-xs-4 text-center">', '<a href="#">Link #3</a>', '</div>');                
+            $this->output("\t\t".'</div>', '</li>');
             
-            $this->output('<li class="user-footer">');
-            $this->output('<div class="pull-left">', '<a href="'. as_opt('site_url') . 'user/'.$this->user['handle'].'" 
+            $this->output("\t\t".'<li class="user-footer">');
+            $this->output("\t\t".'<div class="pull-left">', '<a href="'. as_opt('site_url') . 'user/'.$this->user['handle'].'" 
 				class="btn btn-default btn-flat">Profile</a>', '</div>');
-            $this->output('<div class="pull-right">', 
+            $this->output("\t\t".'<div class="pull-right">', 
                 '<a href="'. as_opt('site_url') . 'signout" class="btn btn-default btn-flat">Sign out</a>', 
             '</div>');
-            $this->output('</li>', '</ul>', '</li>');
+            $this->output("\t\t".'</li>', '</ul>', '</li>');
         }
 
         public function header()
         {
-            $this->output('<header class="main-header">');
-            $this->output('<a href="." class="logo">',
-                '<span class="logo-mini"><b>Be</b>Ex</span>',
-                '<span class="logo-lg"><b>Be</b>Express</span>',
-            '</a>');
-            $this->output('<nav class="navbar navbar-fixed-top" role="navigation">');
-            $this->output('<a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">',
-                  '<span class="sr-only">Toggle navigation</span>', '</a>');
+            $this->output("\t\t".'<header class="main-header">');
+            $this->output("\t\t\t".'<a href="." class="logo">');
+            $this->output("\t\t\t\t".'<span class="logo-mini"><b>Be</b>Ex</span>');
+            $this->output("\t\t\t\t".'<span class="logo-lg"><b>Be</b>Express</span>');
+            $this->output("\t\t\t".'</a>');
+            $this->output("\t\t\t".'<nav class="navbar navbar-fixed-top" role="navigation">');
+            $this->output("\t\t\t\t".'<a href="#" class="sidebar-toggle" data-toggle="push-menu" role="button">');
+            $this->output("\t\t\t\t\t".'<span class="sr-only">Toggle navigation</span>');
+            $this->output("\t\t\t\t".'</a>');
                 
-            $this->output('<div class="navbar-custom-menu">', '<ul class="nav navbar-nav">');
+            $this->output("\t\t\t".'<div class="navbar-custom-menu">', '<ul class="nav navbar-nav">');
             $this->messages();
             $this->notifications();    
             $this->tasks();    
             $this->useraccount();
-            $this->output('<li>', '<a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>', '</li>');
-            $this->output('</ul>', '</div>', '</nav>');
-            $this->output('</header>');
+            $this->output("\t\t\t".'<li>', '<a href="#" data-toggle="control-sidebar"><i class="fa fa-gears"></i></a>', '</li>');
+            $this->output("\t\t\t\t\t".'</ul>', "\t\t\t\t".'</div>', "\t\t\t".'</nav>');
+            $this->output("\t\t".'</header>');
         }
 
         public function sidepanel()
         {
-            $this->output('<aside class="main-sidebar">');
-            $this->output('<section class="sidebar">');
-            $this->output('<div class="user-panel">');
-            $this->output('<div class="pull-left image">', as_avatar(30, 'profile-user-img img-responsive', $this->user), '</div>');
-            $this->output('<div class="pull-left info">');
-            $this->output('<p>' . $this->fullname . '</p>');
-            $this->output('<a href="#"><i class="fa fa-circle text-success"></i> '.AS_USER_TYPE_FULL.'</a>');
-            $this->output('</div>', '</div>');
+            $this->output("\t\t".'<aside class="main-sidebar">');
+            $this->output("\t\t".'<section class="sidebar">');
+            $this->output("\t\t".'<div class="user-panel">');
+            $this->output("\t\t".'<div class="pull-left image">', as_avatar(30, 'profile-user-img img-responsive', $this->user), '</div>');
+            $this->output("\t\t".'<div class="pull-left info">');
+            $this->output("\t\t".'<p>' . $this->fullname . '</p>');
+            $this->output("\t\t".'<a href="#"><i class="fa fa-circle text-success"></i> '.AS_USER_TYPE_FULL.'</a>');
+            $this->output("\t\t".'</div>', '</div>');
 
-            $this->output('<form action="#" method="get" class="sidebar-form">');
-            $this->output('<div class="input-group">', 
+            $this->output("\t\t".'<form action="#" method="get" class="sidebar-form">');
+            $this->output("\t\t".'<div class="input-group">', 
                 '<input type="text" name="q" class="form-control" placeholder="Search...">',
                 '<span class="input-group-btn">');
-            $this->output('<button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>');
-            $this->output('</button>', '</span>', '</div>', '</form>');
-            $this->output('<ul class="sidebar-menu" data-widget="tree">');
-            $this->output('<li class="header">MAIN NAVIGATION</li>');
+            $this->output("\t\t".'<button type="submit" name="search" id="search-btn" class="btn btn-flat"><i class="fa fa-search"></i>');
+            $this->output("\t\t".'</button>', '</span>', '</div>', '</form>');
+            $this->output("\t\t".'<ul class="sidebar-menu" data-widget="tree">');
+            $this->output("\t\t".'<li class="header">MAIN NAVIGATION</li>');
 
             $this->nav_main_sub();
 
-            $this->output('</ul>');
+            $this->output("\t\t".'</ul>');
 
-            $this->output('</section>', '</aside>');
+            $this->output("\t\t".'</section>', '</aside>');
         }
 
         public function controls()
         {
-            $this->output('<aside class="control-sidebar control-sidebar-dark">
+            $this->output("\t\t".'<aside class="control-sidebar control-sidebar-dark">
               <!-- Create the tabs -->
               <ul class="nav nav-tabs nav-justified control-sidebar-tabs">
                 <li class="active"><a href="#control-sidebar-home-tab" data-toggle="tab"><i class="fa fa-home"></i></a></li>
