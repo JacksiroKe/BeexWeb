@@ -54,6 +54,9 @@ foreach ($user_notifys as $notify){
 		
 		case 'open-bs-page':
 			$notify_title = 'Your New Business is Ready!';
+			break;
+		default:		
+			$notify_title = 'Welcome to BeExpress';
 			break;			
 	}
 	$notifys[] = array(

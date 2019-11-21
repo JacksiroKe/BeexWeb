@@ -79,12 +79,12 @@ function as_db_item_create($type, $parentid, $userid, $cookieid, $ip, $icon, $vo
 	return as_db_last_insert_id();
 }
 
-function as_db_stock_add($type, $business, $itemid, $userid, $quantity)
+function as_db_stock_add($type, $business, $itemid, $userid, $actual, $available)
 {
 	as_db_query_sub(
-		'INSERT INTO ^stock (type, business, itemid, userid, quantity, created) ' .
-		'VALUES ($, #, #, #, #, NOW())',
-		$type, $business, $itemid, $userid, $quantity
+		'INSERT INTO ^stock (type, business, itemid, userid, actual, available, created) ' .
+		'VALUES ($, #, #, #, #, #, NOW())',
+		$type, $business, $itemid, $userid, $actual, $available
 	);
 	return as_db_last_insert_id();
 }

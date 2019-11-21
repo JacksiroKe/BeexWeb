@@ -728,7 +728,7 @@ class as_html_theme_base
 					if (isset($item['sub'])) {
 						$this->output("\t\t".'<li class="treeview">', '<a href="#">');
 						$this->output("\t\t".'<i class="' . (isset($item['icon']) ? $item['icon'] : 'fa fa-link') . '"></i>');
-						$this->output("\t\t".'<span> ' . $item['label'] . ' </span>');
+						$this->output("\t\t".'<span style="overflow: hidden;"> ' . $item['label'] . ' </span>');
 						$this->output("\t\t".'<span class="pull-right-container">',
 							'<i class="fa fa-angle-left pull-right"></i>', '</span>', '</a>');
 						$this->output("\t\t".'<ul class="treeview-menu">');
@@ -1240,12 +1240,12 @@ class as_html_theme_base
 			$this->output("\t\t\t".'<div class="modal-dialog">');
 			$this->output("\t\t\t\t".'<div class="modal-content">');
 
-			$this->output("\t\t\t".'<div class="modal-header">');
-			$this->output("\t\t\t\t".'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-close"></i></button>');
-			$this->output("\t\t\t\t".'<h4 class="modal-title">'.$modal['header']['title'].'</h4>');
-			$this->output("\t\t\t".'</div>');
+			$this->output("\t\t\t\t\t".'<div class="modal-header">');
+			$this->output("\t\t\t\t\t\t".'<button type="button" class="close" data-dismiss="modal" aria-label="Close"><i class="fa fa-close"></i></button>');
+			$this->output("\t\t\t\t\t\t".'<h4 class="modal-title">'.$modal['header']['title'].'</h4>');
+			$this->output("\t\t\t\t\t".'</div>');
 			
-			$this->output("\t\t\t".'<div class="modal-body">');
+			$this->output("\t\t\t\t\t".'<div class="modal-body">');
 			
 			switch ($modal['view']['type']) {
 				case 'form':
@@ -1256,8 +1256,9 @@ class as_html_theme_base
 					break;
 			}
 
-			$this->output("\t\t\t".'</div>');
-			$this->output("\t\t\t".'</div>');
+			$this->output("\t\t\t\t\t\t".'</div>');
+			$this->output("\t\t\t\t\t".'</div>');
+			$this->output("\t\t\t\t".'</div>');
 			$this->output("\t\t\t".'</div>');
 			$this->output("\t\t".'</div>', "\t".'<!-- End of this modal -->');
 		}
@@ -1332,7 +1333,8 @@ class as_html_theme_base
 	{
 		foreach ($content as $bx => $row) {
 			$this->output("\t\t".'<div class="row">');
-			if (isset($row['section'])) $this->output("\t\t".'<section class="'.$row['section'].'">');
+			if (isset($row['section'])) 
+				$this->output("\t\t".'<section class="'.$row['section'].'">');
 							
 			foreach ($row['colms'] as $bx => $column) {
 				$this->output("\t\t".'<div class="'.$column['class'].'">');
@@ -1391,6 +1393,10 @@ class as_html_theme_base
 						$this->form($c_item);
 						break;
 						
+					case 'custom':
+						$this->custom($c_item);
+						break;
+							
 					case 'table':
 						$this->table($c_item);
 						break;
@@ -1406,6 +1412,18 @@ class as_html_theme_base
 		}
 	}
 
+	public function custom($html)
+	{
+		if (!empty($html)) {
+			$this->output("\t\t".'<div class="box box-'.$html['theme'].'">');
+			
+			if (isset($html['title'])) $this->box_title($html);
+				
+			if (isset($html['body'])) $this->output("\t\t".$html['body']);
+            $this->output("\t\t".'</div>');
+		}	
+	}
+	
 	public function tabs_view($tabs)
 	{
 		if (isset($tabs)) {

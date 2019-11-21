@@ -322,6 +322,18 @@ function as_db_categoryslugs_sql_args($categoryslugs, &$arguments)
 	return '';
 }
 
+/**
+ * Return the ids of all stock items in the database which match $handle (=username), should be one or none
+ * @param $handle
+ * @return array
+ */
+function as_db_find_by_stockitem($itemid, $business)
+{
+	return as_db_read_all_values(as_db_query_sub(
+		'SELECT stockid FROM ^stock WHERE itemid=$ AND business=$',
+		$itemid, $business
+	));
+}
 
 /**
  * Return the common selectspec used to build any selectspecs which retrieve posts from the database.
@@ -342,35 +354,20 @@ function as_db_products_basic_selectspec($business = null)
 			'^posts.postid', '^posts.categoryid', '^posts.type', 'basetype' => 'LEFT(^posts.type, 1)',
 			'hidden' => "INSTR(^posts.type, '_HIDDEN')>0", 'queued' => "INSTR(^posts.type, '_QUEUED')>0",
 			'^posts.rcount', '^posts.selchildid', '^posts.closedbyid', '^posts.positivelikes', '^posts.negativelikes', '^posts.netlikes', '^posts.views', '^posts.hotness', '^posts.flagcount', '^posts.catidpath1', '^stock.actual', '^stock.available', 'delivered' => 'UNIX_TIMESTAMP(^stock.created)', 
-			'icon' => '^posts.icon', 'category' => '^categories.title', '^posts.title', '^posts.itemcode', '^posts.volume', '^posts.mass', '^posts.texture', '^posts.images', 'created' => 'UNIX_TIMESTAMP(^posts.created)', '^posts.name', 'content' => '^posts.content', 'categorybackpath' => "^categories.backpath", 'business' => '^stock.business',
+			'icon' => '^posts.icon', 'category' => '^categories.title', '^posts.title', '^posts.itemcode', '^posts.volume', '^posts.mass', '^posts.texture', '^posts.images', 'created' => 'UNIX_TIMESTAMP(^posts.created)', '^posts.name', 'content' => '^posts.content', 'categorybackpath' => "^categories.backpath", 'business' => '^stock.business', 'parentcat' => 'parent.title',
 			'categoryname' => '(SELECT title FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 
 			'caticon' => '(SELECT icon FROM ^categories WHERE ^categories.categoryid=^posts.catidpath1)', 
 			'categoryids' => "CONCAT_WS(',', ^posts.catidpath1, ^posts.catidpath2, ^posts.catidpath3, ^posts.categoryid)",
 		),
 		'arraykey' => 'postid',
-		'source' => '^posts LEFT JOIN ^categories ON ^categories.categoryid=^posts.categoryid',
+		'source' => '^posts LEFT JOIN ^categories ON ^posts.categoryid=^categories.categoryid',
 		'arguments' => array(),
 	);
 	if (isset($business))
 	{
 		$selectspec['source'] .= ' LEFT JOIN ^stock ON ^posts.postid=^stock.itemid';
-		//$selectspec['source'] .= ' LEFT JOIN ^stock ON ^posts.postid=^stock.business';
-		//SELECT postid FROM as_posts WHERE type='P' ORDER BY as_posts.title ASC
 	}
 	return $selectspec;
-}
-
-/**
- * Return the ids of all stock items in the database which match $handle (=username), should be one or none
- * @param $handle
- * @return array
- */
-function as_db_find_by_stockitem($itemid, $business)
-{
-	return as_db_read_all_values(as_db_query_sub(
-		'SELECT stockid FROM ^stock WHERE itemid=$ AND business=$',
-		$itemid, $business
-	));
 }
 
 /**
@@ -397,16 +394,17 @@ function as_db_products_selectspec($sort, $business = null, $search = null, $cat
 	$sortsql = 'ORDER BY ^posts.' . $sort . ' ASC';
 
 	$selectspec = as_db_products_basic_selectspec($business);
-	
-	$selectspec['source'] .=
-		" JOIN (SELECT postid FROM ^posts WHERE " . as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) .
+	$selectspec['source'] .= ' LEFT JOIN ^categories AS childcat ON ^posts.categoryid=childcat.categoryid';
+	$selectspec['source'] .= ' LEFT JOIN ^categories AS parent ON childcat.parentid=parent.categoryid';
+	$selectspec['source'] .= " JOIN (SELECT postid FROM ^posts WHERE " . as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) .
 		(isset($createip) ? "createip=UNHEX($) AND " : "") . "type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
 	
 	if (isset($search)) {
 		$selectspec['source'] .= ' WHERE ^posts.title LIKE "%' . $search . '%"';
 		$selectspec['source'] .= ' OR ^posts.itemcode LIKE "%' . $search . '%"';
-		$selectspec['source'] .= ' OR ^categories.title LIKE "%' . $search . '%"';
-		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%" LIMIT 10';
+		$selectspec['source'] .= ' OR childcat.title LIKE "%' . $search . '%"';
+		$selectspec['source'] .= ' OR parent.title LIKE "%' . $search . '%"';
+		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%"';
 	}
 	else if (isset($business)) $selectspec['source'] .= ' WHERE ^stock.business=' . $business;
 

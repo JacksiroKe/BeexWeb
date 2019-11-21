@@ -86,6 +86,7 @@ if (as_clicked('doregister')) {
 if (is_numeric($request)) {
 	$business = BxBusiness::get_single($userid, $request);
 	$departments = BxDepartment::get_list($request);
+	$owners = explode(',', $business->users);	
 	$managers = explode(',', $business->managers);	
 
 	if (as_clicked('dodeletedept')) {
@@ -229,38 +230,6 @@ if (is_numeric($request)) {
 	
 	$profile2 = array( 'type' => 'tabs', 'navs' => array( 'aboutus' => 'About Us', 'contactus' => 'Contact Us'), 'pane' => $navtabs );
 	
-	$searchhtml = '<div class="form-group" id="searchdiv">
-	<div class="col-sm-12">
-	<label for="searchuser">Search by a User\'s Name, or Email Address</label>
-	<input id="searchuser" autocomplete="off" onkeyup="as_searchuser_change(this.value);" type="text" value="" class="form-control">
-	<input id="business_id" type="hidden" value="' . $business->businessid . '">
-	</div>
-	</div>
-	<div class="form-group" id="managers_feedback">
-	<div class="col-sm-12"><div id="manager_results"></div></div>';
-
-	$managershtml = '<ul class="products-list product-list-in-box" style="border-top: 1px solid #000">';
-	$owner = as_db_select_with_pending(as_db_user_profile($userid));
-	
-	$managershtml .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $owner).'</div>';
-	$managershtml .= '<div class="product-info"><a href="'.as_path_html('user/' . $owner['handle']).'" class="product-title" style="font-size: 20px;">';
-	$managershtml .= $owner['firstname'].' '.$owner['lastname'].'</a><span class="product-description">BUSINESS OWNER</span>';
-	$managershtml .= "</div><br></li>\n";
-
-	if (count($managers)) {
-		foreach ($managers as $mid) {
-			if (!empty($mid) && $userid != $mid) {
-				$manager = as_db_select_with_pending(as_db_user_profile($mid));
-				$managershtml .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
-				$managershtml .= '<div class="product-info"><a href="'.as_path_html('user/' . $manager['handle']).'" class="product-title" style="font-size: 20px;">';
-				$managershtml .= $manager['firstname'].' '.$manager['lastname'].'</a><span class="product-description">BUSINESS MANAGER</span>';
-				$managershtml .= "</div><br></li>\n";
-			}
-		}
-	}
-
-	$managershtml .= '</ul>';
-
 	$modalboxes = array(
 		'modal-managers' => array(
 			'class' => 'modal fade',
@@ -272,11 +241,8 @@ if (is_numeric($request)) {
 				'fields' => array(
 					'namesearch' => array(
 						'type' => 'custom',
-						'html' => htmLawed($searchhtml, array('tidy'=>'  '))
-					),
-					'managerlist' => array(
-						'type' => 'custom',
-						'html' => '<span id="manager_list">'.htmLawed($managershtml, array('tidy'=>'  ')).'</span>',
+						'html' => as_business_managers_search($business->businessid).
+							as_business_managers_list($userid, $business->businessid, $owners, $managers)
 					),
 				),
 			),

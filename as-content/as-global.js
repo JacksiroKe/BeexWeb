@@ -19,6 +19,30 @@
 
 // General page functions
 
+function tableview(datatype, business)
+{
+	var contentview = document.getElementById('main_content');
+
+	var params = {};
+	params.data_type = datatype;
+	params.business_id = business;
+
+	as_ajax_post('tableview', params, function(lines) 
+	{
+		if (lines[0] == '1') {
+			contentview.innerHTML = lines.slice(1).join('\n');
+			//as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			//as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
+		}
+	});
+	//as_show_waiting_after(document.getElementById('similar'), true);
+
+	return false;
+}
+
 function as_new_customer()
 {
 	var field_bsid = document.getElementById('business');
@@ -70,13 +94,13 @@ function as_new_customer()
 function as_searchuser_change()
 {
 	var params = {};
-	params.item_biz = document.getElementById('business_id').value;
+	params.item_biz = document.getElementById('businessid').value;
 	params.searchtext = document.getElementById('searchuser').value;
 	if(params.searchtext.length > 3)
 	{ 
 		as_ajax_post('searchuser', params, function(lines) {
 			if (lines[0] == '1') {
-				var resultsview = document.getElementById('manager_results');
+				var resultsview = document.getElementById('search_results');
 				resultsview.innerHTML = lines.slice(1).join('\n');
 				//as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
@@ -111,23 +135,26 @@ function as_searchuser_change_d()
 	//as_show_waiting_after(document.getElementById('manager_results'), true);
 }
 
-function as_assign_role(userid)
+function as_change_business_role(elem, businessid, userid)
 {
 	var params = {};
 	params.manager = userid;
-	params.business = document.getElementById('business_id').value;
+	params.business = businessid;
+	params.newrole = document.getElementById(elem + '_role_' + userid).value;
 	
 	as_ajax_post('addmanager', params, function(lines) 
 	{
 		if (lines[0] == '1') {
-			var feedback = document.getElementById('itemresults_' + userid);
-			var listview = document.getElementById('manager_list');
+			var feedback = document.getElementById('feeback_results');
+			//var searchview = document.getElementById('search_results');
+			var listview = document.getElementById('list_results');
 			var fbstr = lines.slice(1).join('\n').split('xqx');
 			feedback.innerHTML = fbstr[0];
-			listview.innerHTML = fbstr[1];//lines.slice(2).join('\n');
+			//searchview.innerHTML = fbstr[1];
+			listview.innerHTML = fbstr[1];
 			//as_show_waiting_after(elem, false);
 		} else if (lines[0] == '0') {
-			as_show_waiting_after(elem, false);
+			//as_show_waiting_after(elem, false);
 		} else {
 			as_ajax_error();
 		}
@@ -136,7 +163,7 @@ function as_assign_role(userid)
 	return false;
 }
 
-function as_assign_role_d(userid)
+function as_change_business_role_d(userid)
 {
 	var params = {};
 	params.manager = userid;
@@ -166,15 +193,15 @@ function as_searchitem_change()
 	var params = {};
 	params.item_biz = document.getElementById('business_id').value;
 	params.searchtext = document.getElementById('searchitem').value;
-	if(params.searchtext.length > 3)
+	if(params.searchtext.length > 1)
 	{ 
 		as_ajax_post('searchitem', params, function(lines) {
 			if (lines[0] == '1') {
 				var simelem = document.getElementById('itemresults');
 				simelem.innerHTML = lines.slice(1).join('\n');
-				as_show_waiting_after(elem, false);
+				//as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
-				as_show_waiting_after(elem, false);
+				//as_show_waiting_after(elem, false);
 			} else {
 				as_ajax_error();
 			}
@@ -183,36 +210,42 @@ function as_searchitem_change()
 	//as_show_waiting_after(document.getElementById('itemresults'), true);
 }
 
-function as_show_quick_form(itemid)
+function as_show_quick_form(formid)
 {
-	var formX = document.getElementById('form_' + itemid);
-	if (formX.style.display === "none") as_reveal('#form_' + itemid);
-	else as_conceal('#form_' + itemid);
+	var formX = document.getElementById(formid);
+	if (formX.style.display === "none") as_reveal('#' + formid);
+	else as_conceal('#' + formid);
 }
 
-function as_add_stock(itemid)
+function as_add_stock(elem, itemid)
 {
-	var result = document.getElementById('itemresults_' + itemid);
-	var stock = document.getElementById('stock_' + itemid);
+	var result = document.getElementById(elem + '_itemresults_' + itemid);
+	var itemstock = document.getElementById(elem + '_available_' + itemid);
+	var itemactual = document.getElementById(elem + '_actual_' + itemid);
+	var business = document.getElementById('business_id').value;
 
 	var params = {};
 	params.item_id = itemid;
-	params.item_qty = document.getElementById('qty_' + itemid).value;
-	params.item_bprice = document.getElementById('bprice_' + itemid).value;
-	params.item_sprice = document.getElementById('sprice_' + itemid).value;
-	params.item_biz = document.getElementById('business_id').value;
-	params.item_type = document.getElementById('type_' + itemid ).value;
-	params.item_cdn = document.getElementById('state_' + itemid ).value;
+	params.item_biz = business;
+	params.item_available = itemstock.value;
+	params.item_qty = document.getElementById(elem + '_qty_' + itemid).value;
+	params.item_bprice = document.getElementById(elem + '_bprice_' + itemid).value;
+	params.item_sprice = document.getElementById(elem + '_sprice_' + itemid).value;
+	params.item_type = document.getElementById(elem + '_type_' + itemid ).value;
+	params.item_cdn = document.getElementById(elem + '_state_' + itemid ).value;
+	params.item_stockid = document.getElementById(elem + '_stockid_' + itemid).value;
 	
 	as_ajax_post('addstock', params, function(lines) 
 	{
 		if (lines[0] == '1') {
 			var fbstr = lines.slice(1).join('\n').split('xqx');
 			result.innerHTML = fbstr[0];
-			stock.innerHTML = fbstr[1];
-			as_show_waiting_after(elem, false);
+			itemstock.innerHTML = fbstr[1];
+			itemactual.innerHTML = fbstr[2];
+			//as_show_waiting_after(elem, false);
+			tableview('stockview', business);
 		} else if (lines[0] == '0') {
-			as_show_waiting_after(elem, false);
+			//as_show_waiting_after(elem, false);
 		} else {
 			as_ajax_error();
 		}

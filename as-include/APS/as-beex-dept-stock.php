@@ -148,101 +148,93 @@ class BxStockDept extends BxDepartment
         $managers = explode(',', $department->managers);	
 
         $userid = as_get_logged_in_userid();
-        $categoryslugs = as_get('cart');
         $section = as_get('section');
 
-        list($categories, $products) = as_db_select_with_pending(
-            as_db_category_nav_selectspec($categoryslugs, true, false, true),
-            as_db_products_selectspec('title', $department->businessid)
+        list ($products, $customers) = as_db_select_with_pending( 
+            as_db_products_selectspec('title', $department->businessid),
+            as_db_recent_customers($department->businessid)
         );
-
+        
         $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
         $bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
         
-        $searchhtml = '<div class="form-group" id="searchdiv">
-        <div class="col-sm-12">
-        <label for="searchuser">Search by a User\'s Name, or Email Address</label>
-        <input id="searchuser" autocomplete="off" onkeyup="as_searchuser_change(this.value);" type="text" class="form-control">
-        <input id="department_id" type="hidden" value="' . $department->businessid . '">
-        </div>
-        </div>
-        <div class="form-group" id="managers_feedback">
-        <div class="col-sm-12"><div id="manager_results"></div></div>';
-
         $managershtml = '<ul class="products-list product-list-in-box" style="border-top: 1px solid #000">';
         $owner = as_db_select_with_pending(as_db_user_profile($userid));
         
-        $managershtml .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $owner).'</div>';
-        $managershtml .= '<div class="product-info"><a href="'.as_path_html('user/' . $owner['handle']).'" class="product-title" style="font-size: 20px;">';
-        $managershtml .= $owner['firstname'].' '.$owner['lastname'].'</a><span class="product-description">DEPARTMENT MANAGER</span>';
-        $managershtml .= "</div><br></li>\n";
+        $managershtml .= "\n\t".'<li class="item">';
+        $managershtml .= "\n\t\t".'<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $owner).'</div>';
+        $managershtml .= "\n\t\t\t".'<div class="product-info">';
+        $managershtml .= "\n\t\t\t\t".'<a href="'.as_path_html('user/' . $owner['handle']).'" class="product-title" style="font-size: 20px;">';
+        $managershtml .= $owner['firstname'].' '.$owner['lastname']."</a>\n\t\t\t";
+        $managershtml .= "\n\t\t\t".'<span class="product-description">DEPARTMENT MANAGER</span>';
+        $managershtml .= "\n\t\t"."</div><br>";
+        $managershtml .= "\n\t</li>";
 
         if (count($managers)) {
             foreach ($managers as $mid) {
                 if (!empty($mid) && $userid != $mid) {
                     $manager = as_db_select_with_pending(as_db_user_profile($mid));
-                    $managershtml .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
-                    $managershtml .= '<div class="product-info"><a href="'.as_path_html('user/' . $manager['handle']).'" class="product-title" style="font-size: 20px;">';
-                    $managershtml .= $manager['firstname'].' '.$manager['lastname'].'</a><span class="product-description">DEPARTMENT MANAGER</span>';
-                    $managershtml .= "</div><br></li>\n";
+                    $managershtml .= "\n\t".'<li class="item">';
+                    $managershtml .= "\n\t\t".'<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
+                    $managershtml .= "\n\t\t\t".'<div class="product-info">';
+                    $managershtml .= "\n\t\t\t\t".'<a href="'.as_path_html('user/' . $manager['handle']).'" class="product-title" style="font-size: 20px;">';
+                    $managershtml .= $manager['firstname'].' '.$manager['lastname']."</a>\n\t\t\t";
+                    $managershtml .= "\n\t\t\t".'<span class="product-description">DEPARTMENT MANAGER</span>';
+                    $managershtml .= "\n\t\t"."</div><br>";
+                    $managershtml .= "\n\t</li>";
                 }
             }
         }
 
         $managershtml .= '</ul>';
 
-        $modalboxes = array(
-            'modal-dmanagers' => array(
-                'class' => 'modal fade',
-                'header' => array(
-                    'title' => 'DEPARTMENT MANAGERS',
-                ),
-                'view' => array(
-                    'type' => 'form', 'style' => 'tall',
-                    'fields' => array(
-                        'namesearch' => array(
-                            'type' => 'custom',
-                            'html' => htmLawed($searchhtml, array('tidy'=>'  '))
-                        ),
-                        'managerlist' => array(
-                            'type' => 'custom',
-                            'html' => '<span id="manager_list">'.htmLawed($managershtml, array('tidy'=>'  ')).'</span>',
-                        ),
+        $modalboxes['modal-dmanagers'] = array(
+            'class' => 'modal fade',
+            'header' => array( 'title' => 'DEPARTMENT MANAGERS' ),
+            'view' => array(
+                'type' => 'form', 'style' => 'tall',
+                'fields' => array(
+                    'namesearch' => array(
+                        'type' => 'custom',
+                        'html' => as_search_manager( $department->businessid )
+                    ),
+                    'managerlist' => array(
+                        'type' => 'custom',
+                        'html' => '<span id="manager_list">'.$managershtml.'</span>',
                     ),
                 ),
             ),
         );
 
         switch ($section) {
-            
-            default:
 
+            case 'orders':
                 $bodycontent = array(
                     'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
-                    'type' => 'form', 'title' => $as_content['title'], 'style' => 'tall',
+                    'type' => 'form', 'title' => 'ORDERS - ' . $as_content['title'], 'style' => 'tall',
             
-                    'table' => array( 'id' => 'allproducts', 'inline' => true,
-                        'headers' => array('#', 'ProductID', 'Category', 'Item Code', 'Date of Entry', 'Qty', '*') ),
+                    'table' => array( 'id' => 'allorders', 'inline' => true,
+                        'headers' => array('#', 'ProductID', 'Category', 'Item Code', 'Actual Stock', 'Available Stock', 'Date of Entry', '*') ),
                    
                     'icon' => array(
                         'fa' => 'arrow-left',
-                        'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+                        'url' => as_path_html( 'department/' . $department->departid ),
                         'class' => 'btn btn-social btn-primary',
                         'label' => as_lang_html('main/back_button'),
                     ),
                     
                     'tools' => array(
-                        'stock' => array(
+                        /*'stock' => array(
                             'type' => 'button_md',
                             'url' => '#modal-entry',
                             'class' => 'btn btn-primary',
-                            'label' => 'ADD STOCK',
+                            'label' => 'MANAGE STOCK',
                         ),
-                        '' => array(
+                        'x' => array(
                             'type' => 'link', 'label' => ' ',
                             'url' => '#', 
                             'class' => 'btn btn-tool',
-                        ),
+                        ),*/
                         'managers' => array(
                             'type' => 'button_md',
                             'url' => '#modal-dmanagers',
@@ -256,32 +248,6 @@ class BxStockDept extends BxDepartment
                     ),
                 );
             
-                $searchhtml = '<div class="form-group" id="searchdiv">
-                <div class="col-sm-12">
-                <label for="searchitem">Search by an Item\'s Title, Code, Category or Description</label>
-                <input id="searchitem" autocomplete="off" onkeyup="as_searchitem_change();" onkeydown="as_searchitem_change();" type="text" value="" class="form-control">
-                <input id="business_id" type="hidden" value="' . $department->businessid . '">
-                </div>
-                </div>
-                <div class="form-group" id="results">
-                <div class="col-sm-12">
-                <div id="itemresults"></div>
-                </div>';
-
-                $modalboxes['modal-entry'] = array(
-                    'class' => 'modal fade',
-                    'header' => array( 'title' => 'STOCK ENTRY' ),
-                    'view' => array(
-                        'type' => 'form', 'style' => 'tall',
-                        'fields' => array(
-                            'namesearch' => array(
-                                'type' => 'custom',
-                                'html' => htmLawed($searchhtml, array('tidy'=>'  ')),
-                            ),
-                        ),
-                    ),
-                );
-                
                 if (count($products)) {
                     $p = 1;
                     foreach ($products as $product) {
@@ -297,17 +263,18 @@ class BxStockDept extends BxDepartment
                                 'title' => array( 'data' => as_get_media_html($product['icon'], 20, 20) . as_html($product['title']) ),
                                 'cat' => array( 'data' => $product['category']),
                                 'itemcode' => array( 'data' => $product['itemcode']),
+                                'actual' => array( 'data' => $product['actual'] ),
+                                'available' => array( 'data' => $product['available'] ),
                                 'date' => array( 'data' => $deliverydate . ' (' .$deliveryago . ' ago)' ),
-                                'qty' => array( 'data' => $product['quantity'] ),
                                 '*' => array( 'data' => '' ),
                             ),
                         );
                         $p++;            
                     }
                     
-                    $as_content['script_onloads'][] = array(
-                        "$(function () { $('#allproducts').DataTable() })"
-                    );
+                    /*$as_content['script_onloads'][] = array(
+                        "$(function () { $('#allorders').DataTable() })"
+                    );*/
                     
                     $m = 1;
                     foreach ($products as $product) {
@@ -318,13 +285,18 @@ class BxStockDept extends BxDepartment
                         $producthtml .= '<ul class="nav nav-tabs">';
                         $producthtml .= '<li class="active"><a href="#item-about'.$product['postid'].'" data-toggle="tab">ITEM INFORMATION</a></li>';
                         $producthtml .= '<li><a href="#item-history'.$product['postid'].'" data-toggle="tab">STOCK HISTORY</a></li>';
-                        $producthtml .= '<li><a href="#item-entry'.$product['postid'].'" data-toggle="tab">ADD STOCK</a></li>';
+                        $producthtml .= '<li><a href="#item-entry'.$product['postid'].'" data-toggle="tab">RECEIVE</a></li>';
+                        $producthtml .= '<li><a href="#item-exit'.$product['postid'].'" data-toggle="tab">ISSUE</a></li>';
                         $producthtml .= '</ul>';
                         
                         $producthtml .= '<div class="tab-content no-padding">';
-
+                        
                         $producthtml .= '<div class="tab-pane" id="item-entry'.$product['postid'].'" style="position: relative;">';	
-                        $producthtml .= as_stock_add_form($product);
+                        $producthtml .= as_stock_add_form('table', $product);
+                        $producthtml .= '</div>';
+
+                        $producthtml .= '<div class="tab-pane" id="item-exit'.$product['postid'].'" style="position: relative;">';	
+                        $producthtml .= as_stock_issue_form('give', $product, $customers);
                         $producthtml .= '</div>';
 
                         $producthtml .= '<div class="chart tab-pane" id="item-history'.$product['postid'].'" style="position: relative;">';
@@ -333,7 +305,7 @@ class BxStockDept extends BxDepartment
                         if (count($stockids))
                         {
                             $history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
-                            $producthtml .= as_stock_history($history);
+                            $producthtml .= as_stock_history($history, $product['available']);
                             $producthtml .= '</div>';
                         }
                         else
@@ -359,13 +331,90 @@ class BxStockDept extends BxDepartment
                             ),
                             'view' => array(
                                 'type' => 'html', 
-                                'html' => htmLawed($producthtml, array('tidy'=>'  ')),
+                                'html' => $producthtml,
                             ),
                         );                        
                         $m++; 
                     }
                 }
                 
+                if (as_get('alert') != null) 
+                    $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
+
+                if (as_get('callout') != null) 
+                    $bodycontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
+
+                $as_content['row_view'][] = array(
+                    'colms' => array(
+                        0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
+                        1 => array('class' => 'col-lg-12 col-xs-12', 'modals' => $modalboxes ),
+                    ),
+                );
+                break;
+            
+            default:
+
+                $bodycontent = array(
+                    'type' => 'custom', 'title' => $as_content['title'], 'theme' => 'primary',
+                    'body' => '<div id="main_content"></div>',
+            
+                    'icon' => array(
+                        'fa' => 'arrow-left',
+                        'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+                        'class' => 'btn btn-social btn-primary',
+                        'label' => as_lang_html('main/back_button'),
+                    ),
+                    
+                    'tools' => array(
+                        'stock' => array(
+                            'type' => 'button_md',
+                            'url' => '#modal-search',
+                            'class' => 'btn btn-primary',
+                            'label' => 'MANAGE STOCK',
+                        ),
+                        'x' => array(
+                            'type' => 'link', 'label' => ' ',
+                            'url' => '#', 
+                            'class' => 'btn btn-tool',
+                        ),
+                        'orders' => array(
+                            'type' => 'link',
+                            'url' => as_path_html( 'department/' . $department->departid, array('section' => 'orders') ),
+                            'class' => 'btn btn-primary',
+                            'label' => 'VIEW ORDERS',
+                        ),
+                        'xx' => array(
+                            'type' => 'link', 'label' => ' ',
+                            'url' => '#', 
+                            'class' => 'btn btn-tool',
+                        ),
+                        'managers' => array(
+                            'type' => 'button_md',
+                            'url' => '#modal-dmanagers',
+                            'class' => 'btn btn-primary',
+                            'label' => 'MANAGERS',
+                        ),
+                    ),
+                );
+            
+                $modalboxes['modal-search'] = array(
+                    'class' => 'modal fade',
+                    'header' => array( 'title' => 'STOCK MANAGEMENT' ),
+                    'view' => array(
+                        'type' => 'form', 'style' => 'tall',
+                        'fields' => array(
+                            'namesearch' => array(
+                                'type' => 'custom',
+                                'html' => as_search_items($department->businessid),
+                            ),
+                        ),
+                    ),
+                );
+                     
+                $as_content['script_onloads'][] = array(
+                    "tableview('stockview', ".$department->businessid.")"
+                );
+
                 if (as_get('alert') != null) 
                     $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
 

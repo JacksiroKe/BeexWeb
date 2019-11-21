@@ -41,7 +41,7 @@ foreach ($itemresults as $result)
 	$sincetime = as_time_to_string(as_opt('db_time') - $result['created']);
 	$joindate = as_when_to_html($result['created'], 0);
 	   
-	$htmlresult .= '<li class="item stock-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form('.$result['userid'].')">';
+	$htmlresult .= '<li class="item stock-item-result"  onclick="as_show_quick_form(\'mansearch_'.$result['userid'].'\')">';
 	$htmlresult .= '<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $result).'</div>';
 	$htmlresult .= '<div class="product-info">';
 	$htmlresult .= '<span class="product-title" style="font-size: 20px;">'.$result['firstname'].' '.$result['lastname'].' - ' .$gender. ' ' .
@@ -52,19 +52,18 @@ foreach ($itemresults as $result)
 	$htmlresult .= '</span>';
 	$htmlresult .= '</li>';
 	
-	$htmlresult .= '<li id="form_'.$result['userid'].'" style="display:none;">';	
+	$htmlresult .= '<li id="mansearch_'.$result['userid'].'" style="display:none;">';	
 	$htmlresult .= '<div id="itemresults_'.$result['userid'].'"></div>';
 	$htmlresult .= '<form class="form-horizontal"><div class="box-body">';
 
-	$htmlresult .= '<input type="hidden" id="business_id" value="'.$businessid.'">';
-	
 	$htmlresult .= '<div class="row">
                 <div class="col-lg-6">
 					<div class="form-group">
 					<label class="col-sm-3 control-label">Role</label>
 					<div class="col-sm-9">
-					<select class="form-control" id="role_'.$result['userid'].'">
+					<select class="form-control" id="mansearch_role_'.$result['userid'].'">
 					<option value="managers"> Manager </option>
+					<option value="owners"> Owner </option>
 					</select>
 					</div>
 				</div>
@@ -72,8 +71,8 @@ foreach ($itemresults as $result)
                 
                 <div class="col-lg-6">
                   <div class="input-group">
-				  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Assign this Role" onclick="return as_assign_role('.$result['userid'].');"/>
-				  <input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form('.$result['userid'].');"/>
+				  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Assign this Role" onclick="return as_change_business_role(\'mansearch\', '.$businessid.', '.$result['userid'].');"/>
+				  <input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form(\'mansearch_'.$result['userid'].'\');"/>
 			</div>
 		</div>
 		</div>';

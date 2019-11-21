@@ -29,9 +29,6 @@ require_once AS_INCLUDE_DIR . 'app/format.php';
 require_once AS_INCLUDE_DIR . 'app/limits.php';
 require_once AS_INCLUDE_DIR . 'app/updates.php';
 
-
-
-
 // Get the HTML to display for the handle, and if we're using external users, determine the userid
 
 if (AS_FINAL_EXTERNAL_USERS) {
@@ -123,7 +120,7 @@ if ($handle == $username)
 	$profile1['body']['items'][] = array( 
 		'tag' => array('link', 'btn btn-primary btn-block'),
 		'href' => '#',
-		'label' => 'Edit Your Account';
+		'label' => 'Edit Your Account',
 	);
 
 }
@@ -131,7 +128,7 @@ else {
 	$profile1['body']['items'][] = array( 
 		'tag' => array('link', 'btn btn-primary btn-block'),
 		'href' => '#',
-		'label' => 'Follow';
+		'label' => 'Follow',
 	);
 }
 
@@ -142,7 +139,7 @@ if (AS_USER_TYPE == 'A' || AS_USER_TYPE == 'SA')
 		$profile1['body']['items'][] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
 			'href' => $handle.'/edit',
-			'label' => 'Edit This User';
+			'label' => 'Edit This User',
 		);
 	}	
 }

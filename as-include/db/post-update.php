@@ -33,11 +33,11 @@ require_once AS_INCLUDE_DIR . 'app/updates.php';
  * @param $postid
  * @param $userid
  */
-function as_db_stock_update($stockid, $userid, $quantity)
+function as_db_stock_update($stockid, $userid, $available, $actual = null)
 {
 	as_db_query_sub(
-		'UPDATE ^stock SET quantity=#, lastuserid=#, updated=NOW() WHERE stockid=#',
-		$quantity, $userid, $stockid
+		'UPDATE ^stock SET available=#, lastuserid=#, updated=NOW() WHERE stockid=#',
+		$available, $userid, $stockid
 	);
 }
 

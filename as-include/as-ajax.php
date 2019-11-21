@@ -81,6 +81,7 @@ $routing = array(
 	'wallpost' => 'wallpost.php',
 	'click_wall' => 'click-wall.php',
 	'click_pm' => 'click-pm.php',
+	'tableview' => 'tableview.php',
 );
 
 $operation = as_post_text('as_operation');

@@ -189,37 +189,38 @@ class BxBusiness
    */
   public static function get_list( $userid )
   {
-    $results = as_db_select_with_pending(array(
-      'columns' => array('businessid', 'bstype', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', 'managers', 
-        'departments' => '(SELECT COUNT(*) FROM ^businessdepts WHERE businessid = ^businesses.businessid)', 'userid', 
-        'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)'),
-      'source' => '^businesses WHERE userid=# OR managers LIKE "'.$userid.',"',
-      'arguments' => array($userid),
-      'sortasc' => 'title',
-    ));
     $list = array();
-    
-    foreach ( $results as $result ) {
-      $business = new BxBusiness();
-      $business->businessid = (int) $result['businessid'];
-      $business->bstype = $result['bstype'];
-      $business->title = $result['title'];
-      $business->contact = $result['contact'];
-      $business->location = $result['location'];
-      $business->username = $result['username'];
-      $business->content = $result['content'];
-      $business->icon = $result['icon'];
-      $business->images = $result['images'];
-      $business->tags = $result['tags'];
-      $business->userid = (int) $result['userid'];
-      $business->managers = $result['managers'];
-      $business->created = $result['created'];
-      $business->updated = $result['updated'];
-      $business->departments = $result['departments'];
-      $list[] = $business;
-    }
+    if (!empty($userid)) 
+    {
+      $results = as_db_select_with_pending(array(
+        'columns' => array('businessid', 'bstype', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', 'managers', 
+          'departments' => '(SELECT COUNT(*) FROM ^businessdepts WHERE businessid = ^businesses.businessid)', 'userid', 
+          'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)'),
+        'source' => '^businesses WHERE userid='.$userid.' OR managers ='.$userid.' OR managers LIKE "%'.$userid.',%"',
+        'sortasc' => 'title',
+      ));
+      
+      if (count($results))
+      foreach ( $results as $result ) {
+        $business = new BxBusiness();
+        $business->businessid = (int) $result['businessid'];
+        $business->bstype = $result['bstype'];
+        $business->title = $result['title'];
+        $business->contact = $result['contact'];
+        $business->location = $result['location'];
+        $business->username = $result['username'];
+        $business->content = $result['content'];
+        $business->icon = $result['icon'];
+        $business->images = $result['images'];
+        $business->tags = $result['tags'];
+        $business->userid = (int) $result['userid'];
+        $business->managers = $result['managers'];
+        $business->created = $result['created'];
+        $business->updated = $result['updated'];
+        $business->departments = $result['departments'];
+        $list[] = $business;
+      }
+    }  
     return $list;
   }
-
-
 }

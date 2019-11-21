@@ -502,6 +502,7 @@ function as_db_table_definitions()
 			'activityid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('ENTRY', 'EXIT', 'MANAGE', 'NOTE') NOT NULL DEFAULT 'ENTRY'",
 			'stockid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'reference' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'itemid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'userid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'quantity' => 'INT UNSIGNED NOT NULL DEFAULT 0',
