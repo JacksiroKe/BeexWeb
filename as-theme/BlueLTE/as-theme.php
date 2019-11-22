@@ -63,23 +63,23 @@
             $css_paths = array(
                 'bootstrap'     => 'bower_components/bootstrap/dist/css/bootstrap.min.css',
                 'fonts'         => 'bower_components/font-awesome/css/font-awesome.min.css',
-                'ionicons'      => 'bower_components/Ionicons/css/ionicons.min.css',
-                'colorpicker'      => 'bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
                 'bluelte'       => 'dist/css/BlueLTE.min.css',
-                'icheck'       => 'plugins/iCheck/all.css',
-                'timepicker'       => 'plugins/timepicker/bootstrap-timepicker.min.css',
                 'allskins'      => 'dist/css/skins/_all-skins.min.css',
-                'morris'        => 'bower_components/morris.js/morris.css',
-                'jvectormap'    => 'bower_components/jvectormap/jquery-jvectormap.css',
-                'datepicker'    => 'bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css',
-                'rangepicker'   => 'bower_components/bootstrap-daterangepicker/daterangepicker.css',
-                'bootstrap3'    => 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css',
-                'select2'    => 'bower_components/select2/dist/css/select2.min.css',
-                'dataTables'    => 'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css'
+                //'ionicons'      => 'bower_components/Ionicons/css/ionicons.min.css',
+                //'colorpicker'      => 'bower_components/bootstrap-colorpicker/dist/css/bootstrap-colorpicker.min.css',
+                //'icheck'       => 'plugins/iCheck/all.css',
+                //'timepicker'       => 'plugins/timepicker/bootstrap-timepicker.min.css',
+                //'morris'        => 'bower_components/morris.js/morris.css',
+                //'jvectormap'    => 'bower_components/jvectormap/jquery-jvectormap.css',
+                //'datepicker'    => 'bower_components/bootstrap-datepicker/dist/css/bootstrap-datepicker.min.css',
+                //'rangepicker'   => 'bower_components/bootstrap-daterangepicker/daterangepicker.css',
+                //'bootstrap3'    => 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.min.css',
+                //'select2'    => 'bower_components/select2/dist/css/select2.min.css',
+                //'dataTables'    => 'bower_components/datatables.net-bs/css/dataTables.bootstrap.min.css'
             );
             
             $this->bluelte_resources( $css_paths, 'css' );
-            $this->bluelte_resources( array( 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic' ) , 'css' , true );
+            //$this->bluelte_resources( array( 'https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic' ) , 'css' , true );
         }
 		
 		function head_custom()
@@ -150,26 +150,26 @@
         {
             parent::body_hidden();
             $js_paths = array(
-                    'select2'     => 'bower_components/select2/dist/js/select2.full.min.js',
                     'jquery'     => 'bower_components/jquery/dist/jquery.min.js',
                     'jquery_ui'     => 'bower_components/jquery-ui/jquery-ui.min.js',
                     'bootstrap'     => 'bower_components/bootstrap/dist/js/bootstrap.min.js',
-                    'raphael'     => 'bower_components/raphael/raphael.min.js',
-                    'morris'     => 'bower_components/morris.js/morris.min.js',
-                    'sparkline'     => 'bower_components/jquery-sparkline/dist/jquery.sparkline.min.js',
-                    'jvectormap'     => 'plugins/jvectormap/jquery-jvectormap-1.2.2.min.js',
-                    'jvectormap_world'     => 'plugins/jvectormap/jquery-jvectormap-world-mill-en.js',
-                    'jquery_knob'     => 'bower_components/jquery-knob/dist/jquery.knob.min.js',
-                    'moment'     => 'bower_components/moment/min/moment.min.js',
-                    'daterangepicker'     => 'bower_components/bootstrap-daterangepicker/daterangepicker.js',
-                    'datepicker'     => 'bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js',
-                    'wysihtml5'     => 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js',
-                    'slimscroll'     => 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
-                    'fastclick'     => 'bower_components/fastclick/lib/fastclick.js',
                     'bluelte'     => 'dist/js/bluelte.min.js',
-                    'demo'     => 'dist/js/demo.js',
-                    'dataTables1'     => 'bower_components/datatables.net/js/jquery.dataTables.min.js',
-                    'dataTables2'     => 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
+                    //'select2'     => 'bower_components/select2/dist/js/select2.full.min.js',
+                    //'raphael'     => 'bower_components/raphael/raphael.min.js',
+                    //'morris'     => 'bower_components/morris.js/morris.min.js',
+                    //'sparkline'     => 'bower_components/jquery-sparkline/dist/jquery.sparkline.min.js',
+                    //'jvectormap'     => 'plugins/jvectormap/jquery-jvectormap-1.2.2.min.js',
+                    //'jvectormap_world'     => 'plugins/jvectormap/jquery-jvectormap-world-mill-en.js',
+                    //'jquery_knob'     => 'bower_components/jquery-knob/dist/jquery.knob.min.js',
+                    //'moment'     => 'bower_components/moment/min/moment.min.js',
+                    //'daterangepicker'     => 'bower_components/bootstrap-daterangepicker/daterangepicker.js',
+                    //'datepicker'     => 'bower_components/bootstrap-datepicker/dist/js/bootstrap-datepicker.min.js',
+                    //'wysihtml5'     => 'plugins/bootstrap-wysihtml5/bootstrap3-wysihtml5.all.min.js',
+                    //'slimscroll'     => 'bower_components/jquery-slimscroll/jquery.slimscroll.min.js',
+                    //'fastclick'     => 'bower_components/fastclick/lib/fastclick.js',
+                    //'demo'     => 'dist/js/demo.js',
+                    //'dataTables1'     => 'bower_components/datatables.net/js/jquery.dataTables.min.js',
+                    //'dataTables2'     => 'bower_components/datatables.net-bs/js/dataTables.bootstrap.min.js',
             );
             
             $this->bluelte_resources( $js_paths, 'js' );

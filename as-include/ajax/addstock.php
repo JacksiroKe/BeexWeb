@@ -27,31 +27,29 @@ require_once AS_INCLUDE_DIR . 'db/post-create.php';
 require_once AS_INCLUDE_DIR . 'db/post-update.php';
 
 $product = array();
-$itemid = as_post_text('item_id');
+$userid = as_get_logged_in_userid();
 $bprice = as_post_text('item_bprice');
 $sprice = as_post_text('item_sprice');
 $business = as_post_text('item_biz');
 $type = as_post_text('item_type');
 $state = as_post_text('item_cdn');
-$product['actual'] = $actual_stock = as_post_text('item_qty');
+	
+$product['postid'] = as_post_text('item_id');
+$product['actual'] = as_post_text('item_qty');
+$product['available'] = as_post_text('item_available');
 
-$userid = as_get_logged_in_userid();
-$product['postid'] = $itemid;
-
-$stockids = as_db_find_by_stockitem($itemid, $business);
+$stockids = as_db_find_by_stockitem($product['postid'], $business);
 if (count($stockids))
 {
 	$stockid = $stockids[0];
-	$product['available'] = $available_stock = as_post_text('item_available') + $actual_stock;
-	as_db_stock_update($stockid, $userid, $available_stock);
-	as_db_stock_entry('ENTRY', $stockids[0], $itemid, $userid, $actual_stock, $bprice, $sprice, $state);
+	as_db_stock_update($stockid, $userid, $product['available']);
 }
 else
 {
-	$product['available'] = $available_stock = $actual_stock;
-	$stockid = as_db_stock_add($type, $business, $itemid, $userid, $actual_stock, $available_stock);
-    as_db_stock_entry('ENTRY', $stockid, $itemid, $userid, $actual_stock, $bprice, $sprice, $state);
+	$stockid = as_db_stock_add($type, $business, $product['postid'], $userid, $product['actual'], $product['available']);
 }
+
+as_db_stock_entry('ENTRY', $stockid, $product['postid'], $userid, $product['actual'], $bprice, $sprice, $state);
 
 list ($customers, $history) = as_db_select_with_pending( 
 	as_db_recent_customers($business),
@@ -82,9 +80,9 @@ $htmlresult .= '</div>';
 $htmlresult .= '<div class="tab-pane active" id="stock-history" style="position: relative;">';
 
 
-$htmlresult .= as_stock_history($history, $available_stock) . '</div>';
+$htmlresult .= as_stock_history($history, $product['available']) . '</div>';
 
 $htmlresult .= '</div>';
-$htmlresult .= '</div>xqx' . $available_stock. 'xqx' . $actual_stock;
+$htmlresult .= '</div>xqx' . $product['available'] . 'xqx' . $product['actual'];
 
 echo $htmlresult;

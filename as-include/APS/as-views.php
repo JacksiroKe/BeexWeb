@@ -36,16 +36,17 @@
 
   function as_stock_add_form($elem, $product, $showcancel = true) 
   {
+    $available_stock = (isset($product['available']) ? $product['available'] : 0);
     $html = '<form class="form-horizontal" method="post">';
     $html = '<div class="box-body">';
 
-    $html .= '<input type="hidden" id="' . $elem . '_stockid_'.$product['postid'].'" value="'.$product['postid'].'">';
-    $html .= '<input type="hidden" id="' . $elem . '_available_'.$product['postid'].'" value="'.$product['available'].'">';
+    $html .= '<input type="text" id="' . $elem . '_oldstock_'.$product['postid'].'" value="'.$available_stock.'" />';
+    $html .= '<input type="number" id="' . $elem . '_available_'.$product['postid'].'" />';
 
     $html .= '<div class="form-group">
       <label class="col-sm-3 control-label">Quantity</label>
       <div class="col-sm-9">
-      <input type="number" placeholder="1" min="1" class="form-control" id="' . $elem . '_qty_'.$product['postid'].'" required>
+      <input onkeyup="get_available_stock(\'' . $elem . '\', '.$product['postid'].');" id="' . $elem . '_quantity_'.$product['postid'].'" type="number" placeholder="1" min="1" class="form-control" required />
       </div>
       </div>';
 
@@ -74,13 +75,13 @@
       <div class="col-lg-6">
       <div class="input-group">
       <label>Buying Price</label>
-      <input type="number" placeholder="1" min="1" class="form-control" id="' . $elem . '_bprice_'.$product['postid'].'" required>
+      <input type="number" placeholder="1" min="1" class="form-control" id="' . $elem . '_bprice_'.$product['postid'].'" required />
       </div>
       </div>
       <div class="col-lg-6">
       <div class="input-group">
       <label>Selling Price</label>
-      <input type="number" placeholder="1" min="1" class="form-control" id="' . $elem . '_sprice_'.$product['postid'].'" required>
+      <input type="number" placeholder="1" min="1" class="form-control" id="' . $elem . '_sprice_'.$product['postid'].'" required />
       </div>
       </div>
       </div>';
@@ -88,10 +89,10 @@
     $html .= '</div>';
 
     $html .= '<div class="box-footer">';
-    $html .= '<input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Submit This Entry" onclick="as_show_waiting_after(this, false); return as_add_stock(\'' . $elem . '\', '.$product['postid'].');"/>';
+    $html .= '<input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Submit This Entry" onclick="as_show_waiting_after(this, false); return as_add_stock(\'' . $elem . '\', '.$product['postid'].');" />';
 
     if ($showcancel)
-    $html .= '<input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form(\'' . $elem . '_'.$product['postid'].'\');"/>';
+    $html .= '<input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form(\'' . $elem . '_'.$product['postid'].'\');" />';
 
     $html .= '</div></form>';
 
@@ -101,16 +102,16 @@
   function as_stock_issue_form($elem, $product, $customers, $showcancel = true) 
   {
     $html = '<form class="form-horizontal" method="post">';
-    $html = '<div class="box-body">';
+    $html .= '<div class="box-body">';
     
-    $html .= '<input type="hidden" id="' . $elem . '_stockid_'.$product['postid'].'" value="'.$product['postid'].'">';
-    $html .= '<input type="hidden" id="' . $elem . '_actual_'.$product['postid'].'" value="'.$product['actual'].'">';
-    $html .= '<input type="hidden" id="' . $elem . '_available_'.$product['postid'].'" value="'.$product['available'].'">';
+    $html .= '<input type="hidden" id="' . $elem . '_stockid_'.$product['postid'].'" value="'.$product['postid'].'" />';
+    $html .= '<input type="hidden" id="' . $elem . '_actual_'.$product['postid'].'" value="'.$product['actual'].'" />';
+    $html .= '<input type="hidden" id="' . $elem . '_available_'.$product['postid'].'" value="'.$product['available'].'" />';
 
     $html .= '<div class="row"><div class="form-group">
       <label class="col-sm-3 control-label">Quantity</label>
       <div class="col-sm-9">
-      <input type="number" placeholder="1" min="1" class="form-control" id="' . $elem . '_qty_'.$product['postid'].'" required>
+      <input type="number" placeholder="1" min="1" class="form-control" id="' . $elem . '_qty_'.$product['postid'].'" required />
       </div></div></div><br>';
 
     $html .= '<div class="row"><div class="form-group">
@@ -130,9 +131,9 @@
     $html .= '</div>';
 
     $html .= '<div class="box-footer">';
-    $html .= '<input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Add to Shopping Catalogue" onclick="as_show_waiting_after(this, false); return as_add_shopping(\'' . $elem . '\', '.$product['postid'].');"/>';
+    $html .= '<input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Add to Shopping Catalogue" onclick="as_show_waiting_after(this, false); return as_add_shopping(\'' . $elem . '\', '.$product['postid'].');" />';
 
-    $html .= '<input type="submit" class="btn btn-success pull-right" style="margin-left: 10px"  value="Add to Shopping Catalogue and Confirm Order" onclick="as_show_waiting_after(this, false); return as_add_shopping_confirm(\'' . $elem . '\', '.$product['postid'].');"/>';
+    $html .= '<input type="submit" class="btn btn-success pull-right" style="margin-left: 10px"  value="Add to Shopping Catalogue and Confirm Order" onclick="as_show_waiting_after(this, false); return as_add_shopping_confirm(\'' . $elem . '\', '.$product['postid'].');" />';
 
     $html .= '</div></form>';
 
@@ -144,7 +145,9 @@
     $html = '<div class="box-body">';
     $html .= '<div class="table-responsive">';
     $html .= '<table class="table no-margin">';
-    $html .= '<thead><tr><th>Entry</th><th>Type</th><th>Buy.Price</th><th>Sale.Price</th><th>Qty</th><th>Entry Date</th></tr></thead>';
+    $html .= '<thead><tr>';
+    $html .= '<th>Entry</th><th>Type</th><th>Buy.Price</th><th>Sale.Price</th><th>Qty</th><th>Entry Date</th>';
+    $html .= '</tr></thead>';
 
     $html .= '<tbody>';
     foreach($history as $entry) 
@@ -162,8 +165,10 @@
       $html .= '<td>'.$entrydate . ' (' .$entryago . ' ago)</td>';
       $html .= '</tr>';
     }
-    $html .= '<tfoot><tr><th></th><th colspan="3">AVAILABLE STOCK</th><th>'.$available_stock.'</th><th></th></tr></tfoot>';
     $html .= '</tbody>';
+    $html .= '<tfoot><tr>';
+    $html .= '<th></th><th colspan="3">AVAILABLE STOCK</th><th>'.$available_stock.'</th><th></th>';
+    $html .= '</tr></tfoot>';
     $html .= '</table>';
     $html .= '</div>';
     $html .= '</div>';
@@ -172,16 +177,15 @@
 
   function as_new_customer_form($business) 
   {
-    $html = '<form class="form-horizontal" method="post">
-    <div class="box-body">';
-    $html .= '<input type="hidden" id="business" value="'.$business.'">';
+    $html = '<form class="form-horizontal" method="post">';
+    $html .= '<div class="box-body">';
+    $html .= '<input type="hidden" id="business" value="'.$business.'" />';
 
-    $html .= '<div class="form-group">
-      <label class="col-sm-3 control-label">Full Name</label>
-      <div class="col-sm-9">
-      <input type="text" class="form-control" id="title" required>
-      </div>
-      </div>';
+    $html .= '<div class="form-group">';
+    $html .= '<label class="col-sm-3 control-label">Full Name</label>';
+    $html .= '<div class="col-sm-9">';
+    $html .= '<input type="text" class="form-control" id="title" required />';
+    $html .= '</div></div>';
 
     $html .= '<div class="row">
       <div class="col-lg-6">
@@ -196,7 +200,7 @@
       <div class="col-lg-6">
       <div class="input-group">
       <label>ID/BS Number (Optional)</label>
-      <input type="text" class="form-control" id="idnumber" required>
+      <input type="text" class="form-control" id="idnumber" required />
       </div>
       </div>
       </div><br>';
@@ -249,6 +253,85 @@
     $html .= '<input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Register This Customer" onclick="as_show_waiting_after(this, false); return as_new_customer();"/>';
 
     $html .= '</div></form>';
+    return $html;
+  }
+
+  function as_products_search($businessid, $products, $customers)
+  {
+    $html = '<div class="box-body">';
+    $html .= '<ul class="products-list product-list-in-box">';
+    
+    foreach ($products as $product) 
+    {
+      $texture = explode(';', $product['texture']);
+      $product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
+      $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
+
+      $html .= "\n".'<li class="item list-item-product" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'get_form_'.$product['postid'].'\')">';
+
+      $html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
+      $html .= '<div class="product-info">';
+      $html .= '<span class="product-title" style="font-size: 20px;">';
+      $html .= '<span style="color: #006400;">'.$product['category'] . (isset($product['parentcat']) ? ' ' .$product['parentcat'] : ''). '</span>';
+      $html .= ' - <span style="color: #f00;">' . $product['itemcode']. '</span></span>';
+      
+      $html .= '<table style="width:100%;"><tr><td>';
+      $html .= '<span class="product-description" style="color: #000; width:320px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
+      if ($product['content'] != '') $html .= '<span style="color: #151B8D; font-size: 18px;">' . $product['content'] . '</span>';
+      $html .= '<table><tr><td><b>Volume</b></td><td><b> : </b></td><td> ' .$product['volume'].'</td></tr>';
+      $html .= '<tr><td><b>Mass</b></td><td><b> : </b></td><td> ' . $product['mass'].'</td></tr>';
+      $html .= '<tr><td><b>Texture</b></td><td><b> / </b></td><td> <b>Color: '.$texture[0].' </b>; <span style="color: #151B8D; font-weight: bold;">Pattern: ' . $texture[1].'</span></td></tr>';
+      $html .= "\n</table></span></td><td>";
+    
+      $html .= "\n".'<table><tr><td><span class="label label-info pull-right" style="width: 100px;"><b>ACTUAL</b><br><span id="get_actual_'.$product['postid'].'" style="font-size: 22px">'.$product['actual_stock']. '</span></span><br></td></tr>';
+      $html .= '<tr><td><span class="label label-warning pull-right" style="width: 100px;"><b>AVAILABLE</b><br><span id="get_available_'.$product['postid'].'" style="font-size: 22px">'.$product['available_stock']. '</span></span></td></tr></table>';
+      
+      $html .= '</td></tr></table>';
+      $html .= "</li>\n";
+      
+      $html .= "\n".'<li id="get_form_'.$product['postid'].'" style="display:none;">';	
+      $html .= "\n".'<div id="get_itemresults_'.$product['postid'].'">';
+
+      $html .= "\n".'<div class="nav-tabs-custom">';
+    
+      $html .= "\n".'<ul class="nav nav-tabs pull-right">';
+      $html .= "\n".'<li class="active"><a href="#stock-entry'.$product['postid'].'" data-toggle="tab">RECEIVE</a></li>';
+      $html .= "\n".'<li><a href="#stock-exit'.$product['postid'].'" data-toggle="tab">ISSUE</a></li>';
+      $html .= "\n".'<li><a href="#stock-history'.$product['postid'].'" data-toggle="tab">HISTORY</a></li>';
+      $html .= "\n".'<li class="pull-left header"><i class="fa fa-info"></i>STOCK ACTIONS</li>';
+      $html .= "\n</ul>";
+    
+      $html .= "\n".'<div class="tab-content no-padding">';
+    
+      $html .= "\n".'<div class="tab-pane active" id="stock-entry'.$product['postid'].'" style="position: relative;">';	
+      $html .= as_stock_add_form('get', $product);
+      $html .= "\n</div>";
+    
+      $html .= "\n".'<div class="tab-pane" id="stock-exit'.$product['postid'].'" style="position: relative;">';	
+      $html .= as_stock_issue_form('give', $product, $customers);
+      $html .= "\n</div>";
+      
+      $html .= "\n".'<div class="tab-pane" id="stock-history'.$product['postid'].'" style="position: relative;">';
+      
+      $stockids = as_db_find_by_stockitem($product['postid'], $businessid);
+      if (count($stockids))
+      {
+        $history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
+        $html .= as_stock_history($history, $product['available']);
+      }
+      else
+      {
+        $html .= "\n".'<h3>No Stock History for this product at the moment</h3>';
+      }
+    
+      $html .= "\n</div>";
+
+      $html .= "\n</div>";
+      $html .= "\n</li>";
+    }
+    
+    $html .= "\n</ul>";
+    $html .= "\n</div>";
     return $html;
   }
 
@@ -341,21 +424,19 @@
   }
 
   function as_search_items($identifier, $isdepartment = false)
-  {
-    
-    $html = '<div class="form-group" id="searchdiv">
-    <div class="col-sm-12">
-    <label for="searchitem">Search by an Item\'s Title, Code, Category or Description</label>
-    <input id="searchitem" autocomplete="off" onkeyup="as_searchitem_change();" onkeydown="as_searchitem_change();" type="text" value="" class="form-control">
-    <input id="business_id" type="hidden" value="' . $identifier . '">
-    </div>
-    </div>
-    <div class="form-group" id="results">
-    <div class="col-sm-12">
-    <div id="itemresults"></div>
-    </div>';
-    return $html;
-    
+  {    
+    $html = '<div class="form-group" id="searchdiv">';
+    $html .= '<div class="col-sm-12">';
+    $html .= '<label for="searchitem">Search by an Item\'s Title, Code, Category or Description</label>';
+    $html .= '<input id="searchitem" autocomplete="off" onkeyup="as_searchitem_change();" onkeydown="as_searchitem_change();" type="text" value="" class="form-control">';
+    $html .= '<input id="business_id" type="hidden" value="' . $identifier . '">';
+    $html .= '</div>';
+    $html .= '</div>';
+    $html .= '<div class="form-group" id="results">';
+    $html .= '<div class="col-sm-12">';
+    $html .= '<div id="itemresults"></div>';
+    $html .= '</div>';
+    return $html;    
   }
 
   function as_managers($identifier, $userid, $managers, $isdepartment = false)
