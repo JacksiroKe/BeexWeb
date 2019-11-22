@@ -219,14 +219,16 @@ function as_show_quick_form(formid)
 
 function get_available_stock(elem, itemid)
 {
-	//var available = document.getElementById(elem + '_available_' + itemid);
-	//var oldstock = document.getElementById(elem + '_oldstock_' + itemid);
-	//var newstock = document.getElementById(elem + '_quantity_' + itemid);
-	document.getElementById('get_available_78').value = '650';
+	var oldstock = document.getElementById(elem + '_oldstock_' + itemid);
+	var stockqty = document.getElementById(elem + '_quantity_' + itemid);
+	var itemstock = document.getElementById(elem + '_available_' + itemid);
+	var newstock = document.getElementById(elem + '_newstock_' + itemid);
+	itemstock.innerHTML = newstock.value = parseInt(oldstock.value) + parseInt(stockqty.value);
 }
 
 function as_add_stock(elem, itemid)
 {
+	var newstock = document.getElementById(elem + '_newstock_' + itemid);
 	var result = document.getElementById(elem + '_itemresults_' + itemid);
 	var itemstock = document.getElementById(elem + '_available_' + itemid);
 	var business = document.getElementById('business_id').value;
@@ -236,13 +238,12 @@ function as_add_stock(elem, itemid)
 	var params = {};
 	params.item_id = itemid;
 	params.item_biz = business;
-	params.item_qty = itemqty.value;
-	params.item_available = (itemstock.value + itemqty.value);
+	params.item_actual = itemqty.value;
+	params.item_available = newstock.value;
 	params.item_bprice = document.getElementById(elem + '_bprice_' + itemid).value;
 	params.item_sprice = document.getElementById(elem + '_sprice_' + itemid).value;
 	params.item_type = document.getElementById(elem + '_type_' + itemid ).value;
-	params.item_cdn = document.getElementById(elem + '_state_' + itemid ).value;
-	params.item_stockid = document.getElementById(elem + '_stockid_' + itemid).value;
+	params.item_state = document.getElementById(elem + '_state_' + itemid ).value;
 	
 	as_ajax_post('addstock', params, function(lines) 
 	{

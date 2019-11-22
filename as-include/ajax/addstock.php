@@ -32,11 +32,11 @@ $bprice = as_post_text('item_bprice');
 $sprice = as_post_text('item_sprice');
 $business = as_post_text('item_biz');
 $type = as_post_text('item_type');
-$state = as_post_text('item_cdn');
+$state = as_post_text('item_state');
 	
-$product['postid'] = as_post_text('item_id');
-$product['actual'] = as_post_text('item_qty');
-$product['available'] = as_post_text('item_available');
+$product['postid'] = (int)as_post_text('item_id');
+$product['actual'] = (int)as_post_text('item_actual');
+$product['available'] = (int)as_post_text('item_available');
 
 $stockids = as_db_find_by_stockitem($product['postid'], $business);
 if (count($stockids))

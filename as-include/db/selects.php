@@ -365,8 +365,9 @@ function as_db_products_basic_selectspec($business = null)
 	);
 	if (isset($business))
 	{
-		$selectspec['source'] .= ' LEFT JOIN ^stock ON ^posts.postid=^stock.itemid';
+		//$selectspec['source'] .= ' LEFT JOIN ^stock ON ^posts.postid=^stock.itemid';
 	}
+	$selectspec['source'] .= ' LEFT JOIN ^stock ON ^posts.postid=^stock.itemid';
 	return $selectspec;
 }
 

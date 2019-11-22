@@ -44,7 +44,7 @@ $selectsort = 'title';
 
 list($categories, $products) = as_db_select_with_pending(
 	as_db_category_nav_selectspec($editproductid, true, false, true),
-	as_db_products_selectspec($userid, $selectsort)
+	as_db_products_selectspec('title')
 );
 
 // Check admin privileges (do late to allow one DB query)
@@ -555,14 +555,14 @@ if ($setmissing) {
 					'title' => array( 'data' => as_get_media_html($product['icon'], 20, 20) .'<a href="' . as_path_html('admin/products', array('edit' => $product['postid'])) . '">' . as_html($product['title']) .'</a>' ),
 					'cat' => array( 'data' => $product['category']),
 					'itemcode' => array( 'data' => $product['itemcode']),
-					'length' => array( 'data' => trim($volume[0])),
-					'width' => array( 'data' => trim($volume[1])),
-					'height' => array( 'data' => trim($volume[2])),
-					'fill' => array( 'data' => trim($mass[0])),
-					'fill-material' => array( 'data' => trim($mass[1])),
-					'weight' => array( 'data' => trim($mass[2])),
-					'color' => array( 'data' => trim($texture[0])),
-					'pattern' => array( 'data' => trim($texture[1])),
+					'length' => array( 'data' => isset($volume[0]) ? trim($volume[0]) : ''),
+					'width' => array( 'data' => isset($volume[1]) ? trim($volume[1]) : ''),
+					'height' => array( 'data' => isset($volume[2]) ? trim($volume[2]) : '' ),
+					'fill' => array( 'data' => isset($mass[0]) ? trim($mass[0]) : ''),
+					'fill-material' => array( 'data' => isset($mass[1]) ? trim($mass[1]) : ''),
+					'weight' => array( 'data' => isset($mass[2]) ? trim($mass[2]) : ''),
+					'color' => array( 'data' => isset($texture[0]) ? trim($texture[0]) : ''),
+					'pattern' => array( 'data' => isset($texture[1]) ? trim($texture[1]) : ''),
 					'*' => array( 'data' => '' ),
 				),
 			);

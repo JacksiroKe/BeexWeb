@@ -40,13 +40,13 @@
     $html = '<form class="form-horizontal" method="post">';
     $html = '<div class="box-body">';
 
-    $html .= '<input type="text" id="' . $elem . '_oldstock_'.$product['postid'].'" value="'.$available_stock.'" />';
-    $html .= '<input type="number" id="' . $elem . '_available_'.$product['postid'].'" />';
+    $html .= '<input type="hidden" id="' . $elem . '_oldstock_'.$product['postid'].'" value="'.$available_stock.'" />';
+    $html .= '<input type="hidden" id="' . $elem . '_newstock_'.$product['postid'].'" value="0" />';
 
     $html .= '<div class="form-group">
       <label class="col-sm-3 control-label">Quantity</label>
       <div class="col-sm-9">
-      <input onkeyup="get_available_stock(\'' . $elem . '\', '.$product['postid'].');" id="' . $elem . '_quantity_'.$product['postid'].'" type="number" placeholder="1" min="1" class="form-control" required />
+      <input onkeyup="get_available_stock(\'' . $elem . '\', \''.$product['postid'].'\');" id="' . $elem . '_quantity_'.$product['postid'].'" type="number" placeholder="1" min="1" class="form-control" required />
       </div>
       </div>';
 
@@ -259,7 +259,7 @@
   function as_products_search($businessid, $products, $customers)
   {
     $html = '<div class="box-body">';
-    $html .= '<ul class="products-list product-list-in-box">';
+    $html .= '<ul class="products-list">';
     
     foreach ($products as $product) 
     {
@@ -267,7 +267,7 @@
       $product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
       $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
 
-      $html .= "\n".'<li class="item list-item-product" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'get_form_'.$product['postid'].'\')">';
+      $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'get_form_'.$product['postid'].'\')">';
 
       $html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
       $html .= '<div class="product-info">';
