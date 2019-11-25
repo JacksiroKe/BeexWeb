@@ -514,6 +514,21 @@ function as_db_table_definitions()
 			'PRIMARY KEY (activityid)',
 		),
 
+		'localities' => array(
+			'localityid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'parentid' => 'INT UNSIGNED',
+			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // category name
+			'tags' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . ') NOT NULL', // slug (url fragment) used to identify category
+			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ') NOT NULL DEFAULT \'\'', // description of category
+			'position' => 'SMALLINT UNSIGNED NOT NULL',
+			// full slug path for category, with forward slash separators, in reverse order to make index from effective
+			'backpath' => 'VARCHAR(' . (AS_CATEGORY_DEPTH * (AS_DB_MAX_CAT_PAGE_TAGS_LENGTH + 1)) . ') NOT NULL DEFAULT \'\'',
+			'PRIMARY KEY (localityid)',
+			'UNIQUE parentid (parentid, tags)',
+			'UNIQUE parentid_2 (parentid, position)',
+			'KEY backpath (backpath(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . '))',
+		),
+
 		'blobs' => array(
 			'blobid' => 'BIGINT UNSIGNED NOT NULL',
 			'format' => 'VARCHAR(' . AS_DB_MAX_FORMAT_LENGTH . ') CHARACTER SET ascii NOT NULL', // format e.g. 'jpeg', 'gif', 'png'
