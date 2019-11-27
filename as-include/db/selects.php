@@ -1400,7 +1400,6 @@ function as_db_slugs_to_category_id_selectspec($slugs)
 	);
 }
 
-
 /**
  * Return the selectspec to retrieve ($full or not) info on the departments which "surround" the central department specified
  * by $slugsorid, $isid and $ispostid. The "surrounding" departments include all departments (even unrelated) at the

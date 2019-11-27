@@ -577,7 +577,7 @@ if ($setmissing) {
 			),
 		),
 		
-		'table' => array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Code', 'Suppllier', 'Date of Entry', 'Qty', 'Amount', '*') ),		
+		'table' => array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Slug', 'Created', 'Modified', '*') ),		
 
 		'tools' => array(
 			'add' => array(
@@ -599,19 +599,15 @@ if ($setmissing) {
 		$k = 1;
 		foreach ($categories as $category) {
 			if (!isset($category['parentid'])) {
-				$count = $category['pcount'] == 1 ? as_lang_html_sub('main/1_article', '1', '1') : as_lang_html_sub('main/x_articles', as_format_number($category['pcount']));
 				$as_content['form']['table']['rows'][$k] = array(
 					'onclick' => ' title="Click on this item to edit or view"',
 					'fields' => array(
 						'*' => array( 'data' => ($category['childcount'] ? ' (' . $category['childcount'] . ')' : '')),
 						'id' => array( 'data' => $k),
 						'title' => array( 'data' => as_get_media_html($category['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($category['title']) .'</a>' ),
-						'code' => array( 'data' => '' ),
-						'supp' => array( 'data' => '' ),
-						'code' => array( 'data' => '' ),
-						'entry' => array( 'data' => '' ),
-						'qty' => array( 'data' => ($category['pcount'])),
-						'amount' => array( 'data' => '' ),
+						'slug' => array( 'data' => $category['tags'] ),
+						'created' => array( 'data' => '' ),
+						'modified' => array( 'data' => '' ),
 						'x' => array( 'data' => ''),
 					),
 				);
@@ -625,12 +621,9 @@ if ($setmissing) {
 								'*' => array( 'data' => ''),
 								'#' => array( 'data' => as_num_to_let($j) . '.'),
 								'title' => array( 'data' => as_get_media_html($subcart['icon'], 20, 20) .'<a href="' . as_path_html('admin/categories', array('edit' => $category['categoryid'])) . '">' . as_html($subcart['title']) .'</a>' ),
-								'code' => array( 'data' => '' ),
-								'supp' => array( 'data' => '' ),
-								'code' => array( 'data' => '' ),
-								'entry' => array( 'data' => '' ),
-								'qty' => array( 'data' => ($category['pcount'])),
-								'amount' => array( 'data' => '' ),
+								'slug' => array( 'data' => $subcart['tags'] ),
+								'created' => array( 'data' => '' ),
+								'modified' => array( 'data' => '' ),
 								'x' => array( 'data' => ''),
 							),
 						);

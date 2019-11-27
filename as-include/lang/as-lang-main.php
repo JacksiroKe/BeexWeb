@@ -182,6 +182,7 @@ return array(
 	'no_reviews_in_x' => 'No reviews in ^',
 	'no_categories_found' => 'No categories found',
 	'no_category' => 'No category',
+	'no_location' => 'No location',
 	'no_comments_found' => 'No comments found',
 	'no_comments_in_x' => 'No comments in ^',
 	'no_articles_found' => 'No items found',

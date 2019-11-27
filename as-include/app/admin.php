@@ -290,6 +290,12 @@ function as_admin_sub_navigation($navigation)
             'icon' => 'fa fa-circle-o text-red',
         );
 
+        $navigation['locations'] = array(
+            'label' => as_lang_html('admin/locations_title'),
+            'url' => as_path_html('admin/locations'),
+            'icon' => 'fa fa-circle-o text-aqua',
+        );
+
         $navigation['categories'] = array(
             'label' => as_lang_html('admin/categories_title'),
             'url' => as_path_html('admin/categories'),

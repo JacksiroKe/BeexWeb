@@ -256,6 +256,63 @@ function as_category_path_request($navcategories, $categoryid)
 }
 
 
+
+/**
+ * Given $navlocations retrieved for $locationid from the database (using as_db_location_nav_selectspec(...)),
+ * return an array of elements from $navlocations for the hierarchy down to $locationid.
+ * @param $navlocations
+ * @param $locationid
+ * @return array
+ */
+function as_location_path($navlocations, $locationid)
+{
+	$uplocations = array();
+
+	for ($uplocation = @$navlocations[$locationid]; isset($uplocation); $uplocation = @$navlocations[$uplocation['parentid']])
+		$uplocations[$uplocation['locationid']] = $uplocation;
+
+	return array_reverse($uplocations, true);
+}
+
+
+/**
+ * Given $navlocations retrieved for $locationid from the database (using as_db_location_nav_selectspec(...)),
+ * return some HTML that shows the location hierarchy down to $locationid.
+ * @param $navlocations
+ * @param $locationid
+ * @return string
+ */
+function as_location_path_html($navlocations, $locationid)
+{
+	$locations = as_location_path($navlocations, $locationid);
+
+	$html = '';
+	foreach ($locations as $location)
+		$html .= (strlen($html) ? ' / ' : '') . as_html($location['title']);
+
+	return $html;
+}
+
+
+/**
+ * Given $navlocations retrieved for $locationid from the database (using as_db_location_nav_selectspec(...)),
+ * return a APS request string that represents the location hierarchy down to $locationid.
+ * @param $navlocations
+ * @param $locationid
+ * @return string
+ */
+function as_location_path_request($navlocations, $locationid)
+{
+	$locations = as_location_path($navlocations, $locationid);
+
+	$request = '';
+	foreach ($locations as $location)
+		$request .= (strlen($request) ? '/' : '') . $location['tags'];
+
+	return $request;
+}
+
+
 /**
  * Given $navdepartments retrieved for $departid from the database (using as_db_department_nav_selectspec(...)),
  * return an array of elements from $navdepartments for the hierarchy down to $departid.

@@ -222,10 +222,19 @@
       </div><br>';                        
 
     $html .= '<h4>CUSTOMER LOCATION</h4>
+    <div class="row">
+    <div class="col-lg-6">
+    <div class="input-group">
+    <label>Region/location</label>
+    <iframe src="https://www.google.com/maps/embed?pb=!1m14!1m12!1m3!1d63820.55656798843!2d36.7706112!3d-1.3041664!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!5e0!3m2!1sen!2ske!4v1574700166508!5m2!1sen!2ske" width="600" height="450" frameborder="0" style="border:0;" allowfullscreen=""></iframe>
+      </div>
+      </div>';
+
+    $htmlss = '<h4>CUSTOMER LOCATION</h4>
       <div class="row">
       <div class="col-lg-6">
       <div class="input-group">
-      <label>Region/Locality</label>
+      <label>Region/location</label>
       <input type="text" class="form-control" id="region" required>
       </div>
       </div>
@@ -238,7 +247,7 @@
       </div>
       </div>';
 
-    $html .= '<br><div class="row">
+    $htmla = '<br><div class="row">
       <div class="form-group">
       <label class="col-sm-3 control-label">Street/Road</label>
       <div class="col-sm-8">

@@ -229,6 +229,124 @@ class BxCustomerCare extends BxDepartment
 
         switch ($section) {
 
+            case 'register':
+                
+                $formcontent = array(
+                    'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
+                    'title' => $as_content['title'], 'type' => 'form', 'style' => 'tall',
+
+                    'ok' => as_get('saved') ? as_lang_html('admin/product_saved') : (as_get('added') ? as_lang_html('admin/product_added') : null),
+
+                    'icon' => array(
+                        'fa' => 'arrow-left',
+                        'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+                        'class' => 'btn btn-social btn-primary',
+                        'label' => as_lang_html('main/back_button'),
+                    ),
+
+                    'fields' => array(
+                        'category' => array(
+                            'label' => as_lang_html('admin/category_select'),
+                        ),
+                        
+                        'name' => array(
+                            'id' => 'name_display',
+                            'tags' => 'name="name" id="name"',
+                            'label' => 'Name of the Customer or Business',
+                        ),
+                        
+                        'itemcode' => array(
+                            'id' => 'itemcode_display',
+                            'tags' => 'name="itemcode"',
+                            'label' => as_lang_html('admin/product_itemcode'),
+                        ),
+                        
+                        'content' => array(
+                            'id' => 'content_display',
+                            'tags' => 'name="content"',
+                            'label' => as_lang_html('admin/product_description'),
+                        ),
+                        
+                        'volume' => array(
+                            'id' => 'volume_display',
+                            'tags' => 'name="volume"',
+                            'label' => as_lang_html('admin/product_volume'),
+                        ),
+                        
+                        'mass' => array(
+                            'id' => 'mass_display',
+                            'tags' => 'name="mass"',
+                            'label' => as_lang_html('admin/product_mass'),
+                            'value' => as_html(isset($inmass) ? $inmass : @$editproduct['mass']),
+                            'error' => as_html(@$errors['mass']),
+                        ),
+                        
+                        'texture' => array(
+                            'id' => 'texture_display',
+                            'tags' => 'name="texture"',
+                            'label' => as_lang_html('admin/product_texture'),
+                            'value' => as_html(isset($intexture) ? $intexture : @$editproduct['texture']),
+                            'error' => as_html(@$errors['texture']),
+                        ),
+
+                        'items' => array(),
+
+                        'delete' => array(),
+
+                        'reassign' => array(),
+
+                        'slug' => array(
+                            'id' => 'slug_display',
+                            'tags' => 'name="slug"',
+                            'label' => as_lang_html('admin/category_slug'),
+                            'value' => as_html(isset($inslug) ? $inslug : @$editproduct['tags']),
+                            'error' => as_html(@$errors['slug']),
+                        ),
+                        
+                        'posticon' => array(
+                            'type' => 'select-radio',
+                            'label' => as_lang_html('admin/product_icon'),
+                            'tags' => 'name="posticon"',
+                            'options' => $iconoptions,
+                            'value' => $iconvalue,
+                            'error' => as_html(@$errors['posticon']),
+                        ),
+                        
+                    ),
+
+                    'buttons' => array(
+                        'save' => array(
+                            'tags' => 'id="dosaveoptions"', // just used for as_recalc_click
+                            'label' => as_lang_html(isset($editproduct['categoryid']) ? 'main/save_button' : 'admin/add_product_button'),
+                        ),
+
+                        'cancel' => array(
+                            'tags' => 'name="docancel"',
+                            'label' => as_lang_html('main/cancel_button'),
+                        ),
+                    ),
+
+                    'hidden' => array(
+                        'dosaveproduct' => '1',
+                        'code' => as_get_form_security_code('customer-care'),
+                    ),
+                );
+                
+                as_set_up_category_field($as_content, $formcontent['fields']['category'], 'category', $categories, $in['categoryid'], true, as_opt('allow_no_sub_category'));
+
+                if (as_get('alert') != null) 
+                    $formcontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
+
+                if (as_get('callout') != null) 
+                    $formcontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
+
+                $as_content['row_view'][0] = array(
+                    'colms' => array(
+                        0 => array('class' => 'col-lg-6 col-xs-12', 'c_items' => array($formcontent) ),
+                    ),
+                );
+                break;
+
             default:
                 $bodycontent = array(
                     'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
@@ -245,8 +363,8 @@ class BxCustomerCare extends BxDepartment
                     
                     'tools' => array(
                         'stock' => array(
-                            'type' => 'button_md',
-                            'url' => '#modal-register',
+                            'type' => 'link',
+                            'url' => as_path_html( 'department/' . $department->departid, array('section' => 'register') ),
                             'class' => 'btn btn-primary btn-block',
                             'label' => 'REGISTER A CUSTOMER',
                         ),
@@ -262,7 +380,7 @@ class BxCustomerCare extends BxDepartment
                     'header' => array( 'title' => 'NEW CUSTOMER REGISTRATION' ),
                     'view' => array(
                         'type' => 'html', 'style' => 'tall',
-                        'html' => '<div id="userresults"></div>'.as_new_customer_form($department->businessid),
+                        'html' => '<div id="userresults"></div>',//as_new_customer_form($department->businessid),
                     ),
                 );
                 
@@ -296,56 +414,6 @@ class BxCustomerCare extends BxDepartment
                     $as_content['script_onloads'][] = array(
                         "$(function () { $('#allcustomers').DataTable() })"
                     );
-                    
-                    /*$m = 1;
-                    foreach ($customers as $customer) {
-                        $customer['stock'] = (isset($customer['quantity']) ? $customer['quantity'] : 0);
-                        $producthtml = '<div id="itemresults_'.$customer['postid'].'"></div>';
-                        $producthtml .= '<div class="nav-tabs-custom">';
-
-                        $producthtml .= '<ul class="nav nav-tabs">';
-                        $producthtml .= '<li class="active"><a href="#item-about" data-toggle="tab">ITEM INFORMATION</a></li>';
-                        $producthtml .= '<li><a href="#item-history" data-toggle="tab">STOCK HISTORY</a></li>';
-                        $producthtml .= '<li><a href="#item-entry" data-toggle="tab">ADD STOCK</a></li>';
-                        $producthtml .= '</ul>';
-                        //as_product_dialog($customer)
-                        $producthtml .= '<div class="tab-content no-padding">';
-
-                        $producthtml .= '<div class="tab-pane" id="item-entry" style="position: relative;">';	
-                        $producthtml .= as_stock_add_form($customer).'</div>';
-
-                        $producthtml .= '<div class="chart tab-pane" id="item-history" style="position: relative;">';
-                        
-                        $stockids = as_db_find_by_stockitem($customer['postid'], $department->businessid);
-                        if (count($stockids))
-                        {
-                            $history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
-                            $producthtml .= as_stock_history($history) . '</div>';
-                        }
-                        else
-                        {
-                            $producthtml .= '<h3>No Stock History for this customer at the moment</h3></div>';
-                        }
-
-                        $producthtml .= '<div class="tab-pane active" id="item-about" style="position: relative;">';	
-                        $producthtml .= as_product_dialog($customer).'</div>';
-
-                        $producthtml .= '</div>';
-
-                        $producthtml .= '</div>';
-                        $producthtml .= '</div>';
-                        $modalboxes['modal-item'.$m] = array(
-                            'class' => 'modal fade',
-                            'header' => array(
-                                'title' =>  'ITEM VIEW: ' .strtoupper($customer['title']),
-                            ),
-                            'view' => array(
-                                'type' => 'html', 
-                                'html' => $producthtml,
-                            ),
-                        );                        
-                        $m++; 
-                    }*/
                 }
                 
                 if (as_get('alert') != null) 

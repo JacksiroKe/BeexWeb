@@ -1027,7 +1027,6 @@ function set_category_description(idprefix)
 	}
 }
 
-
 // User functions
 
 function as_submit_wall_post(elem, morelink)

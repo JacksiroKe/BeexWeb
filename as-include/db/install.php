@@ -513,20 +513,17 @@ function as_db_table_definitions()
 			'updated' => 'DATETIME',
 			'PRIMARY KEY (activityid)',
 		),
-
-		'localities' => array(
-			'localityid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+		
+		'locations' => array(
+			'locationid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'type' => "ENUM('COUNTY', 'SUB-COUNTY', 'TOWN', 'OTHER') NOT NULL DEFAULT 'COUNTY'",
 			'parentid' => 'INT UNSIGNED',
-			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL', // category name
-			'tags' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . ') NOT NULL', // slug (url fragment) used to identify category
-			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ') NOT NULL DEFAULT \'\'', // description of category
-			'position' => 'SMALLINT UNSIGNED NOT NULL',
-			// full slug path for category, with forward slash separators, in reverse order to make index from effective
-			'backpath' => 'VARCHAR(' . (AS_CATEGORY_DEPTH * (AS_DB_MAX_CAT_PAGE_TAGS_LENGTH + 1)) . ') NOT NULL DEFAULT \'\'',
-			'PRIMARY KEY (localityid)',
-			'UNIQUE parentid (parentid, tags)',
-			'UNIQUE parentid_2 (parentid, position)',
-			'KEY backpath (backpath(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . '))',
+			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL',
+			'code' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ')',
+			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ')', 
+			'coordinates' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . ')',
+			'image' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ')', 
+			'PRIMARY KEY (locationid)',
 		),
 
 		'blobs' => array(

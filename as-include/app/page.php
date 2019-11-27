@@ -425,6 +425,7 @@ function as_page_routing()
 		'admin/' => 'pages/admin/admin-default.php',
 		'admin/approve' => 'pages/admin/admin-approve.php',
 		'admin/categories' => 'pages/admin/admin-categories.php',
+		'admin/locations' => 'pages/admin/admin-locations.php',
 		'admin/products' => 'pages/admin/admin-products.php',
 		'admin/flagged' => 'pages/admin/admin-flagged.php',
 		'admin/hidden' => 'pages/admin/admin-hidden.php',
