@@ -251,10 +251,6 @@ class BxStockDept extends BxDepartment
                 if (count($products)) {
                     $p = 1;
                     foreach ($products as $product) {
-                        $delivery = as_when_to_html($product['delivered'], 0);
-                        $deliverydate = isset($product['delivered']) ? $delivery['data'] : '';
-                        $deliveryago = as_time_to_string(as_opt('db_time') - $product['delivered']);
-
                         $bodycontent['table']['rows'][$p] = array(
                             'title' => 'Click on this product to edit or view',
                             'tags' => 'data-toggle="modal" data-target="#modal-item'.$p.'" ',
@@ -265,7 +261,7 @@ class BxStockDept extends BxDepartment
                                 'itemcode' => array( 'data' => $product['itemcode']),
                                 'actual' => array( 'data' => $product['actual'] ),
                                 'available' => array( 'data' => $product['available'] ),
-                                'date' => array( 'data' => $deliverydate . ' (' .$deliveryago . ' ago)' ),
+                                'date' => array( 'data' => as_format_date($product['delivered'], true) ),
                                 '*' => array( 'data' => '' ),
                             ),
                         );

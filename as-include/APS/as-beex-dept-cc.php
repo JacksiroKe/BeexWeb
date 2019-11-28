@@ -222,10 +222,30 @@ class BxCustomerCare extends BxDepartment
         $userid = as_get_logged_in_userid();
         $section = as_get('section');
 
-        $customers = as_db_select_with_pending(as_db_recent_customers($department->businessid));
-
+        list($customers, $locations) = as_db_select_with_pending(
+            as_db_recent_customers($department->businessid),
+            as_db_latest_locations('COUNTY')
+        );
+        
         $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
         $bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
+
+        $countieshtml = '<option>Select County</option>';
+        foreach ($locations as $location)
+        {
+            $countieshtml .= '<option value="'.$location['locationid'].'">'.$location['title'].'</option>';
+        }
+
+        $phonehtml = '<div class="row"><div class="form-group">
+        <label>US phone mask:</label>
+
+        <div class="input-group">
+          <div class="input-group-addon">
+            <i class="fa fa-phone"></i>
+          </div>
+          <input type="text" class="form-control">
+        </div>
+      </div></div>';
 
         switch ($section) {
 
@@ -245,71 +265,36 @@ class BxCustomerCare extends BxDepartment
                     ),
 
                     'fields' => array(
-                        'category' => array(
-                            'label' => as_lang_html('admin/category_select'),
-                        ),
-                        
                         'name' => array(
-                            'id' => 'name_display',
-                            'tags' => 'name="name" id="name"',
-                            'label' => 'Name of the Customer or Business',
+                            'tags' => 'name="title" id="title"',
+                            'label' => 'Name of the the Business',
                         ),
                         
-                        'itemcode' => array(
-                            'id' => 'itemcode_display',
-                            'tags' => 'name="itemcode"',
-                            'label' => as_lang_html('admin/product_itemcode'),
+                        'location' => array(
+                            'type' => 'custom',
+                            'label' => 'Location of the Business',
+                            'html' => '<br><select name="county" onchange="as_select_county()" class="form-control">'.
+                                $countieshtml.'</select><div id="bslocation"></div>',
                         ),
                         
-                        'content' => array(
-                            'id' => 'content_display',
-                            'tags' => 'name="content"',
-                            'label' => as_lang_html('admin/product_description'),
+                        'person' => array(
+                            'tags' => 'name="person"',
+                            'label' => 'Contact Person',
                         ),
                         
-                        'volume' => array(
-                            'id' => 'volume_display',
-                            'tags' => 'name="volume"',
-                            'label' => as_lang_html('admin/product_volume'),
+                        'html' => array(
+                            'type' => 'custom',
+                            'html' => $phonehtml,
                         ),
                         
-                        'mass' => array(
-                            'id' => 'mass_display',
-                            'tags' => 'name="mass"',
-                            'label' => as_lang_html('admin/product_mass'),
-                            'value' => as_html(isset($inmass) ? $inmass : @$editproduct['mass']),
-                            'error' => as_html(@$errors['mass']),
+                        'mobile1' => array(
+                            'tags' => 'name="mobile"',
+                            'label' => 'Phone Number 2 (optional)',
                         ),
                         
-                        'texture' => array(
-                            'id' => 'texture_display',
-                            'tags' => 'name="texture"',
-                            'label' => as_lang_html('admin/product_texture'),
-                            'value' => as_html(isset($intexture) ? $intexture : @$editproduct['texture']),
-                            'error' => as_html(@$errors['texture']),
-                        ),
-
-                        'items' => array(),
-
-                        'delete' => array(),
-
-                        'reassign' => array(),
-
-                        'slug' => array(
-                            'id' => 'slug_display',
-                            'tags' => 'name="slug"',
-                            'label' => as_lang_html('admin/category_slug'),
-                            'value' => as_html(isset($inslug) ? $inslug : @$editproduct['tags']),
-                            'error' => as_html(@$errors['slug']),
-                        ),
-                        
-                        'posticon' => array(
-                            'type' => 'select-radio',
-                            'label' => as_lang_html('admin/product_icon'),
-                            'tags' => 'name="posticon"',
-                            'options' => $iconoptions,
-                            'value' => $iconvalue,
-                            'error' => as_html(@$errors['posticon']),
+                        'email' => array(
+                            'tags' => 'name="email"',
+                            'label' => 'Email Address (Optional)',
                         ),
                         
                     ),
@@ -317,7 +302,7 @@ class BxCustomerCare extends BxDepartment
                     'buttons' => array(
                         'save' => array(
                             'tags' => 'id="dosaveoptions"', // just used for as_recalc_click
-                            'label' => as_lang_html(isset($editproduct['categoryid']) ? 'main/save_button' : 'admin/add_product_button'),
+                            'label' => 'Register Customer',
                         ),
 
                         'cancel' => array(
@@ -332,8 +317,6 @@ class BxCustomerCare extends BxDepartment
                     ),
                 );
                 
-                as_set_up_category_field($as_content, $formcontent['fields']['category'], 'category', $categories, $in['categoryid'], true, as_opt('allow_no_sub_category'));
-
                 if (as_get('alert') != null) 
                     $formcontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
 

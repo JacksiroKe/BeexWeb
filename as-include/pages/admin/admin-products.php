@@ -44,7 +44,7 @@ $selectsort = 'title';
 
 list($categories, $products) = as_db_select_with_pending(
 	as_db_category_nav_selectspec($editproductid, true, false, true),
-	as_db_products_selectspec('title')
+	as_db_products_selectspec('postid')
 );
 
 // Check admin privileges (do late to allow one DB query)

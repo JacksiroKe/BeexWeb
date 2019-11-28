@@ -350,6 +350,30 @@ function as_db_product_create($category, $userid, $cookieid, $ip, $icon, $title,
 	return $productid;
 }
 
+function as_db_location_create($type, $title, $code, $coordinates, $content, $parentid = null)
+{
+	if (isset($parentid))
+	{
+		as_db_query_sub(
+			'INSERT INTO ^locations (parentid, type, title, code, coordinates, content, created) 
+			VALUES (#, $, $, $, $, $, NOW())',
+			$parentid, $type, $title, $code, $coordinates, $content
+		);
+	}
+	else
+	{
+		as_db_query_sub(
+			'INSERT INTO ^locations (type, title, code, coordinates, content, created) 
+			VALUES ($, $, $, $, $, NOW())',
+			$type, $title, $code, $coordinates, $content
+		);
+	}
+	
+	$locationid = as_db_last_insert_id();
+
+	return $locationid;
+}
+
 function as_db_product_update($category, $userid, $icon, $title, $tags, $itemcode, $volume, $mass, $texture, $content, $postid)
 {
 	as_db_query_sub(
@@ -456,202 +480,6 @@ function as_db_category_slug_to_id($parentid, $slug)
 {
 	return as_db_read_one_value(as_db_query_sub(
 		'SELECT categoryid FROM ^categories WHERE parentid<=># AND tags=$',
-		$parentid, $slug
-	), true);
-}
-
-
-
-/**
- * Return the maximum position of the locations with $parentid
- * @param $parentid
- * @return mixed|null
- */
-function as_db_location_last_pos($parentid)
-{
-	return as_db_read_one_value(as_db_query_sub(
-		'SELECT COALESCE(MAX(position), 0) FROM ^locations WHERE parentid<=>#',
-		$parentid
-	));
-}
-
-
-/**
- * Return how many levels of sublocation there are below $locationid
- * @param $locationid
- * @return int
- */
-function as_db_location_child_depth($locationid)
-{
-	// This is potentially a very slow query since it counts all the multi-generational offspring of a particular location
-	// But it's only used for admin purposes when moving a location around so I don't think it's worth making more efficient
-	// (Incidentally, this could be done by keeping a count for every location of how many generations of offspring it has.)
-
-	$result = as_db_read_one_assoc(as_db_query_sub(
-		'SELECT COUNT(child1.locationid) AS count1, COUNT(child2.locationid) AS count2, COUNT(child3.locationid) AS count3 FROM ^locations AS child1 LEFT JOIN ^locations AS child2 ON child2.parentid=child1.locationid LEFT JOIN ^locations AS child3 ON child3.parentid=child2.locationid WHERE child1.parentid=#;', // requires AS_CATEGORY_DEPTH=4
-		$locationid
-	));
-
-	for ($depth = AS_CATEGORY_DEPTH - 1; $depth >= 1; $depth--)
-		if ($result['count' . $depth])
-			return $depth;
-
-	return 0;
-}
-
-
-/**
- * Create a new location with $parentid, $title (=name) and $tags (=slug) in the database
- * @param $parentid
- * @param $title
- * @param $tags
- * @return mixed
- */
-function as_db_location_create($parentid, $title, $tags)
-{
-	$lastpos = as_db_location_last_pos($parentid);
-
-	as_db_query_sub(
-		'INSERT INTO ^locations (parentid, title, tags, position) VALUES (#, $, $, #)',
-		$parentid, $title, $tags, 1 + $lastpos
-	);
-
-	$locationid = as_db_last_insert_id();
-
-	as_db_locations_recalc_backpaths($locationid);
-
-	return $locationid;
-}
-
-/**
- * Recalculate the backpath columns for all locations from $firstlocationid to $lastlocationid (if specified)
- * @param $firstlocationid
- * @param $lastlocationid
- */
-function as_db_locations_recalc_backpaths($firstlocationid, $lastlocationid = null)
-{
-	if (!isset($lastlocationid))
-		$lastlocationid = $firstlocationid;
-
-	as_db_query_sub(
-		"UPDATE ^locations AS x, (SELECT cat1.locationid, CONCAT_WS('/', cat1.tags, cat2.tags, cat3.tags, cat4.tags) AS backpath FROM ^locations AS cat1 LEFT JOIN ^locations AS cat2 ON cat1.parentid=cat2.locationid LEFT JOIN ^locations AS cat3 ON cat2.parentid=cat3.locationid LEFT JOIN ^locations AS cat4 ON cat3.parentid=cat4.locationid WHERE cat1.locationid BETWEEN # AND #) AS a SET x.backpath=a.backpath WHERE x.locationid=a.locationid",
-		$firstlocationid, $lastlocationid // requires AS_CATEGORY_DEPTH=4
-	);
-}
-
-
-/**
- * Set the name of $locationid to $title and its slug to $tags in the database
- * @param $locationid
- * @param $title
- * @param $tags
- */
-function as_db_location_rename($locationid, $title, $tags)
-{
-	as_db_query_sub(
-		'UPDATE ^locations SET title=$, tags=$ WHERE locationid=#',
-		$title, $tags, $locationid
-	);
-
-	as_db_locations_recalc_backpaths($locationid); // may also require recalculation of its offspring's backpaths
-}
-
-/**
- * Set the content (=description) of $locationid to $content
- * @param $locationid
- * @param $content
- */
-function as_db_location_set_content($locationid, $content)
-{
-	as_db_query_sub(
-		'UPDATE ^locations SET content=$ WHERE locationid=#',
-		$content, $locationid
-	);
-}
-
-
-/**
- * Return the parentid of $locationid
- * @param $locationid
- * @return mixed|null
- */
-function as_db_location_get_parent($locationid)
-{
-	return as_db_read_one_value(as_db_query_sub(
-		'SELECT parentid FROM ^locations WHERE locationid=#',
-		$locationid
-	));
-}
-
-
-/**
- * Move the location $locationid into position $newposition under its parent
- * @param $locationid
- * @param $newposition
- */
-function as_db_location_set_position($locationid, $newposition)
-{
-	as_db_ordered_move('locations', 'locationid', $locationid, $newposition,
-		as_db_apply_sub('parentid<=>#', array(as_db_location_get_parent($locationid))));
-}
-
-
-/**
- * Set the parent of $locationid to $newparentid, placing it in last position (doesn't do necessary recalculations)
- * @param $locationid
- * @param $newparentid
- */
-function as_db_location_set_parent($locationid, $newparentid)
-{
-	$oldparentid = as_db_location_get_parent($locationid);
-
-	if (strcmp($oldparentid, $newparentid)) { // if we're changing parent, move to end of old parent, then end of new parent
-		$lastpos = as_db_location_last_pos($oldparentid);
-
-		as_db_ordered_move('locations', 'locationid', $locationid, $lastpos, as_db_apply_sub('parentid<=>#', array($oldparentid)));
-
-		$lastpos = as_db_location_last_pos($newparentid);
-
-		as_db_query_sub(
-			'UPDATE ^locations SET parentid=#, position=# WHERE locationid=#',
-			$newparentid, 1 + $lastpos, $locationid
-		);
-	}
-}
-
-
-/**
- * Change the locationid of any posts with (exact) $locationid to $reassignid
- * @param $locationid
- * @param $reassignid
- */
-function as_db_location_reassign($locationid, $reassignid)
-{
-	as_db_query_sub('UPDATE ^posts SET locationid=# WHERE locationid<=>#', $reassignid, $locationid);
-}
-
-
-/**
- * Delete the location $locationid in the database
- * @param $locationid
- */
-function as_db_location_delete($locationid)
-{
-	as_db_ordered_delete('locations', 'locationid', $locationid,
-		as_db_apply_sub('parentid<=>#', array(as_db_location_get_parent($locationid))));
-}
-
-
-/**
- * Return the locationid for the location with parent $parentid and $slug
- * @param $parentid
- * @param $slug
- * @return mixed|null
- */
-function as_db_location_slug_to_id($parentid, $slug)
-{
-	return as_db_read_one_value(as_db_query_sub(
-		'SELECT locationid FROM ^locations WHERE parentid<=># AND tags=$',
 		$parentid, $slug
 	), true);
 }

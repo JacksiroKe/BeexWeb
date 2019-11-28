@@ -2090,6 +2090,19 @@ function as_get_category_field_value($fieldname)
 	return null;
 }
 
+function as_format_date($date_data, $ago = false)
+{
+	$datestr = '';
+	if (strlen($date_data)) 
+	{
+		$dated = as_when_to_html($date_data, 0);
+		$entrydate = isset($date_data) ? $dated['data'] : '';
+		$entryago = as_time_to_string(as_opt('db_time') - $date_data);
+		$datestr = $entrydate . ($ago ? ' (' .$entryago . ' ago)' : '');
+	}
+	return $datestr;
+}
+
 
 /**
  * Set up $as_content and add to $fields to allow the user to enter their name for a post if they are not logged in

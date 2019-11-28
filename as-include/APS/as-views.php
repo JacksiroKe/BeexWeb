@@ -152,17 +152,13 @@
     $html .= '<tbody>';
     foreach($history as $entry) 
     {   
-      $posted = as_when_to_html($entry['created'], 0);
-      $entrydate = isset($entry['created']) ? $posted['data'] : '';
-      $entryago = as_time_to_string(as_opt('db_time') - $entry['created']);
-
       $html .= '<tr>';
       $html .= '<td>'.$entry['activityid'].'#</td>';
       $html .= '<td>'.$entry['type'].'</td>';
       $html .= '<td>'.$entry['bprice'].'</td>';
       $html .= '<td>'.$entry['sprice'].'</td>';
       $html .= '<td>'.$entry['quantity'].'</td>';
-      $html .= '<td>'.$entrydate . ' (' .$entryago . ' ago)</td>';
+      $html .= '<td>'.as_format_date($entry['created'], true).'</td>';
       $html .= '</tr>';
     }
     $html .= '</tbody>';

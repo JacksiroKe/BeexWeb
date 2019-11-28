@@ -463,7 +463,7 @@ function as_db_table_definitions()
 			'PRIMARY KEY (orderid)',
 		),
 
-		'customers' => array( //type, business, userid, title, idnumber, content, location, contact, created
+		'customers' => array( //type, business, userid, title, idnumber, content, icon, contacts, location, location1, location2, location3, location4, created
 			'customerid' => $useridcoltype . ' NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('INDIVIDUAL', 'BUSINESS', 'OTHER') NOT NULL DEFAULT 'BUSINESS'",
 			'business' => 'INT UNSIGNED NOT NULL DEFAULT 0',
@@ -471,8 +471,13 @@ function as_db_table_definitions()
 			'title' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
 			'idnumber' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
 			'content' => 'VARCHAR(' . AS_DB_MAX_PROFILE_CONTENT_LENGTH . ')',
+			'icon' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
+			'contacts' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
 			'location' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
-			'contact' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ') NOT NULL',
+			'location1' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'location2' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'location3' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'location4' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'field1' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
 			'field2' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
 			'field3' => 'VARCHAR(' . AS_DB_MAX_PROFILE_TITLE_LENGTH . ')',
@@ -514,7 +519,7 @@ function as_db_table_definitions()
 			'PRIMARY KEY (activityid)',
 		),
 		
-		'locations' => array(
+		'locations' => array( //type, parentid, title, code, content, coordinates, image, created, updated
 			'locationid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('COUNTY', 'SUB-COUNTY', 'TOWN', 'OTHER') NOT NULL DEFAULT 'COUNTY'",
 			'parentid' => 'INT UNSIGNED',
@@ -523,6 +528,8 @@ function as_db_table_definitions()
 			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ')', 
 			'coordinates' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . ')',
 			'image' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ')', 
+			'created' => 'DATETIME NOT NULL',
+			'updated' => 'DATETIME',
 			'PRIMARY KEY (locationid)',
 		),
 

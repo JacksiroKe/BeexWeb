@@ -31,7 +31,7 @@ require_once AS_INCLUDE_DIR . 'app/format.php';
 require_once AS_INCLUDE_DIR . 'util/image.php';
 
 $in = array();
-$in['categoryid'] = as_clicked('dosaveproduct') ? as_get_category_field_value('category') : as_get('cat');
+$in['locationid'] = as_clicked('dosavelocation') ? as_get_category_field_value('category') : as_get('cat');
 
 $editproductid = as_post_text('edit');
 if (!isset($editproductid))
@@ -42,9 +42,9 @@ if (!isset($editproductid))
 $userid = as_get_logged_in_userid();
 $selectsort = 'title';
 
-list($categories, $products) = as_db_select_with_pending(
+list($categories, $locations) = as_db_select_with_pending(
 	as_db_category_nav_selectspec($editproductid, true, false, true),
-	as_db_products_selectspec('title')
+	as_db_latest_locations('COUNTY')
 );
 
 // Check admin privileges (do late to allow one DB query)
@@ -54,26 +54,26 @@ if (!as_admin_check_privileges($as_content)) return $as_content;
 
 // Work out the appropriate state for the page
 
-$editproduct = @$categories[$editproductid];
+$editlocation = @$categories[$editproductid];
 
-if (isset($editproduct)) {
+if (isset($editlocation)) {
 	$parentid = as_get('addsub');
 	if (isset($parentid))
-		$editproduct = array('parentid' => $parentid);
+		$editlocation = array('parentid' => $parentid);
 
 } else {
-	if (as_clicked('doaddproduct'))
-		$editproduct = array();
+	if (as_clicked('doaddlocation'))
+		$editlocation = array();
 
-	elseif (as_clicked('dosaveproduct')) {
+	elseif (as_clicked('dosavelocation')) {
 		$parentid = as_post_text('parent');
-		$editproduct = array('parentid' => strlen($parentid) ? $parentid : null);
+		$editlocation = array('parentid' => strlen($parentid) ? $parentid : null);
 	}
 }
 
 $setmissing = as_post_text('missing') || as_get('missing');
 
-$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editproduct['categoryid']);
+$setparent = !$setmissing && (as_post_text('setparent') || as_get('setparent')) && isset($editlocation['locationid']);
 
 $hassubcategory = false;
 foreach ($categories as $category) {
@@ -103,11 +103,11 @@ if (as_clicked('dosaveoptions')) {
 
 if (as_clicked('docancel')) {
 	if ($setmissing || $setparent)
-		as_redirect(as_request(), array('edit' => $editproduct['categoryid']));
-	elseif (isset($editproduct['categoryid']))
+		as_redirect(as_request(), array('edit' => $editlocation['locationid']));
+	elseif (isset($editlocation['locationid']))
 		as_redirect(as_request());
 	else
-		as_redirect(as_request(), array('edit' => @$editproduct['parentid']));
+		as_redirect(as_request(), array('edit' => @$editlocation['parentid']));
 
 } elseif (as_clicked('dosetmissing')) {
 	if (!as_check_form_security_code('admin/locations', as_post_text('code')))
@@ -115,130 +115,73 @@ if (as_clicked('docancel')) {
 
 	else {
 		$inreassign = as_get_category_field_value('reassign');
-		as_db_category_reassign($editproduct['categoryid'], $inreassign);
-		as_redirect(as_request(), array('recalc' => 1, 'edit' => $editproduct['categoryid']));
+		as_db_category_reassign($editlocation['locationid'], $inreassign);
+		as_redirect(as_request(), array('recalc' => 1, 'edit' => $editlocation['locationid']));
 	}
 
-} elseif (as_clicked('dosaveproduct')) {
+} elseif (as_clicked('dosavelocation')) {
 	if (!as_check_form_security_code('admin/locations', as_post_text('code')))
 		$securityexpired = true;
 
 	elseif (as_post_text('dodelete')) {
 		if (!$hassubcategory) {
 			$inreassign = as_get_category_field_value('reassign');
-			as_db_category_reassign($editproduct['categoryid'], $inreassign);
-			as_db_category_delete($editproduct['categoryid']);
-			as_redirect(as_request(), array('recalc' => 1, 'edit' => $editproduct['parentid']));
+			as_db_category_reassign($editlocation['locationid'], $inreassign);
+			as_db_category_delete($editlocation['locationid']);
+			as_redirect(as_request(), array('recalc' => 1, 'edit' => $editlocation['parentid']));
 		}
 
 	} else {
 		require_once AS_INCLUDE_DIR . 'util/string.php';
-
-		$inname = as_post_text('name');
+		
+		$intitle = as_post_text('title');
+		$incode = as_post_text('ccode');
+		$incoordinates = as_post_text('coordinates');
 		$incontent = as_post_text('content');
-		$initemcode = as_post_text('itemcode');
-		$involume = as_post_text('volume');
-		$inmass = as_post_text('mass');
-		$intexture = as_post_text('texture');
-		$cookieid = isset($userid) ? as_cookie_get() : as_cookie_get_create();
+		$insubcounties = explode(',', as_post_text('subcounties'));
 		
 		$errors = array();
 
 		// Check the parent ID
 
-		$incategories = as_db_select_with_pending(as_db_category_nav_selectspec($inparentid, true));
+		//$incategories = as_db_select_with_pending(as_db_category_nav_selectspec($inparentid, true));
 
 		// Verify the name is legitimate for that parent ID
 
-		if (empty($inname))
+		if (empty($intitle))
 			$errors['name'] = as_lang('main/field_required');
-		elseif (as_strlen($inname) > AS_DB_MAX_CAT_PAGE_TITLE_LENGTH)
+		elseif (as_strlen($intitle) > AS_DB_MAX_CAT_PAGE_TITLE_LENGTH)
 			$errors['name'] = as_lang_sub('main/max_length_x', AS_DB_MAX_CAT_PAGE_TITLE_LENGTH);
 		else {
-			foreach ($incategories as $category) {
+			/*foreach ($incategories as $category) {
 				if (!strcmp($category['parentid'], $inparentid) &&
-					strcmp($category['categoryid'], @$editproduct['categoryid']) &&
-					as_strtolower($category['title']) == as_strtolower($inname)
+					strcmp($category['locationid'], @$editlocation['locationid']) &&
+					as_strtolower($category['title']) == as_strtolower($intitle)
 				) {
 					$errors['name'] = as_lang('admin/category_already_used');
 				}
-			}
+			}*/
 		}
-
-		// Verify the slug is legitimate for that parent ID
-
-		for ($attempt = 0; $attempt < 100; $attempt++) {
-			switch ($attempt) {
-				case 0:
-					$inslug = as_post_text('slug');
-					if (!isset($inslug))
-						$inslug = implode('-', as_string_to_words($inname));
-					break;
-
-				case 1:
-					$inslug = as_lang_sub('admin/category_default_slug', $inslug);
-					break;
-
-				default:
-					$inslug = as_lang_sub('admin/category_default_slug', $attempt - 1);
-					break;
-			}
-
-			$matchcategoryid = as_db_category_slug_to_id($inparentid, $inslug); // query against DB since MySQL ignores accents, etc...
-
-			if (!isset($inparentid))
-				$matchpage = as_db_single_select(as_db_page_full_selectspec($inslug, false));
-			else
-				$matchpage = null;
-
-			if (empty($inslug))
-				$errors['slug'] = as_lang('main/field_required');
-			elseif (as_strlen($inslug) > AS_DB_MAX_CAT_PAGE_TAGS_LENGTH)
-				$errors['slug'] = as_lang_sub('main/max_length_x', AS_DB_MAX_CAT_PAGE_TAGS_LENGTH);
-			elseif (preg_match('/[\\+\\/]/', $inslug))
-				$errors['slug'] = as_lang_sub('admin/slug_bad_chars', '+ /');
-			elseif (!isset($inparentid) && as_admin_is_slug_reserved($inslug)) // only top level is a problem
-				$errors['slug'] = as_lang('admin/slug_reserved');
-			elseif (isset($matchcategoryid) && strcmp($matchcategoryid, @$editproduct['categoryid']))
-				$errors['slug'] = as_lang('admin/category_already_used');
-			elseif (isset($matchpage))
-				$errors['slug'] = as_lang('admin/page_already_used');
-			else
-				unset($errors['slug']);
-
-			if (isset($editproduct['categoryid']) || !isset($errors['slug'])) // don't try other options if editing existing category
-				break;
-		}
-		
-		if (is_array(@$_FILES["file"])) {
-			$iconfileerror = $_FILES["file"]['error'];
-			if ($iconfileerror === 1) $errors['posticon'] = as_lang('main/file_upload_limit_exceeded');
-			elseif ($iconfileerror === 0 && $_FILES["file"]['size'] > 0) {
-				require_once AS_INCLUDE_DIR . 'app/limits.php';
-
-				$toobig = as_image_file_too_big($_FILES["file"]['tmp_name'], 500);
-
-				if ($toobig) $errors['posticon'] = as_lang_sub('main/image_too_big_x_pc', (int)($toobig * 100));
-			}
-		}
-		
-		// Perform appropriate database action
 
 		if (empty($errors)) {
-			if (isset($_FILES["file"]))
-				$posticon = as_upload_file($_FILES["file"], 'category.jpg', 'icon');
-			else $posticon = 'category.jpg';
-			
-			if (isset($editproduct['categoryid'])) { // changing existing category
-				as_db_product_update($in['categoryid'], $posticon, $inname, $inslug, $initemcode, $involume, $inmass, $intexture, $incontent, $editproduct['postid']);
+			//title, code, coordinates, content, subcounties
+			if (isset($editlocation['locationid'])) { // changing existing category
+				//as_db_product_update($in['locationid'], $posticon, $intitle, $inslug, $incode, $involume, $inmass, $intexture, $incontent, $editlocation['postid']);
 				
 				$recalc = false;
 
-				as_redirect(as_request(), array('edit' => $editproduct['postid'], 'saved' => true, 'recalc' => (int)$recalc));
+				as_redirect(as_request(), array('edit' => $editlocation['postid'], 'saved' => true, 'recalc' => (int)$recalc));
 
 			} else { // creating a new one
-				$categoryid = as_db_product_create($in['categoryid'], $userid, $cookieid, as_remote_ip_address(), $posticon, $inname, $inslug, $initemcode, $involume, $inmass, $intexture, $incontent);
-				//$editproduct = array();
+				$locationid = as_db_location_create('COUNTY', $intitle, $incode, $incoordinates, $incontent);
+				if (count($insubcounties))
+				{
+					foreach ($insubcounties as $subcounty)
+					{
+						if (!empty($subcounty)) as_db_location_create('SUB-COUNTY', $subcounty, '', '', '', $locationid);
+					}
+				}
+				//$editlocation = array();
 				as_redirect(as_request(), array('edit' => 'null', 'added' => true));
 			}
 		}
@@ -275,16 +218,16 @@ if ($setmissing) {
 
 		'hidden' => array(
 			'dosetmissing' => '1', // for IE
-			'edit' => @$editproduct['categoryid'],
+			'edit' => @$editlocation['locationid'],
 			'missing' => '1',
 			'code' => as_get_form_security_code('admin/locations'),
 		),
 	);
 
-} elseif (isset($editproduct) || $editproductid == 'null') {
+} elseif (isset($editlocation)) {
 	$iconoptions[''] = as_lang_html('admin/icon_none');
-	if ( isset($editproduct['icon']) && strlen($editproduct['icon'])){
-		$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' . as_get_media_html($editproduct['icon'], 35, 35) .
+	if ( isset($editlocation['icon']) && strlen($editlocation['icon'])){
+		$iconoptions['uploaded'] = '<span style="margin:2px 0; display:inline-block;">' . as_get_media_html($editlocation['icon'], 35, 35) .
 			'</span> <input name="file" type="file">';
 		$iconvalue = $iconoptions['uploaded'];
 	} else {
@@ -292,7 +235,7 @@ if ($setmissing) {
 		$iconvalue = $iconoptions[''];
 	}
 	
-	$formtitle = (isset($editproduct['categoryid']) ? 'Edit Product: '.$editproduct['title'] : 'Add a Product' );
+	$formtitle = (isset($editlocation['locationid']) ? 'Edit Location: '.$editlocation['title'] : 'Add a Location' );
 	
 	$formcontent = array(
 		'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
@@ -301,79 +244,45 @@ if ($setmissing) {
 		'ok' => as_get('saved') ? as_lang_html('admin/product_saved') : (as_get('added') ? as_lang_html('admin/product_added') : null),
 
 		'fields' => array(
-			'category' => array(
-				'label' => as_lang_html('admin/category_select'),
-			),
-			
-			'name' => array(
+			'title' => array(
 				'id' => 'name_display',
-				'tags' => 'name="name" id="name"',
-				'label' => as_lang_html(count($categories) ? 'admin/product_name' : 'admin/product_name_first') . ' (Optional)',
-				'value' => as_html(isset($inname) ? $inname : @$editproduct['title']),
-				'error' => as_html(@$errors['name']),
+				'tags' => 'name="title" id="title"',
+				'label' => as_lang_html('admin/location_name'),
+				'value' => as_html(isset($intitle) ? $intitle : @$editlocation['title']),
+				'error' => as_html(@$errors['title']),
 			),
 			
-			'itemcode' => array(
+			'ccode' => array(
 				'id' => 'itemcode_display',
-				'tags' => 'name="itemcode"',
-				'label' => as_lang_html('admin/product_itemcode'),
-				'value' => as_html(isset($initemcode) ? $initemcode : @$editproduct['itemcode']),
-				'error' => as_html(@$errors['itemcode']),
+				'tags' => 'name="ccode"',
+				'label' => as_lang_html('admin/location_code') . ' (Optional)',
+				'value' => as_html(isset($incode) ? $incode : @$editlocation['ccode']),
+				'error' => as_html(@$errors['ccode']),
+			),
+			
+			'coordinates' => array(
+				'id' => 'coordinates_display',
+				'tags' => 'name="coordinates"',
+				'label' => as_lang_html('admin/location_coordinates') . ' (Optional)',
+				'value' => as_html(isset($incoordinates) ? $incoordinates : @$editlocation['coordinates']),
+				'error' => as_html(@$errors['coordinates']),
 			),
 			
 			'content' => array(
 				'id' => 'content_display',
 				'tags' => 'name="content"',
-				'label' => as_lang_html('admin/product_description'),
-				'value' => as_html(isset($incontent) ? $incontent : @$editproduct['content']),
+				'label' => as_lang_html('admin/location_description') . ' (Optional)',
+				'value' => as_html(isset($incontent) ? $incontent : @$editlocation['content']),
 				'error' => as_html(@$errors['content']),
 			),
 			
-			'volume' => array(
-				'id' => 'volume_display',
-				'tags' => 'name="volume"',
-				'label' => as_lang_html('admin/product_volume'),
-				'value' => as_html(isset($involume) ? $involume : @$editproduct['volume']),
-				'error' => as_html(@$errors['volume']),
-			),
-			
-			'mass' => array(
-				'id' => 'mass_display',
-				'tags' => 'name="mass"',
-				'label' => as_lang_html('admin/product_mass'),
-				'value' => as_html(isset($inmass) ? $inmass : @$editproduct['mass']),
-				'error' => as_html(@$errors['mass']),
-			),
-			
-			'texture' => array(
-				'id' => 'texture_display',
-				'tags' => 'name="texture"',
-				'label' => as_lang_html('admin/product_texture'),
-				'value' => as_html(isset($intexture) ? $intexture : @$editproduct['texture']),
-				'error' => as_html(@$errors['texture']),
-			),
-
-			'items' => array(),
-
-			'delete' => array(),
-
-			'reassign' => array(),
-
-			'slug' => array(
-				'id' => 'slug_display',
-				'tags' => 'name="slug"',
-				'label' => as_lang_html('admin/category_slug'),
-				'value' => as_html(isset($inslug) ? $inslug : @$editproduct['tags']),
-				'error' => as_html(@$errors['slug']),
-			),
-			
-			'posticon' => array(
-				'type' => 'select-radio',
-				'label' => as_lang_html('admin/product_icon'),
-				'tags' => 'name="posticon"',
-				'options' => $iconoptions,
-				'value' => $iconvalue,
-				'error' => as_html(@$errors['posticon']),
+			'subcounties' => array(
+				'id' => 'content_display',
+				'tags' => 'name="subcounties"',
+				'label' => as_lang_html('admin/location_subcounties') . ' Separated by commas (,) (Optional)',
+				'error' => as_html(@$errors['subcounties']),
+				'type' => 'textarea',
+				'rows' => 3,
 			),
 			
 		),
@@ -381,7 +290,7 @@ if ($setmissing) {
 		'buttons' => array(
 			'save' => array(
 				'tags' => 'id="dosaveoptions"', // just used for as_recalc_click
-				'label' => as_lang_html(isset($editproduct['categoryid']) ? 'main/save_button' : 'admin/add_product_button'),
+				'label' => as_lang_html(isset($editlocation['locationid']) ? 'main/save_button' : 'admin/add_location_button'),
 			),
 
 			'cancel' => array(
@@ -391,103 +300,32 @@ if ($setmissing) {
 		),
 
 		'hidden' => array(
-			'dosaveproduct' => '1', // for IE
-			'edit' => @$editproduct['categoryid'],
-			'parent' => @$editproduct['parentid'],
+			'dosavelocation' => '1', // for IE
+			'parent' => @$editlocation['parentid'],
 			'setparent' => (int)$setparent,
 			'code' => as_get_form_security_code('admin/locations'),
 		),
 	);
 	
-	as_set_up_category_field($as_content, $formcontent['fields']['category'], 'category', $categories, $in['categoryid'], true, as_opt('allow_no_sub_category'));
-
-	if (isset($editproduct['categoryid'])) { // existing category
-		if ($hassubcategory) {
-			$formcontent['fields']['name']['note'] = as_lang_html('admin/category_no_delete_subs');
-			unset($formcontent['fields']['delete']);
-			unset($formcontent['fields']['reassign']);
-
-		} else {
-			$formcontent['fields']['delete'] = array(
-				'tags' => 'name="dodelete" id="dodelete"',
-				'label' =>
-					'<span id="reassign_shown">' . as_lang_html('admin/delete_category_reassign') . '</span>' .
-					'<span id="reassign_hidden" style="display:none;">' . as_lang_html('admin/delete_category') . '</span>',
-				'value' => 0,
-				'type' => 'checkbox',
-			);
-
-			$formcontent['fields']['reassign'] = array(
-				'id' => 'reassign_display',
-				'tags' => 'name="reassign"',
-			);
-
-			as_set_up_category_field($as_content, $formcontent['fields']['reassign'], 'reassign',
-				$categories, $editproduct['parentid'], true, true, null, $editproduct['categoryid']);
-		}
-
-		$formcontent['fields']['items'] = array(
-			'label' => as_lang_html('admin/total_qs'),
-			'type' => 'static',
-			'value' => '<a href="' . as_path_html('items/' . as_category_path_request($categories, $editproduct['categoryid'])) . '">' .
-				($editproduct['pcount'] == 1
-					? as_lang_html_sub('main/1_article', '1', '1')
-					: as_lang_html_sub('main/x_articles', as_format_number($editproduct['pcount']))
-				) . '</a>',
-		);
-
-		if ($hassubcategory && !as_opt('allow_no_sub_category')) {
-			$nosubcount = as_db_count_categoryid_qs($editproduct['categoryid']);
-
-			if ($nosubcount) {
-				$formcontent['fields']['items']['error'] =
-					strtr(as_lang_html('admin/category_no_sub_error'), array(
-						'^q' => as_format_number($nosubcount),
-						'^1' => '<a href="' . as_path_html(as_request(), array('edit' => $editproduct['categoryid'], 'missing' => 1)) . '">',
-						'^2' => '</a>',
-					));
-			}
-		}
-
-		as_set_display_rules($as_content, array(
-			'position_display' => '!dodelete',
-			'slug_display' => '!dodelete',
-			'content_display' => '!dodelete',
-			'parent_display' => '!dodelete',
-			'children_display' => '!dodelete',
-			'reassign_display' => 'dodelete',
-			'reassign_shown' => 'dodelete',
-			'reassign_hidden' => '!dodelete',
-		));
-
-	} else { // new product
-		unset($formcontent['fields']['delete']);
-		unset($formcontent['fields']['reassign']);
-		unset($formcontent['fields']['slug']);
-		unset($formcontent['fields']['items']);
-
-		$as_content['focusid'] = 'name';
-	}
 	$listcontent = array(
 		'id' => 'latest_products',
 		'type' => 'table',
-		'title' => 'Recent Added Counties (' . count($products) . ')', 
-		'headers' => array('#', 'Product', 'Code', 'Volume', 'Mass', 'Texture'),
+		'title' => 'Recent Added Counties (' . count($locations) . ')', 
+		'headers' => array('#', 'Title', 'Code', 'Sub-Counties', 'Created'),
 	);
 
-	if (count($products)) {
+	if (count($locations)) {
 		$p = 1;
-		foreach ($products as $product) {
+		foreach ($locations as $location) {
 			$listcontent['rows'][] = array(
 				'onclick' => ' title="Click on this county to edit or view"',
 				'fields' => array(
-					'id' => array( 'data' => as_get_media_html($product['icon'], 20, 20) ),
-					'title' => array( 'data' => '<a href="' . as_path_html('admin/locations', array('edit' => $product['postid'])) . '">' . 
-					as_html($product['title'])  . ' ' . $product['category'] .'</a>' ),
-					'itemcode' => array( 'data' => $product['itemcode']),
-					'volume' => array( 'data' => $product['volume']),
-					'mass' => array( 'data' => $product['mass']),
-					'texture' => array( 'data' => $product['texture']),
+					'id' => array( 'data' => $p),
+					'title' => array( 'data' => $location['title'] ),
+					'code' => array( 'data' => $location['code']),
+					'sub-counties' => array( 'data' => 0),
+					'created' => array( 'data' => as_format_date($location['created'], true) ),
+					'*' => array( 'data' => '' ),
 				),
 			);
 			$p++;
@@ -505,20 +343,19 @@ if ($setmissing) {
 } else {
 	$as_content['form'] = array(
 		'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
-		'title' => 'Recent Added Products',
+		'title' => 'Recent Added locations',
 		'ok' => $savedoptions ? as_lang_html('admin/options_saved') : null,
 
 		'style' => 'tall',
 
 		'table' => array( 'id' => 'allproducts', 'inline' => true,
-			'headers' => array('#', 'ProductID', 'Category', 'Code', 'Length', 'Width', 'Height/Thickness', 
-			'Fill', 'Fill-material', 'Weight', 'Color', 'Type/Pattern', '*') ),
+			'headers' => array('', '#', 'Title', 'Code', 'Coordinates', 'Created', 'Updated', '*') ),
 
 		'tools' => array(
 			'add' => array(
 				'type' => 'submit', 
-				'tags' => 'name="doaddproduct"',
-				'label' => as_lang_html('admin/add_product_button'),
+				'tags' => 'name="doaddlocation"',
+				'label' => as_lang_html('admin/add_location_button'),
 			),
 		),
 		
@@ -527,40 +364,55 @@ if ($setmissing) {
 		),
 	);
 
-	if (count($products)) {
-		$as_content['title'] .= ' ('.count($products).')';
+	if (count($locations)) {
+		$as_content['title'] .= ' ('.count($locations).')';
 		$navcategoryhtml = '';
-		$p = 1;
-		foreach ($products as $product) {
-			$volume = explode('by', $product['volume']);
-			$mass = explode(';', $product['mass']);
-			$texture = explode(';', $product['texture']);
+		$k = 1;
+		foreach ($locations as $location) {
 
-			$as_content['form']['table']['rows'][$p] = array(
-				'onclick' => ' title="Click on this product to edit or view"',
+			$as_content['form']['table']['rows'][$k] = array(
 				'fields' => array(
-					'id' => array( 'data' => $p),
-					'title' => array( 'data' => as_get_media_html($product['icon'], 20, 20) .'<a href="' . as_path_html('admin/locations', array('edit' => $product['postid'])) . '">' . as_html($product['title']) .'</a>' ),
-					'cat' => array( 'data' => $product['category']),
-					'itemcode' => array( 'data' => $product['itemcode']),
-					'length' => array( 'data' => isset($volume[0]) ? trim($volume[0]) : ''),
-					'width' => array( 'data' => isset($volume[1]) ? trim($volume[1]) : ''),
-					'height' => array( 'data' => isset($volume[2]) ? trim($volume[2]) : '' ),
-					'fill' => array( 'data' => isset($mass[0]) ? trim($mass[0]) : ''),
-					'fill-material' => array( 'data' => isset($mass[1]) ? trim($mass[1]) : ''),
-					'weight' => array( 'data' => isset($mass[2]) ? trim($mass[2]) : ''),
-					'color' => array( 'data' => isset($texture[0]) ? trim($texture[0]) : ''),
-					'pattern' => array( 'data' => isset($texture[1]) ? trim($texture[1]) : ''),
-					'*' => array( 'data' => '' ),
+					//'*' => array( 'data' => ($location['childcount'] ? ' (' . $location['childcount'] . ')' : '')),
+					'*' => array( 'data' => ''),
+					'id' => array( 'data' => $k),
+					'title' => array( 'data' => $location['title'] ),
+					'code' => array( 'data' => $location['code']),
+					'coordinates' => array( 'data' => $location['coordinates']),
+					'created' => array( 'data' => as_format_date($location['created'], true) ),
+					'updated' => array( 'data' => as_format_date($location['updated'], true) ),
+					'*x' => array( 'data' => '' ),
 				),
 			);
-			$p++;
-
+			
+			if (!isset($location['parentid']))
+			{
+				$sublocations = as_db_select_with_pending( as_db_latest_locations('SUB-COUNTY', $location['locationid']) );
+				$j = 1;
+				foreach ($sublocations as $subloc) 
+				{
+					$as_content['form']['table']['rows'][$k]['sub'][$j] = array(
+						'fields' => array(
+							'*' => array( 'data' => ''),
+							'id' => array( 'data' => $j),
+							'title' => array( 'data' => $subloc['title'] ),
+							'code' => array( 'data' => $subloc['code']),
+							'coordinates' => array( 'data' => $subloc['coordinates']),
+							'created' => array( 'data' => as_format_date($subloc['created'], true) ),
+							'updated' => array( 'data' => as_format_date($subloc['updated'], true) ),
+							'*x' => array( 'data' => '' ),
+						),
+					);
+					$checkboxtodisplay['child_' . $k . '_' . $j] = 'parent_' . $k ;
+					$j++;
+				}
+			}
+			$k++;
 		}
-		
+
 		$as_content['script_onloads'][] = array(
 			"$(function () { $('#allproducts').DataTable() })"
-		  );
+		  );		
+		if (isset($checkboxtodisplay)) as_set_display_rules($as_content, $checkboxtodisplay);
 	} else unset($as_content['form']['buttons']['save']);
 }
 
