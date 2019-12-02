@@ -444,7 +444,7 @@ if ($setmissing) {
 		'style' => 'tall',
 
 		'table' => array( 'id' => 'allproducts', 'inline' => true,
-			'headers' => array('', '#', 'Title', 'Code', 'details', 'Created', 'Updated', '*') ),
+			'headers' => array('', '#', 'Title', 'details', 'Created', 'Updated', '*') ),
 
 		'tools' => array(
 			'addlocation' => array(
@@ -476,13 +476,11 @@ if ($setmissing) {
 		$k = 1;
 		foreach ($locations as $location) {
 
-			$as_content['form']['table']['rows'][$k] = array(
+			$tabledata[$k] = array(
 				'fields' => array(
-					//'*' => array( 'data' => ($location['childcount'] ? ' (' . $location['childcount'] . ')' : '')),
 					'*' => array( 'data' => ''),
 					'id' => array( 'data' => $k),
-					'title' => array( 'data' => $location['title'] ),
-					'code' => array( 'data' => $location['code']),
+					'title' => array( 'data' => (isset($location['code']) ? $location['code'] . ' - ' : '') . $location['title'] ),
 					'details' => array( 'data' => $location['details']),
 					'created' => array( 'data' => as_format_date($location['created'], true) ),
 					'updated' => array( 'data' => as_format_date($location['updated'], true) ),
@@ -496,12 +494,12 @@ if ($setmissing) {
 				$j = 1;
 				foreach ($sublocations as $subloc) 
 				{
-					$as_content['form']['table']['rows'][$k]['sub'][$j] = array(
+					$tabledata[$k]['fields']['*']['data'] = ' (' . (count($sublocations)) . ' sub-counties)';
+					$tabledata[$k]['sub'][$j] = array(
 						'fields' => array(
 							'*' => array( 'data' => ''),
 							'id' => array( 'data' => $j),
 							'title' => array( 'data' => $subloc['title'] ),
-							'code' => array( 'data' => $subloc['code']),
 							'details' => array( 'data' => $subloc['details']),
 							'created' => array( 'data' => as_format_date($subloc['created'], true) ),
 							'updated' => array( 'data' => as_format_date($subloc['updated'], true) ),
@@ -514,6 +512,8 @@ if ($setmissing) {
 			}
 			$k++;
 		}
+
+		$as_content['form']['table']['rows'] = $tabledata;
 
 		$as_content['script_onloads'][] = array(
 			"$(function () { $('#allproducts').DataTable() })"

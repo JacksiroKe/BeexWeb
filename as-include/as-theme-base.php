@@ -2039,9 +2039,9 @@ class as_html_theme_base
 						(isset($row['tags']) ? ' '.$row['tags'] : ''). 
 						(isset($row['title']) ? ' title="'.$row['title'].'"' : '').' class="row-item">');
 					foreach ($row['fields'] as $rb => $rd) {
-						$this->output('<td valign="top">');
+						$this->output('<td valign="top"'.($rb == '*' ? ' style="width: 150px;"' : '').'>');
 						if (isset($row['sub']) && $rb == '*')
-							$this->output('<input id="parent_'.$ra.'" type="checkbox" value="1"> ' . $rd['data']);
+							$this->output('<label><input id="parent_'.$ra.'" type="checkbox" value="1"> ' . $rd['data'] . '</label>');
 						else $this->output($rd['data']);
 						$this->output('</td>');
 					}
