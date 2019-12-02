@@ -136,7 +136,7 @@ if (as_clicked('docancel')) {
 		
 		$intitle = as_post_text('title');
 		$incode = as_post_text('ccode');
-		$incoordinates = as_post_text('coordinates');
+		$indetails = as_post_text('details');
 		$incontent = as_post_text('content');
 		$insubcounties = explode(',', as_post_text('subcounties'));
 		
@@ -164,7 +164,7 @@ if (as_clicked('docancel')) {
 		}
 
 		if (empty($errors)) {
-			//title, code, coordinates, content, subcounties
+			//title, code, details, content, subcounties
 			if (isset($editlocation['locationid'])) { // changing existing category
 				//as_db_product_update($in['locationid'], $posticon, $intitle, $inslug, $incode, $involume, $inmass, $intexture, $incontent, $editlocation['postid']);
 				
@@ -173,7 +173,7 @@ if (as_clicked('docancel')) {
 				as_redirect(as_request(), array('edit' => $editlocation['postid'], 'saved' => true, 'recalc' => (int)$recalc));
 
 			} else { // creating a new one
-				$locationid = as_db_location_create('COUNTY', $intitle, $incode, $incoordinates, $incontent);
+				$locationid = as_db_location_create('COUNTY', $intitle, $incode, $indetails, $incontent);
 				if (count($insubcounties))
 				{
 					foreach ($insubcounties as $subcounty)
@@ -186,7 +186,24 @@ if (as_clicked('docancel')) {
 			}
 		}
 	}
+} elseif (as_clicked('dosavetowns')) {
+	require_once AS_INCLUDE_DIR . 'util/string.php';
+		
+	$insubcounty = as_post_text('subcounty');
+	$intowns = explode("\n", as_post_text('towns'));
+	
+	if (count($intowns))
+	{
+		foreach ($intowns as $town)
+		{
+			$townstr = explode(",", $town);
+			as_db_location_create('TOWN', $townstr[0], '', $townstr[1], $townstr[2], $insubcounty);
+		}
+	}
+	//$editlocation = array();
+	as_redirect(as_request(), array('page' => 'towns', 'added' => true));
 }
+
 
 
 // Prepare content for theme
@@ -221,6 +238,84 @@ if ($setmissing) {
 			'edit' => @$editlocation['locationid'],
 			'missing' => '1',
 			'code' => as_get_form_security_code('admin/locations'),
+		),
+	);
+
+} elseif (as_get('page') != null) {
+	
+	$locations = as_db_select_with_pending(as_db_latest_locations('COUNTY'));
+	
+	$countieshtml = '<input type="hidden" id="townsfeedback" value="table"/><div class="row">';
+
+	$countieshtml .= '<div class="col-lg-6 col-xs-12">
+		<label>County:</label>
+		<select name="county" id="county" onchange="as_select_county()" class="form-control">
+		<option>Select County</option>';
+	foreach ($locations as $location)
+	{
+		$countieshtml .= '<option value="'.$location['locationid'].'">'.$location['title'].'</option>';
+	}
+	$countieshtml .= '</select>
+	</div>';
+
+	$countieshtml .= '<div class="col-lg-6 col-xs-12" id="bs_subcounty"></div>';
+
+	$countieshtml .= '</div>';
+
+	$formcontent = array(
+		'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
+		'title' => 'Manage Towns of a Sub-County', 'type' => 'form', 'style' => 'tall',
+
+		'ok' => as_get('saved') ? as_lang_html('admin/towns_saved') : (as_get('added') ? as_lang_html('admin/town_added') : null),
+
+		'fields' => array(			
+			'location' => array(
+				'type' => 'custom',
+				'label' => 'Location of the Town',
+				'html' => $countieshtml,
+			),
+			
+			'towns' => array(
+				'id' => 'content_display',
+				'tags' => 'name="towns"',
+				'label' => 'Towns i.e One per Line',
+				'error' => as_html(@$errors['towns']),
+				'type' => 'textarea',
+				'rows' => 10,
+			),
+			
+		),
+
+		'buttons' => array(
+			'save' => array(
+				'tags' => 'id="dosavetowns"', // just used for as_recalc_click
+				'label' => as_lang_html(isset($editlocation['locationid']) ? 'main/save_button' : 'admin/add_towns_button'),
+			),
+
+			'cancel' => array(
+				'tags' => 'name="docancel"',
+				'label' => as_lang_html('main/cancel_button'),
+			),
+		),
+
+		'hidden' => array(
+			'dosavetowns' => '1', // for IE			
+			'townsfeedback' => 'table',
+			'code' => as_get_form_security_code('admin/locations'),
+		),
+	);
+	
+	$townscontent = array(
+		'id' => 'latest_towns', 'theme' => 'primary',
+		'type' => 'custom',
+		'title' => 'Recent Towns for current Sub-County', 
+		'body' => '<div id="bs_town"></div>',
+	);
+
+	$as_content['row_view'][] = array(
+		'colms' => array(
+			0 => array('class' => 'col-lg-6 col-xs-12', 'c_items' => array($formcontent) ),
+			1 => array('class' => 'col-lg-6 col-xs-12', 'c_items' => array($townscontent) ),
 		),
 	);
 
@@ -260,12 +355,12 @@ if ($setmissing) {
 				'error' => as_html(@$errors['ccode']),
 			),
 			
-			'coordinates' => array(
-				'id' => 'coordinates_display',
-				'tags' => 'name="coordinates"',
-				'label' => as_lang_html('admin/location_coordinates') . ' (Optional)',
-				'value' => as_html(isset($incoordinates) ? $incoordinates : @$editlocation['coordinates']),
-				'error' => as_html(@$errors['coordinates']),
+			'details' => array(
+				'id' => 'details_display',
+				'tags' => 'name="details"',
+				'label' => as_lang_html('admin/location_details') . ' (Optional)',
+				'value' => as_html(isset($indetails) ? $indetails : @$editlocation['details']),
+				'error' => as_html(@$errors['details']),
 			),
 			
 			'content' => array(
@@ -349,13 +444,24 @@ if ($setmissing) {
 		'style' => 'tall',
 
 		'table' => array( 'id' => 'allproducts', 'inline' => true,
-			'headers' => array('', '#', 'Title', 'Code', 'Coordinates', 'Created', 'Updated', '*') ),
+			'headers' => array('', '#', 'Title', 'Code', 'details', 'Created', 'Updated', '*') ),
 
 		'tools' => array(
-			'add' => array(
+			'addlocation' => array(
 				'type' => 'submit', 
 				'tags' => 'name="doaddlocation"',
 				'label' => as_lang_html('admin/add_location_button'),
+			),
+			'x' => array(
+				'type' => 'link', 'label' => ' ',
+				'url' => '#', 
+				'class' => 'btn btn-tool',
+			),
+			'addtown' => array(
+				'type' => 'link',
+				'url' => as_path_html( 'admin/locations', array('page' => 'towns') ),
+				'class' => 'btn btn-primary',
+				'label' => as_lang_html('admin/add_towns_button'),
 			),
 		),
 		
@@ -377,7 +483,7 @@ if ($setmissing) {
 					'id' => array( 'data' => $k),
 					'title' => array( 'data' => $location['title'] ),
 					'code' => array( 'data' => $location['code']),
-					'coordinates' => array( 'data' => $location['coordinates']),
+					'details' => array( 'data' => $location['details']),
 					'created' => array( 'data' => as_format_date($location['created'], true) ),
 					'updated' => array( 'data' => as_format_date($location['updated'], true) ),
 					'*x' => array( 'data' => '' ),
@@ -396,7 +502,7 @@ if ($setmissing) {
 							'id' => array( 'data' => $j),
 							'title' => array( 'data' => $subloc['title'] ),
 							'code' => array( 'data' => $subloc['code']),
-							'coordinates' => array( 'data' => $subloc['coordinates']),
+							'details' => array( 'data' => $subloc['details']),
 							'created' => array( 'data' => as_format_date($subloc['created'], true) ),
 							'updated' => array( 'data' => as_format_date($subloc['updated'], true) ),
 							'*x' => array( 'data' => '' ),

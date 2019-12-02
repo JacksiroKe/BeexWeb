@@ -91,6 +91,41 @@ function as_new_customer()
 	return false;
 }
 
+function as_select_county()
+{
+	var params = {};
+	params.countyid = document.getElementById('county').value;
+	as_ajax_post('countyselect', params, function(lines) {
+		if (lines[0] == '1') {
+			var resultsview = document.getElementById('bs_subcounty');
+			resultsview.innerHTML = lines.slice(1).join('\n');
+			//as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
+		}
+	});
+}
+
+function as_select_subcounty()
+{
+	var params = {};
+	params.subcountyid = document.getElementById('subcounty').value;
+	params.towns_feedback = document.getElementById('townsfeedback').value;
+	as_ajax_post('countyselect_sub', params, function(lines) {
+		if (lines[0] == '1') {
+			var resultsview = document.getElementById('bs_town');
+			resultsview.innerHTML = lines.slice(1).join('\n');
+			//as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
+		}
+	});
+}
+
 function as_searchuser_change()
 {
 	var params = {};

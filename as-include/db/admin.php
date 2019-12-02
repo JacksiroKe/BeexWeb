@@ -350,22 +350,22 @@ function as_db_product_create($category, $userid, $cookieid, $ip, $icon, $title,
 	return $productid;
 }
 
-function as_db_location_create($type, $title, $code, $coordinates, $content, $parentid = null)
+function as_db_location_create($type, $title, $code, $details, $content, $parentid = null)
 {
 	if (isset($parentid))
 	{
 		as_db_query_sub(
-			'INSERT INTO ^locations (parentid, type, title, code, coordinates, content, created) 
+			'INSERT INTO ^locations (parentid, type, title, code, details, content, created) 
 			VALUES (#, $, $, $, $, $, NOW())',
-			$parentid, $type, $title, $code, $coordinates, $content
+			$parentid, $type, $title, $code, $details, $content
 		);
 	}
 	else
 	{
 		as_db_query_sub(
-			'INSERT INTO ^locations (type, title, code, coordinates, content, created) 
+			'INSERT INTO ^locations (type, title, code, details, content, created) 
 			VALUES ($, $, $, $, $, NOW())',
-			$type, $title, $code, $coordinates, $content
+			$type, $title, $code, $details, $content
 		);
 	}
 	

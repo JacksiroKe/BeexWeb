@@ -230,22 +230,41 @@ class BxCustomerCare extends BxDepartment
         $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
         $bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
 
-        $countieshtml = '<option>Select County</option>';
+        $countieshtml = '<input type="hidden" id="townsfeedback" value="select"/><div class="row">';
+
+        $countieshtml .= '<div class="col-lg-4 col-xs-12">
+            <label>County:</label>
+            <select name="county" id="county" onchange="as_select_county()" class="form-control">
+            <option>Select County</option>';
         foreach ($locations as $location)
         {
             $countieshtml .= '<option value="'.$location['locationid'].'">'.$location['title'].'</option>';
         }
+        $countieshtml .= '</select>
+        </div>';
 
-        $phonehtml = '<div class="row"><div class="form-group">
-        <label>US phone mask:</label>
+        $countieshtml .= '<div class="col-lg-4 col-xs-12" id="bs_subcounty"></div>';
 
+        $countieshtml .= '<div class="col-lg-4 col-xs-12" id="bs_town"></div>';
+
+        $countieshtml .= '</div>';
+
+        $phonehtml = '<div class="row">';
+        $phonehtml .= '<div class="col-lg-6 col-xs-12">
+            <label>Phone Number 1:</label>
+            <div class="input-group">
+            <div class="input-group-addon"><i class="fa fa-phone"></i></div>
+            <input type="phone" class="form-control" name="phone1">
+        </div></div>';
+
+        $phonehtml .= '<div class="col-lg-6 col-xs-12">
+        <label>Phone Number 2 (Optional):</label>
         <div class="input-group">
-          <div class="input-group-addon">
-            <i class="fa fa-phone"></i>
-          </div>
-          <input type="text" class="form-control">
-        </div>
-      </div></div>';
+        <div class="input-group-addon"><i class="fa fa-phone"></i></div>
+        <input type="phone" class="form-control" name="phone2">
+    </div></div>';
+
+        $phonehtml .= '</div>';
 
         switch ($section) {
 
@@ -253,7 +272,7 @@ class BxCustomerCare extends BxDepartment
                 
                 $formcontent = array(
                     'tags' => 'enctype="multipart/form-data" method="post" action="' . as_path_html(as_request()) . '"',
-                    'title' => $as_content['title'], 'type' => 'form', 'style' => 'tall',
+                    'title' => 'REGISTER A CUSTOMER', 'type' => 'form', 'style' => 'tall',
 
                     'ok' => as_get('saved') ? as_lang_html('admin/product_saved') : (as_get('added') ? as_lang_html('admin/product_added') : null),
 
@@ -273,8 +292,7 @@ class BxCustomerCare extends BxDepartment
                         'location' => array(
                             'type' => 'custom',
                             'label' => 'Location of the Business',
-                            'html' => '<br><select name="county" onchange="as_select_county()" class="form-control">'.
-                                $countieshtml.'</select><div id="bslocation"></div>',
+                            'html' => $countieshtml,
                         ),
                         
                         'person' => array(
@@ -285,11 +303,6 @@ class BxCustomerCare extends BxDepartment
                         'html' => array(
                             'type' => 'custom',
                             'html' => $phonehtml,
-                        ),
-                        
-                        'mobile1' => array(
-                            'tags' => 'name="mobile"',
-                            'label' => 'Phone Number 2 (optional)',
                         ),
                         
                         'email' => array(

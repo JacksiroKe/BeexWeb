@@ -464,7 +464,7 @@ function as_db_latest_locations($type, $parentid=null)
 {
 	$selectspec = array(
 		'columns' => array(
-			'locationid', 'type', 'parentid', 'title', 'code', 'content', 'coordinates', 'image', 'created' => 'UNIX_TIMESTAMP(created)', 'updated' => 'UNIX_TIMESTAMP(updated)',
+			'locationid', 'type', 'parentid', 'title', 'code', 'content', 'details', 'image', 'created' => 'UNIX_TIMESTAMP(created)', 'updated' => 'UNIX_TIMESTAMP(updated)',
 		),
 		'source' => "^locations WHERE ^locations.type=#",
 		'arguments' => array($type),

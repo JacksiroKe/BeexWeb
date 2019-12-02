@@ -519,14 +519,14 @@ function as_db_table_definitions()
 			'PRIMARY KEY (activityid)',
 		),
 		
-		'locations' => array( //type, parentid, title, code, content, coordinates, image, created, updated
+		'locations' => array( //type, parentid, title, code, content, details, image, created, updated
 			'locationid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('COUNTY', 'SUB-COUNTY', 'TOWN', 'OTHER') NOT NULL DEFAULT 'COUNTY'",
 			'parentid' => 'INT UNSIGNED',
 			'title' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ') NOT NULL',
 			'code' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ')',
 			'content' => 'VARCHAR(' . AS_DB_MAX_CAT_CONTENT_LENGTH . ')', 
-			'coordinates' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . ')',
+			'details' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TAGS_LENGTH . ')',
 			'image' => 'VARCHAR(' . AS_DB_MAX_CAT_PAGE_TITLE_LENGTH . ')', 
 			'created' => 'DATETIME NOT NULL',
 			'updated' => 'DATETIME',

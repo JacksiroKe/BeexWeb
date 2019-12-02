@@ -4071,8 +4071,8 @@ $.extend(Datepicker.prototype, {
 	 * @param  date	string or Date - the initial date to display
 	 * @param  onSelect  function - the function to call when a date is selected
 	 * @param  settings  object - update the dialog date picker instance's settings (anonymous object)
-	 * @param  pos int[2] - coordinates for the dialog's position within the screen or
-	 *					event - with x/y coordinates or
+	 * @param  pos int[2] - details for the dialog's position within the screen or
+	 *					event - with x/y details or
 	 *					leave empty for default (screen centre)
 	 * @return the manager object
 	 */
