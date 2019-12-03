@@ -350,30 +350,6 @@ function as_db_product_create($category, $userid, $cookieid, $ip, $icon, $title,
 	return $productid;
 }
 
-function as_db_location_create($type, $title, $code, $details, $content, $parentid = null)
-{
-	if (isset($parentid))
-	{
-		as_db_query_sub(
-			'INSERT INTO ^locations (parentid, type, title, code, details, content, created) 
-			VALUES (#, $, $, $, $, $, NOW())',
-			$parentid, $type, $title, $code, $details, $content
-		);
-	}
-	else
-	{
-		as_db_query_sub(
-			'INSERT INTO ^locations (type, title, code, details, content, created) 
-			VALUES ($, $, $, $, $, NOW())',
-			$type, $title, $code, $details, $content
-		);
-	}
-	
-	$locationid = as_db_last_insert_id();
-
-	return $locationid;
-}
-
 function as_db_product_update($category, $userid, $icon, $title, $tags, $itemcode, $volume, $mass, $texture, $content, $postid)
 {
 	as_db_query_sub(

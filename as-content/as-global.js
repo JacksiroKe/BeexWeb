@@ -1172,3 +1172,78 @@ function as_pm_click(messageid, target, box)
 
 	return false;
 }
+
+$(document).ready(function() {
+	var table = $('#as-table').DataTable( {
+		"lengthMenu": [[10,25,50,100,500, -1], [10,25,50,100,500, "All"]],
+		dom: 'Bfrtlip',
+		"order": [[ 3, "desc" ]],
+
+		colVis: {
+			order: 'alpha',
+			exclude: [ 0 ],
+			restore: "Restore",
+			showAll: "Show all",
+			showNone: "Show none"
+		},
+		buttons: [
+			{
+				extend: 'copyHtml5',
+				exportOptions: {
+					columns: ':visible'
+				}
+			},
+			{
+				extend: 'excelHtml5',
+				exportOptions: {
+					columns: ':visible'
+				}
+			},
+			{
+				extend: 'csvHtml5',
+				exportOptions: {
+					columns: ':visible'
+				}
+			},
+			{
+				extend: 'pdfHtml5',
+				exportOptions: {
+					columns: ':visible'
+				}
+			},
+			'colvis'
+		],
+		aoColumnDefs: [
+			{ aTargets: [0], bSortable: false }
+		],
+	});
+	// Apply the filter
+	$("#as-table tfoot input").on( 'keyup change', function () {
+		table
+			.column( $(this).parent().index()+':visible' )
+			.search( this.value )
+			.draw();
+	} );
+	
+	// select checkboxes 
+	$('#check-button').click(function(event) {
+		$('.chk-item').each(function() {
+			this.checked = true;
+		});
+		$('#check-button').hide();
+		$('#uncheck-button').show();
+		event.preventDefault();
+	});
+	$('#uncheck-button').click(function(event) {
+		$('.chk-item').each(function() {
+			this.checked = false;					  
+		});	
+		$('#uncheck-button').hide();
+		$('#check-button').show();	
+		event.preventDefault();
+	});
+} );
+
+(function ($) {
+
+})(jQuery);

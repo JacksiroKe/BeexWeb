@@ -2025,6 +2025,22 @@ function as_num_to_let($num) {
 	}
 }
 
+function as_num_to_rom($num) {
+	switch ($num)
+	{
+		case 1: return '(i)';
+		case 2: return '(ii)';
+		case 3: return '(iii)';
+		case 4: return '(iv)';
+		case 5: return '(v)';
+		case 6: return '(vi)';
+		case 7: return '(vii)';
+		case 8: return '(viii)';
+		case 9: return '(ix)';
+		case 10: return '(x)';
+	}
+}
+
 function as_many($count, $plural = 's')
 {
 	return ($count == 1 ? '' : $plural);

@@ -33,7 +33,7 @@ echo "AS_AJAX_RESPONSE\n1\n";
 
 $htmlresult = '';
 $htmlresult .= '<label>Sub-County:</label>
-<select name="subcounty" id="subcounty" onchange="as_select_subcounty()" class="form-control">
+<select name="subcounty" id="subcounty" onchange="as_select_subcounty()" class="form-control" required>
 <option>Select Sub-County</option>';
 foreach ($sublocations as $result)
 {

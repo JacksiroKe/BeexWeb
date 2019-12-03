@@ -351,7 +351,7 @@ class BxStockDept extends BxDepartment
             default:
 
                 $bodycontent = array(
-                    'type' => 'custom', 'title' => $as_content['title'], 'theme' => 'primary',
+                    'type' => 'custom', 'title' => 'STOCK VIEW', 'theme' => 'primary',
                     'body' => '<div id="main_content"></div>',
             
                     'icon' => array(
@@ -424,6 +424,7 @@ class BxStockDept extends BxDepartment
                     ),
                 );
 
+                $as_content['script_src'][] = as_opt('site_url').'as-content/as-tables.js?'.AS_VERSION;
                 break;
         }
         

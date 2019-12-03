@@ -64,6 +64,7 @@ else
 		$htmlresult .= '<option value="'.$result['locationid'].'">'.$result['title'].'</option>';
 	}
 	$htmlresult .= '</select>';
+	$htmlresult .= '<input name="newtown" id="newtown" class="form-control" autocomplete="off" placeholder="Enter Missing Town, Kms">';
 
 }
 

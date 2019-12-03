@@ -386,12 +386,11 @@ function as_db_products_basic_selectspec($business = null)
  * @param $count
  * @return array
  */
-function as_db_products_selectspec($sort, $business = null, $search = null, $categoryslugs = null, $createip = null, $specialtype = false, $full = false, $count = null, $stock = null)
+function as_db_products_selectspec($sort, $business = null, $search = null, $stocktype = 'CSTOCK', $categoryslugs = null, $createip = null, $specialtype = false)
 {
 	if ($specialtype == 'P' || $specialtype == 'P_QUEUED') $type = $specialtype;
 	else $type = $specialtype ? 'P_HIDDEN' : 'P';
 
-	$count = isset($count) ? min($count, AS_DB_RETRIEVE_QS_AS) : AS_DB_RETRIEVE_QS_AS;
 	$sortsql = 'ORDER BY ^posts.' . $sort . ' ASC';
 
 	$selectspec = as_db_products_basic_selectspec($business);
@@ -407,7 +406,7 @@ function as_db_products_selectspec($sort, $business = null, $search = null, $cat
 		$selectspec['source'] .= ' OR parent.title LIKE "%' . $search . '%"';
 		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%"';
 	}
-	else if (isset($business)) $selectspec['source'] .= ' WHERE ^stock.business=' . $business;
+	else if (isset($business)) $selectspec['source'] .= ' WHERE ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"';
 
 	array_push($selectspec['arguments'], $type);
 	$selectspec['sortasc'] = $sort;
@@ -443,8 +442,13 @@ function as_db_product_stock_activity($stockid)
 function as_db_recent_customers($business)
 {
 	$selectspec = array(
-		'columns' => array(
-			'customerid', 'type', 'business', 'userid', 'title', 'idnumber', 'content', 'location', 'contact', 'created' => 'UNIX_TIMESTAMP(created)',
+		'columns' => array(//business, userid, title, idnumber, content, icon, phone, email, location1, location2, location3
+			'customerid', 'type', 'business', 'userid', 'title', 'phone', 'email', 'location1', 'location2', 'location3', 
+			'county' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location1)',
+			'code' => '(SELECT code FROM ^locations WHERE ^locations.locationid=^customers.location1)',
+			'subcounty' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location2)',
+			'town' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location3)',
+			'created' => 'UNIX_TIMESTAMP(created)',
 		),
 
 		'source' => "^customers WHERE ^customers.business=#",

@@ -27,6 +27,7 @@ if (!defined('AS_VERSION')) { // don't allow this page to be requested directly 
 require_once AS_INCLUDE_DIR . 'app/admin.php';
 require_once AS_INCLUDE_DIR . 'db/selects.php';
 require_once AS_INCLUDE_DIR . 'db/admin.php';
+require_once AS_INCLUDE_DIR . 'db/post-create.php';
 require_once AS_INCLUDE_DIR . 'app/format.php';
 require_once AS_INCLUDE_DIR . 'util/image.php';
 
@@ -498,7 +499,7 @@ if ($setmissing) {
 					$tabledata[$k]['sub'][$j] = array(
 						'fields' => array(
 							'*' => array( 'data' => ''),
-							'id' => array( 'data' => $j),
+							'id' => array( 'data' => strtoupper(as_num_to_let($j)) . '. '),
 							'title' => array( 'data' => $subloc['title'] ),
 							'details' => array( 'data' => $subloc['details']),
 							'created' => array( 'data' => as_format_date($subloc['created'], true) ),
@@ -507,6 +508,29 @@ if ($setmissing) {
 						),
 					);
 					$checkboxtodisplay['child_' . $k . '_' . $j] = 'parent_' . $k ;
+					
+					$minlocations = as_db_select_with_pending( as_db_latest_locations('TOWN', $subloc['locationid']) );
+					$totaltowns = count($minlocations);
+					$g = 1;
+					foreach ($minlocations as $town) 
+					{
+						$tabledata[$k]['sub'][$j]['fields']['title']['data'] = $subloc['title'] .' (' . ($totaltowns) . ' towns)';
+						$tabledata[$k]['sub'][$j . '_' . $g] = array(
+							'fields' => array(
+								'*' => array( 'data' => ''),
+								'id' => array( 'data' => ''),
+								'title' => array( 'data' => as_num_to_rom($g) . ".\t" . $town['title'] ),
+								'details' => array( 'data' => $town['details']),
+								'created' => array( 'data' => as_format_date($town['created'], true) ),
+								'updated' => array( 'data' => as_format_date($town['updated'], true) ),
+								'*x' => array( 'data' => '' ),
+							),
+						);
+						$checkboxtodisplay[ 'child_' . $k . '_' . $j . '_' . $g ] = 'parent_' . $k ;
+						$g++;
+					}
+					$tabledata[$k]['sub'][$j . '_' . $totaltowns]['fields']['*x']['data'] = '<br><br>';
+
 					$j++;
 				}
 			}

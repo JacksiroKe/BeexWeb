@@ -37,7 +37,7 @@ list ($products, $customers) = as_db_select_with_pending(
 
 echo "AS_AJAX_RESPONSE\n1\n";
 
-$htmlresult = '<table id="allorders" class="table table-bordered">';
+$htmlresult = '<table id="as-table" class="table table-bordered">';
 $htmlresult .= '<thead>';
 $htmlresult .= '<tr>';
 $htmlresult .= '<th valign="top" style="width:50px;">#</th>';

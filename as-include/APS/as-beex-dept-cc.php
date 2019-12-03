@@ -227,6 +227,28 @@ class BxCustomerCare extends BxDepartment
             as_db_latest_locations('COUNTY')
         );
         
+        if (as_clicked('doaddcustomer')) {
+            require_once AS_INCLUDE_DIR . 'app/post-create.php';
+            require_once AS_INCLUDE_DIR . 'db/post-create.php';          
+
+            $intitle = as_post_text('title');
+            $incounty = as_post_text('county');
+            $insubcounty = as_post_text('subcounty');
+
+            $inphone = as_post_text('person')." xx ".as_post_text('phone1').", ".as_post_text('phone2');
+            $inemail = as_post_text('email');
+            $innewtown = as_post_text('newtown');
+
+            if (strlen($innewtown)) {
+                $townstr = explode(",", $innewtown);
+				$intown = as_db_location_create('TOWN', $townstr[0], '', $townstr[1], $townstr[2], $insubcounty);
+            }
+            else $intown = as_post_text('town');
+
+            as_db_customer_register($userid, $department->businessid, $intitle, $inphone, $inemail, $incounty, $insubcounty, $intown);		
+            as_redirect('department/' . $department->departid );
+        }
+        
         $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
         $bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
 
@@ -234,7 +256,7 @@ class BxCustomerCare extends BxDepartment
 
         $countieshtml .= '<div class="col-lg-4 col-xs-12">
             <label>County:</label>
-            <select name="county" id="county" onchange="as_select_county()" class="form-control">
+            <select name="county" id="county" onchange="as_select_county()" class="form-control" required>
             <option>Select County</option>';
         foreach ($locations as $location)
         {
@@ -254,18 +276,18 @@ class BxCustomerCare extends BxDepartment
             <label>Phone Number 1:</label>
             <div class="input-group">
             <div class="input-group-addon"><i class="fa fa-phone"></i></div>
-            <input type="phone" class="form-control" name="phone1">
+            <input type="phone" class="form-control" autocomplete="off" name="phone1" required>
         </div></div>';
 
         $phonehtml .= '<div class="col-lg-6 col-xs-12">
         <label>Phone Number 2 (Optional):</label>
         <div class="input-group">
         <div class="input-group-addon"><i class="fa fa-phone"></i></div>
-        <input type="phone" class="form-control" name="phone2">
+        <input type="phone" class="form-control" autocomplete="off" name="phone2">
     </div></div>';
 
         $phonehtml .= '</div>';
-
+        
         switch ($section) {
 
             case 'register':
@@ -278,14 +300,14 @@ class BxCustomerCare extends BxDepartment
 
                     'icon' => array(
                         'fa' => 'arrow-left',
-                        'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
+                        'url' => as_path_html('department/' . $department->departid ),
                         'class' => 'btn btn-social btn-primary',
                         'label' => as_lang_html('main/back_button'),
                     ),
 
                     'fields' => array(
                         'name' => array(
-                            'tags' => 'name="title" id="title"',
+                            'tags' => 'name="title" id="title" required',
                             'label' => 'Name of the the Business',
                         ),
                         
@@ -296,7 +318,7 @@ class BxCustomerCare extends BxDepartment
                         ),
                         
                         'person' => array(
-                            'tags' => 'name="person"',
+                            'tags' => 'name="person" autocomplete="off" required',
                             'label' => 'Contact Person',
                         ),
                         
@@ -306,7 +328,7 @@ class BxCustomerCare extends BxDepartment
                         ),
                         
                         'email' => array(
-                            'tags' => 'name="email"',
+                            'tags' => 'name="email" autocomplete="off" required',
                             'label' => 'Email Address (Optional)',
                         ),
                         
@@ -314,7 +336,7 @@ class BxCustomerCare extends BxDepartment
 
                     'buttons' => array(
                         'save' => array(
-                            'tags' => 'id="dosaveoptions"', // just used for as_recalc_click
+                            'tags' => 'id="doaddcustomer"', // just used for as_recalc_click
                             'label' => 'Register Customer',
                         ),
 
@@ -325,7 +347,7 @@ class BxCustomerCare extends BxDepartment
                     ),
 
                     'hidden' => array(
-                        'dosaveproduct' => '1',
+                        'doaddcustomer' => '1',
                         'code' => as_get_form_security_code('customer-care'),
                     ),
                 );
@@ -349,7 +371,7 @@ class BxCustomerCare extends BxDepartment
                     'type' => 'form', 'title' => $as_content['title'], 'style' => 'tall',
             
                     'table' => array( 'id' => 'allcustomers', 'inline' => true,
-                        'headers' => array('#', 'Name', 'Type', 'Mobile', 'Location', 'Registered', '*') ),
+                        'headers' => array('#', 'Name', 'Contact Person', 'Mobile', 'Email', 'Location', 'Registered', '*') ),
                     'icon' => array(
                         'fa' => 'arrow-left',
                         'url' => as_path_html( isset($department->parentid) ? 'department/' . $department->parentid : 'business/' . $department->businessid ),
@@ -383,13 +405,11 @@ class BxCustomerCare extends BxDepartment
                 if (count($customers)) {
                     $p = 1;
                     foreach ($customers as $customer) {
-                        //'type', 'business', 'userid', 'title', 'idnumber', 'content', 'location', 'contact', 'created'
                         $registered = as_when_to_html($customer['created'], 0);
                         $registereddate = isset($customer['created']) ? $registered['data'] : '';
                         $registeredago = as_time_to_string(as_opt('db_time') - $customer['created']);
                         
-                        $contacts = explode('xx', $customer['contact']);
-                        $address = explode('xx', $customer['location']);
+                        $phone = explode('xx', $customer['phone']);
 
                         $bodycontent['table']['rows'][$p] = array(
                             'title' => 'Click on this customer to edit or view',
@@ -397,13 +417,14 @@ class BxCustomerCare extends BxDepartment
                             'fields' => array(
                                 'id' => array( 'data' => $p),
                                 'title' => array( 'data' => $customer['title'] ),
-                                'type' => array( 'data' => $customer['type']),
-                                'mobile' => array( 'data' => trim($contacts[0])),
-                                'location' => array( 'data' => trim($address[0])),
+                                'person' => array( 'data' => trim($phone[0]) ),
+                                'mobile' => array( 'data' => trim($phone[1]) ),
+                                'email' => array( 'data' => $customer['email'] ),
+                                'location' => array( 'data' => $customer['code'] . ' ' . $customer['county'] .', ' . $customer['subcounty'] .', ' . $customer['town']),
                                 'date' => array( 'data' => $registereddate . ' (' .$registeredago . ' ago)' ),
                                 '*' => array( 'data' => '' ),
                             ),
-                        );//Name', 'Type', 'Mobile', 'Location', 'Registered
+                        );
                         $p++;            
                     }
                     

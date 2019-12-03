@@ -2034,29 +2034,10 @@ class as_html_theme_base
 			
 			if (isset($table['rows'])) {
 				$this->output('<tbody>');
-				foreach ($table['rows'] as $ra => $row) {
-					$this->output('<tr'.
-						(isset($row['tags']) ? ' '.$row['tags'] : ''). 
-						(isset($row['title']) ? ' title="'.$row['title'].'"' : '').' class="row-item">');
-					foreach ($row['fields'] as $rb => $rd) {
-						$this->output('<td valign="top"'.($rb == '*' ? ' style="width: 150px;"' : '').'>');
-						if (isset($row['sub']) && $rb == '*')
-							$this->output('<label><input id="parent_'.$ra.'" type="checkbox" value="1"> ' . $rd['data'] . '</label>');
-						else $this->output($rd['data']);
-						$this->output('</td>');
-					}
-					$this->output('</tr>');
-					
-					if (isset($row['sub'])) {
-						foreach ( $row['sub'] as $k => $sub ) {
-							$this->output('<tr id="child_'.$ra.'_'.$k.'" class="sub-item-first">');
-							foreach ($sub['fields'] as $rq => $rw) {
-								if ($rq == '#') $this->output('<td valign="top" style="text-align:right;">'.$rw['data'].'</td>');
-								else $this->output('<td valign="top">'.$rw['data'].'</td>');
-							}
-							$this->output('</tr>');
-						};
-					}
+				foreach ($table['rows'] as $ra => $row) 
+				{
+					$this->table_row($ra, $row);
+					$this->table_sub_row($ra, $row);
 				}
 				$this->output('</tbody>');
 			}
@@ -2082,6 +2063,37 @@ class as_html_theme_base
 			
 			$this->output('</table>', '</div>');
 			if (!isset($table['inline'])) $this->output('</div>');
+		}
+	}
+
+	public function table_row($ra, $row)
+	{
+		$this->output('<tr'.
+		(isset($row['tags']) ? ' '.$row['tags'] : ''). 
+		(isset($row['title']) ? ' title="'.$row['title'].'"' : '').' class="row-item">');
+		foreach ($row['fields'] as $rb => $rd) 
+		{
+			$this->output('<td valign="top"'.($rb == '*' ? ' style="width: 150px;"' : '').'>');
+			if (isset($row['sub']) && $rb == '*')
+				$this->output('<label><input id="parent_'.$ra.'" type="checkbox" value="1"> ' . $rd['data'] . '</label>');
+			else $this->output($rd['data']);
+			$this->output('</td>');
+		}
+		$this->output('</tr>');
+	}
+
+	public function table_sub_row($ra, $row)
+	{
+		if (isset($row['sub'])) {
+			foreach ( $row['sub'] as $rk => $subrow ) 
+			{
+				$this->output('<tr id="child_'.$ra.'_'.$rk.'" class="sub-item-first">');
+				foreach ($subrow['fields'] as $rq => $rw) {
+					if ($rq == '#') $this->output('<td valign="top" style="text-align:right;">'.$rw['data'].'</td>');
+					else $this->output('<td valign="top">'.$rw['data'].'</td>');
+				}
+				$this->output('</tr>');
+			};
 		}
 	}
 

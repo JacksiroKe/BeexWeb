@@ -89,12 +89,36 @@ function as_db_stock_add($type, $business, $itemid, $userid, $actual, $available
 	return as_db_last_insert_id();
 }
 
-function as_db_customer_register($userid, $business, $title, $type, $idnumber, $contact, $location)
+function as_db_location_create($type, $title, $code, $details, $content, $parentid = null)
+{
+	if (isset($parentid))
+	{
+		as_db_query_sub(
+			'INSERT INTO ^locations (parentid, type, title, code, details, content, created) 
+			VALUES (#, $, $, $, $, $, NOW())',
+			$parentid, $type, $title, $code, $details, $content
+		);
+	}
+	else
+	{
+		as_db_query_sub(
+			'INSERT INTO ^locations (type, title, code, details, content, created) 
+			VALUES ($, $, $, $, $, NOW())',
+			$type, $title, $code, $details, $content
+		);
+	}
+	
+	$locationid = as_db_last_insert_id();
+
+	return $locationid;
+}
+
+function as_db_customer_register($userid, $business, $title, $phone, $email, $location1, $location2, $location3)
 {
 	as_db_query_sub(
-		'INSERT INTO ^customers (userid, business, title, type, idnumber, contact, location, created) ' .
-		'VALUES (#, #, $, $, $, $, $, NOW())',
-		$userid, $business, $title, $type, $idnumber, $contact, $location
+		'INSERT INTO ^customers (userid, business, title, phone, email, location1, location2, location3, created) ' .
+		'VALUES (#, #, $, $, $, #, #, #, NOW())',
+		$userid, $business, $title, $phone, $email, $location1, $location2, $location3
 	);
 	return as_db_last_insert_id();
 }

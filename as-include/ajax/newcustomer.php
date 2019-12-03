@@ -39,7 +39,7 @@ $location = $region . ' xx ' . $city . ' xx ' . $road;
 
 $userid = as_get_logged_in_userid();
 
-$customerid = as_db_customer_register($userid, $business, $title, $type, $idnumber, $contact, $location);
+$customerid = as_db_customer_register($userid, $business, $title, $phone, $email, $location1, $location2, $location3);
 
 if ($customerid) {
 	echo "AS_AJAX_RESPONSE\n1\n";
