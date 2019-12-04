@@ -352,7 +352,7 @@ class BxStockDept extends BxDepartment
 
                 $bodycontent = array(
                     'type' => 'custom', 'title' => 'STOCK VIEW', 'theme' => 'primary',
-                    'body' => '<div id="main_content"></div>',
+                    'body' => '<div id="main_content" style="margin: 10px;"></div>',
             
                     'icon' => array(
                         'fa' => 'arrow-left',
@@ -408,7 +408,7 @@ class BxStockDept extends BxDepartment
                 );
                      
                 $as_content['script_onloads'][] = array(
-                    "tableview('stockview', ".$department->businessid.")"
+                    "as_tableview('stockview', ".$department->businessid.")"
                 );
 
                 if (as_get('alert') != null) 

@@ -19,7 +19,7 @@
 
 // General page functions
 
-function tableview(datatype, business)
+function as_tableview(datatype, business)
 {
 	var contentview = document.getElementById('main_content');
 
@@ -30,7 +30,8 @@ function tableview(datatype, business)
 	as_ajax_post('tableview', params, function(lines) 
 	{
 		if (lines[0] == '1') {
-			contentview.innerHTML = lines.slice(1).join('\n');
+			contentview.innerHTML = lines.slice(1).join('\n');			
+			as_table_export();
 			//as_show_waiting_after(elem, false);
 		} else if (lines[0] == '0') {
 			//as_show_waiting_after(elem, false);
@@ -1173,11 +1174,12 @@ function as_pm_click(messageid, target, box)
 	return false;
 }
 
-$(document).ready(function() {
+function as_table_export()
+{
 	var table = $('#as-table').DataTable( {
-		"lengthMenu": [[10,25,50,100,500, -1], [10,25,50,100,500, "All"]],
+		"lengthMenu": [[25,50,100,500, -1], [25,50,100,500, "All"]],
 		dom: 'Bfrtlip',
-		"order": [[ 3, "desc" ]],
+		"order": [[ 0, "asc" ]],
 
 		colVis: {
 			order: 'alpha',
@@ -1217,6 +1219,7 @@ $(document).ready(function() {
 			{ aTargets: [0], bSortable: false }
 		],
 	});
+	
 	// Apply the filter
 	$("#as-table tfoot input").on( 'keyup change', function () {
 		table
@@ -1242,6 +1245,10 @@ $(document).ready(function() {
 		$('#check-button').show();	
 		event.preventDefault();
 	});
+}
+
+$(document).ready(function() {
+	as_table_export();
 } );
 
 (function ($) {

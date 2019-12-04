@@ -522,7 +522,7 @@ if ($setmissing) {
 
 		'style' => 'tall',
 
-		'table' => array( 'id' => 'allproducts', 'inline' => true,
+		'table' => array( 'id' => 'as-table', 'inline' => true,
 			'headers' => array('#', 'ProductID', 'Category', 'Code', 'Length', 'Width', 'Height/Thickness', 
 			'Fill', 'Fill-material', 'Weight', 'Color', 'Type/Pattern', '*') ),
 
@@ -570,22 +570,12 @@ if ($setmissing) {
 
 		}
 		
-		$as_content['script_onloads'][] = array(
-			"$(function () { $('#allproducts').DataTable() })"
-		  );
+		/*$as_content['script_onloads'][] = array(
+			"$(function () { $('#as-table').DataTable() })"
+		  );*/
+		  
+		  $as_content['script_src'][] = as_opt('site_url').'as-content/as-tables.js?'.AS_VERSION;
 	} else unset($as_content['form']['buttons']['save']);
-}
-
-if (as_get('recalc')) {
-	$as_content['form']['ok'] = '<span id="recalc_ok">' . as_lang_html('admin/recalc_categories') . '</span>';
-	$as_content['form']['hidden']['code_recalc'] = as_get_form_security_code('admin/recalc');
-
-	$as_content['script_rel'][] = 'as-content/as-admin.js?' . AS_VERSION;
-	$as_content['script_var']['as_warning_recalc'] = as_lang('admin/stop_recalc_warning');
-
-	$as_content['script_onloads'][] = array(
-		"as_recalc_click('dorecalccategories', document.getElementById('dosaveoptions'), null, 'recalc_ok');"
-	);
 }
 
 return $as_content;

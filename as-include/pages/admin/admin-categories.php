@@ -577,7 +577,7 @@ if ($setmissing) {
 			),
 		),
 		
-		'table' => array( 'id' => 'allcategories', 'headers' => array('*', '#', 'Title', 'Item Slug', 'Created', 'Modified', '*') ),		
+		'table' => array( 'id' => 'as-tables', 'headers' => array('*', '#', 'Title', 'Item Slug', 'Created', 'Modified', '*') ),		
 
 		'tools' => array(
 			'add' => array(
@@ -641,16 +641,6 @@ if ($setmissing) {
 		unset($as_content['form']['buttons']['save']);
 }
 
-if (as_get('recalc')) {
-	$as_content['form']['ok'] = '<span id="recalc_ok">' . as_lang_html('admin/recalc_categories') . '</span>';
-	$as_content['form']['hidden']['code_recalc'] = as_get_form_security_code('admin/recalc');
-
-	$as_content['script_rel'][] = 'as-content/as-admin.js?' . AS_VERSION;
-	$as_content['script_var']['as_warning_recalc'] = as_lang('admin/stop_recalc_warning');
-
-	$as_content['script_onloads'][] = array(
-		"as_recalc_click('dorecalccategories', document.getElementById('dosaveoptions'), null, 'recalc_ok');"
-	);
-}
+$as_content['script_src'][] = as_opt('site_url').'as-content/as-tables.js?'.AS_VERSION;
 
 return $as_content;

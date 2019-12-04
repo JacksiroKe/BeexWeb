@@ -150,7 +150,7 @@
         {
             parent::body_hidden();
             $js_paths = array(
-                    'jquery'     => 'bower_components/jquery/dist/jquery.min.js',
+                    //'jquery'     => 'bower_components/jquery/dist/jquery.min.js',
                     'jquery_ui'     => 'bower_components/jquery-ui/jquery-ui.min.js',
                     'bootstrap'     => 'bower_components/bootstrap/dist/js/bootstrap.min.js',
                     'bluelte'     => 'dist/js/bluelte.min.js',
