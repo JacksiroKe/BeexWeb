@@ -1,4 +1,4 @@
-$manager['firstname']<?php
+<?php
 /*
 	AppSmata by AppSmata Sol.
 	http://www.appsmata.org/
