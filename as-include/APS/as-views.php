@@ -349,7 +349,6 @@
   function as_order_form() 
   {
     $html = '<form class="form-horizontal" method="post">';
-    $html .= '<div class="box-body">';
     
     $html .= '<input type="hidden" id="stockid" />';
     $html .= '<input type="hidden" id="actual_stock" />';
