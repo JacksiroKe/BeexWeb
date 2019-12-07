@@ -58,9 +58,10 @@ function as_ajax_db_fail_handler()
 $routing = array(
 	'addmanager' => 'addmanager.php',
 	'addmanager_d' => 'addmanager-d.php',
-	'searchuser' => 'searchuser.php',
-	'searchuser_d' => 'searchuser-d.php',
-	'searchitem' => 'searchitem.php',
+	'searchcustomer' => 'search-customer.php',
+	'searchuser' => 'search-user.php',
+	'searchuser_d' => 'search-user-d.php',
+	'searchitem' => 'search-item.php',
 	'addstock' => 'addstock.php',
 	'countyselect' => 'countyselect.php',
 	'countyselect_sub' => 'countyselect-sub.php',

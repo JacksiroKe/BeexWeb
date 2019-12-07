@@ -41,7 +41,7 @@ foreach ($itemresults as $result)
 	$sincetime = as_time_to_string(as_opt('db_time') - $result['created']);
 	$joindate = as_when_to_html($result['created'], 0);
 	   
-	$htmlresult .= '<li class="item stock-item-result"  onclick="as_show_quick_form(\'mansearch_'.$result['userid'].'\')">';
+	$htmlresult .= '<li class="item list-item-result"  onclick="as_show_quick_form(\'mansearch_'.$result['userid'].'\')">';
 	$htmlresult .= '<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $result).'</div>';
 	$htmlresult .= '<div class="product-info">';
 	$htmlresult .= '<span class="product-title" style="font-size: 20px;">'.$result['firstname'].' '.$result['lastname'].' - ' .$gender. ' ' .

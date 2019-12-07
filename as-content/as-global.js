@@ -127,7 +127,46 @@ function as_select_subcounty()
 	});
 }
 
-function as_searchuser_change()
+function as_search_customer_change()
+{
+	var params = {};
+	params.item_biz = document.getElementById('businessid').value;
+	params.searchtext = document.getElementById('searchcustomer').value;
+	if(params.searchtext.length > 3)
+	{ 
+		as_conceal('#order_item_search');
+
+		as_ajax_post('searchcustomer', params, function(lines) {
+			if (lines[0] == '1') {
+				var resultsview = document.getElementById('search_customer_results');
+				resultsview.innerHTML = lines.slice(1).join('\n');
+			} else if (lines[0] == '0') {
+				as_show_waiting_after(elem, false);
+			} else {
+				as_ajax_error();
+			}
+		});
+	}
+}
+
+function as_select_customer(item_id)
+{
+	var itemstr = item_id.split('_');
+	//document.getElementById('selected_customer').value = customerid;
+
+	//as_reveal('#order_item_search');
+	//document.getElementById('item_results').innerHTML = '';
+}
+
+function as_show_order_form(customerid)
+{
+	document.getElementById('selected_customer').value = customerid;
+
+	as_reveal('#order_item_search');
+	document.getElementById('item_results').innerHTML = '';
+}
+
+function as_search_user_change()
 {
 	var params = {};
 	params.item_biz = document.getElementById('businessid').value;
@@ -136,9 +175,8 @@ function as_searchuser_change()
 	{ 
 		as_ajax_post('searchuser', params, function(lines) {
 			if (lines[0] == '1') {
-				var resultsview = document.getElementById('search_results');
+				var resultsview = document.getElementById('search_user_results');
 				resultsview.innerHTML = lines.slice(1).join('\n');
-				//as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
 				as_show_waiting_after(elem, false);
 			} else {
@@ -146,10 +184,9 @@ function as_searchuser_change()
 			}
 		});
 	}
-	//as_show_waiting_after(document.getElementById('manager_results'), true);
 }
 
-function as_searchuser_change_d()
+function as_search_user_change_d()
 {
 	var params = {};
 	params.item_dept = document.getElementById('department_id').value;
@@ -160,7 +197,6 @@ function as_searchuser_change_d()
 			if (lines[0] == '1') {
 				var resultsview = document.getElementById('manager_results');
 				resultsview.innerHTML = lines.slice(1).join('\n');
-				//as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
 				as_show_waiting_after(elem, false);
 			} else {
@@ -168,7 +204,6 @@ function as_searchuser_change_d()
 			}
 		});
 	}
-	//as_show_waiting_after(document.getElementById('manager_results'), true);
 }
 
 function as_change_business_role(elem, businessid, userid)
@@ -181,21 +216,16 @@ function as_change_business_role(elem, businessid, userid)
 	as_ajax_post('addmanager', params, function(lines) 
 	{
 		if (lines[0] == '1') {
-			var feedback = document.getElementById('feeback_results');
-			//var searchview = document.getElementById('search_results');
+			var feedback = document.getElementById('feeback_user_results');
 			var listview = document.getElementById('list_results');
 			var fbstr = lines.slice(1).join('\n').split('xqx');
 			feedback.innerHTML = fbstr[0];
-			//searchview.innerHTML = fbstr[1];
 			listview.innerHTML = fbstr[1];
-			//as_show_waiting_after(elem, false);
 		} else if (lines[0] == '0') {
-			//as_show_waiting_after(elem, false);
 		} else {
 			as_ajax_error();
 		}
 	});
-	//as_show_waiting_after(document.getElementById('managers_feedback'), true);
 	return false;
 }
 
@@ -224,26 +254,25 @@ function as_change_business_role_d(userid)
 	return false;
 }
 
-function as_searchitem_change()
+function as_search_item_change(resulttype)
 {
 	var params = {};
+	params.result_type = resulttype;
 	params.item_biz = document.getElementById('business_id').value;
-	params.searchtext = document.getElementById('searchitem').value;
-	if(params.searchtext.length > 1)
+	params.search_text = document.getElementById('search_item').value;
+
+	if(params.search_text.length > 1)
 	{ 
 		as_ajax_post('searchitem', params, function(lines) {
 			if (lines[0] == '1') {
-				var simelem = document.getElementById('itemresults');
+				var simelem = document.getElementById('item_results');
 				simelem.innerHTML = lines.slice(1).join('\n');
-				//as_show_waiting_after(elem, false);
 			} else if (lines[0] == '0') {
-				//as_show_waiting_after(elem, false);
 			} else {
 				as_ajax_error();
 			}
 		});
 	}
-	//as_show_waiting_after(document.getElementById('itemresults'), true);
 }
 
 function as_show_quick_form(formid)

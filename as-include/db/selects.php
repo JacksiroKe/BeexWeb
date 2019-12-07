@@ -460,6 +460,35 @@ function as_db_recent_customers($business)
 }
 
 /**
+ * Return the selecspec to retrieve a single array with details of the account of the user identified by
+ * $useridhandle, which should be a userid if $isuserid is true, otherwise $useridhandle should be a handle.
+ * @param $useridhandle
+ * @param $isuserid
+ * @return array
+ */
+function as_db_customer_search_selectspec($search, $business)
+{
+	$selectspec = array(
+		'columns' => array(
+			'customerid', 'type', 'business', 'userid', 'title', 'phone', 'email', 'location1', 'location2', 'location3', 
+			'county' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location1)',
+			'code' => '(SELECT code FROM ^locations WHERE ^locations.locationid=^customers.location1)',
+			'subcounty' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location2)',
+			'town' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location3)',
+			'created' => 'UNIX_TIMESTAMP(created)',
+		),
+
+		'source' => '^customers WHERE' .
+			' ^customers.title LIKE "%' . $search . '%" AND ^customers.business='.$business.
+			' OR ^customers.phone LIKE "%' . $search . '%" AND ^customers.business='.$business.
+			' OR ^customers.email LIKE "%' . $search . '%" AND ^customers.business='.$business,
+		'sortdesc' => 'customerid'
+	);
+	
+	return $selectspec;
+}
+
+/**
  * Return the stock activity for an item.
  * @param $stockid
  * @return array
@@ -486,43 +515,7 @@ function as_db_latest_locations($type, $parentid=null)
 	}
 	return $selectspec;
 }
-/*
 
-	$parentselects = array( // requires AS_CATEGORY_DEPTH=4
-		'SELECT NULL AS parentkey', // top level
-		'SELECT grandparent.parentid FROM ^categories JOIN ^categories AS parent ON ^categories.parentid=parent.categoryid JOIN ^categories AS grandparent ON parent.parentid=grandparent.categoryid WHERE ^categories.' . $identifiersql, // 2 gens up
-		'SELECT parent.parentid FROM ^categories JOIN ^categories AS parent ON ^categories.parentid=parent.categoryid WHERE ^categories.' . $identifiersql,
-		// 1 gen up
-		'SELECT parentid FROM ^categories WHERE ' . $identifiersql, // same gen
-		'SELECT categoryid FROM ^categories WHERE ' . $identifiersql, // gen below
-	);
-
-	$columns = array(
-		'parentid' => '^categories.parentid', 'title' => '^categories.title', 'tags' => '^categories.tags', 'pcount' => '^categories.pcount', 'stock' => '^categories.stock', 'position' => '^categories.position', 'icon' => '^categories.icon'
-	);
-
-	if ($full) {
-		foreach ($columns as $alias => $column) {
-			$columns[$alias] = 'MAX(' . $column . ')';
-		}
-
-		$columns['childcount'] = 'COUNT(child.categoryid)';
-		$columns['content'] = 'MAX(^categories.content)';
-		$columns['backpath'] = 'MAX(^categories.backpath)';
-	}
-
-	array_unshift($columns, '^categories.categoryid');
-
-	$selectspec = array(
-		'columns' => $columns,
-		'source' => '^categories JOIN (' . implode(' UNION ', $parentselects) . ') y ON ^categories.parentid<=>parentkey' .
-			($full ? ' LEFT JOIN ^categories AS child ON child.parentid=^categories.categoryid GROUP BY ^categories.categoryid' : '') .
-			' ORDER BY ^categories.position',
-		'arguments' => array($slugsorid, $slugsorid, $slugsorid, $slugsorid),
-		'arraykey' => 'categoryid',
-		'sortasc' => 'position',
-	);
-*/
 /**
  * Return the selecspec to retrieve a single array with details of the account of the user identified by
  * $useridhandle, which should be a userid if $isuserid is true, otherwise $useridhandle should be a handle.

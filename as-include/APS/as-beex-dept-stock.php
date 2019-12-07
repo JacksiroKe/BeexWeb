@@ -209,13 +209,10 @@ class BxStockDept extends BxDepartment
         switch ($section) {
 
             case 'orders':
-                $bodycontent = array(
+                $toppanel = array(
                     'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
-                    'type' => 'form', 'title' => 'ORDERS - ' . $as_content['title'], 'style' => 'tall',
+                    'type' => 'form', 'title' => 'MANAGE ORDERS', 'style' => 'tall',
             
-                    'table' => array( 'id' => 'allorders', 'inline' => true,
-                        'headers' => array('#', 'ProductID', 'Category', 'Item Code', 'Actual Stock', 'Available Stock', 'Date of Entry', '*') ),
-                   
                     'icon' => array(
                         'fa' => 'arrow-left',
                         'url' => as_path_html( 'department/' . $department->departid ),
@@ -224,17 +221,6 @@ class BxStockDept extends BxDepartment
                     ),
                     
                     'tools' => array(
-                        /*'stock' => array(
-                            'type' => 'button_md',
-                            'url' => '#modal-entry',
-                            'class' => 'btn btn-primary',
-                            'label' => 'MANAGE STOCK',
-                        ),
-                        'x' => array(
-                            'type' => 'link', 'label' => ' ',
-                            'url' => '#', 
-                            'class' => 'btn btn-tool',
-                        ),*/
                         'managers' => array(
                             'type' => 'button_md',
                             'url' => '#modal-dmanagers',
@@ -242,108 +228,48 @@ class BxStockDept extends BxDepartment
                             'label' => 'MANAGERS',
                         ),
                     ),
-                    
-                    'hidden' => array(
-                        'code' => as_get_form_security_code('admin/products'),
-                    ),
                 );
             
-                if (count($products)) {
-                    $p = 1;
-                    foreach ($products as $product) {
-                        $bodycontent['table']['rows'][$p] = array(
-                            'title' => 'Click on this product to edit or view',
-                            'tags' => 'data-toggle="modal" data-target="#modal-item'.$p.'" ',
-                            'fields' => array(
-                                'id' => array( 'data' => $p),
-                                'title' => array( 'data' => as_get_media_html($product['icon'], 20, 20) . as_html($product['title']) ),
-                                'cat' => array( 'data' => $product['category']),
-                                'itemcode' => array( 'data' => $product['itemcode']),
-                                'actual' => array( 'data' => $product['actual'] ),
-                                'available' => array( 'data' => $product['available'] ),
-                                'date' => array( 'data' => as_format_date($product['delivered'], true) ),
-                                '*' => array( 'data' => '' ),
-                            ),
-                        );
-                        $p++;            
-                    }
-                    
-                    /*$as_content['script_onloads'][] = array(
-                        "$(function () { $('#allorders').DataTable() })"
-                    );*/
-                    
-                    $m = 1;
-                    foreach ($products as $product) {
-                        $product['stock'] = (isset($product['quantity']) ? $product['quantity'] : 0);
-                        $producthtml = '<div id="itemresults_'.$product['postid'].'"></div>';
-                        $producthtml .= '<div class="nav-tabs-custom">';
-
-                        $producthtml .= '<ul class="nav nav-tabs">';
-                        $producthtml .= '<li class="active"><a href="#item-about'.$product['postid'].'" data-toggle="tab">ITEM INFORMATION</a></li>';
-                        $producthtml .= '<li><a href="#item-history'.$product['postid'].'" data-toggle="tab">STOCK HISTORY</a></li>';
-                        $producthtml .= '<li><a href="#item-entry'.$product['postid'].'" data-toggle="tab">RECEIVE</a></li>';
-                        $producthtml .= '<li><a href="#item-exit'.$product['postid'].'" data-toggle="tab">ISSUE</a></li>';
-                        $producthtml .= '</ul>';
-                        
-                        $producthtml .= '<div class="tab-content no-padding">';
-                        
-                        $producthtml .= '<div class="tab-pane" id="item-entry'.$product['postid'].'" style="position: relative;">';	
-                        $producthtml .= as_stock_add_form('table', $product);
-                        $producthtml .= '</div>';
-
-                        $producthtml .= '<div class="tab-pane" id="item-exit'.$product['postid'].'" style="position: relative;">';	
-                        $producthtml .= as_stock_issue_form('give', $product, $customers);
-                        $producthtml .= '</div>';
-
-                        $producthtml .= '<div class="chart tab-pane" id="item-history'.$product['postid'].'" style="position: relative;">';
-                        
-                        $stockids = as_db_find_by_stockitem($product['postid'], $department->businessid);
-                        if (count($stockids))
-                        {
-                            $history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
-                            $producthtml .= as_stock_history($history, $product['available']);
-                            $producthtml .= '</div>';
-                        }
-                        else
-                        {
-                            $producthtml .= '<h3>No Stock History for this product at the moment</h3></div>';
-                        }
-
-                        $producthtml .= '<div class="tab-pane active" id="item-about'.$product['postid'].'" style="position: relative;">';	
-                        $producthtml .= as_product_dialog($product);
-                        $producthtml .= '</div>';
-
-                        $producthtml .= '</div>';
-
-                        $producthtml .= '</div>';
-                        $producthtml .= '</div>';
-                        $producthtml .= '</div>';
-                        $producthtml .= '</div>';
-
-                        $modalboxes['modal-item'.$m] = array(
-                            'class' => 'modal fade',
-                            'header' => array(
-                                'title' =>  'ITEM VIEW: ' .strtoupper($product['title']),
-                            ),
-                            'view' => array(
-                                'type' => 'html', 
-                                'html' => $producthtml,
-                            ),
-                        );                        
-                        $m++; 
-                    }
-                }
-                
                 if (as_get('alert') != null) 
-                    $bodycontent['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
+                    $toppanel['alert_view'] = array('type' => as_get('alert'), 'message' => as_get('message'));
 
                 if (as_get('callout') != null) 
-                    $bodycontent['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
+                    $toppanel['callout_view'] = array('type' => as_get('callout'), 'message' => as_get('message'));
 
+                $customer_search = array(
+                    'id' => 'latest_towns', 'theme' => 'primary',
+                    'type' => 'custom',
+                    'title' => 'SEARCH FOR A CUSTOMER', 
+                    'body' => '<div class="box-body" id="customer_search">'.as_business_customers_search($department->businessid).'</div>',
+                );
+                
+                $item_search = array(
+                    'id' => 'latest_towns', 'theme' => 'primary',
+                    'type' => 'custom',
+                    'title' => 'SEARCH FOR AN ITEM', 
+                    'body' => '<div class="box-body" id="order_item_search" style="display:none;">'.
+                        as_business_items_search($department->businessid, 'outline').'</div>',
+                );
+                
+                $order_preview = array(
+                    'id' => 'latest_towns', 'theme' => 'primary',
+                    'type' => 'custom',
+                    'title' => 'ORDER PREVIEW',
+                    'body' => '<div class="box-body" id="order_preview">'.as_order_form().'</div>',
+                );
+                
                 $as_content['row_view'][] = array(
                     'colms' => array(
-                        0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($bodycontent) ),
+                        0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($toppanel ) ),
                         1 => array('class' => 'col-lg-12 col-xs-12', 'modals' => $modalboxes ),
+                    ),
+                );
+                
+                $as_content['row_view'][] = array(
+                    'colms' => array(
+                        0 => array('class' => 'col-lg-4 col-xs-12', 'c_items' => array($customer_search ) ),
+                        1 => array('class' => 'col-lg-4 col-xs-12', 'c_items' => array($item_search ) ),
+                        2 => array('class' => 'col-lg-4 col-xs-12', 'c_items' => array($order_preview ) ),
                     ),
                 );
                 break;
@@ -377,7 +303,7 @@ class BxStockDept extends BxDepartment
                             'type' => 'link',
                             'url' => as_path_html( 'department/' . $department->departid, array('section' => 'orders') ),
                             'class' => 'btn btn-primary',
-                            'label' => 'VIEW ORDERS',
+                            'label' => 'MANAGE ORDERS',
                         ),
                         'xx' => array(
                             'type' => 'link', 'label' => ' ',
@@ -401,7 +327,7 @@ class BxStockDept extends BxDepartment
                         'fields' => array(
                             'namesearch' => array(
                                 'type' => 'custom',
-                                'html' => as_search_items($department->businessid),
+                                'html' => as_business_items_search($department->businessid, 'inline'),
                             ),
                         ),
                     ),
