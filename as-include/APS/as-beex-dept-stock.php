@@ -239,23 +239,33 @@ class BxStockDept extends BxDepartment
                 $customer_search = array(
                     'id' => 'latest_towns', 'theme' => 'primary',
                     'type' => 'custom',
-                    'title' => 'SEARCH FOR A CUSTOMER', 
+                    'title' => 'CUSTOMER SEARCH', 
                     'body' => '<div class="box-body" id="customer_search">'.as_business_customers_search($department->businessid).'</div>',
                 );
                 
                 $item_search = array(
-                    'id' => 'latest_towns', 'theme' => 'primary',
+                    'theme' => 'primary',
+                    'id' => 'item_search',
+                    'tags' => 'style="display:none;"', 
                     'type' => 'custom',
-                    'title' => 'SEARCH FOR AN ITEM', 
-                    'body' => '<div class="box-body" id="order_item_search" style="display:none;">'.
+                    'title' => 'ITEM SEARCH', 
+                    'body' => '<div class="box-body">'.
                         as_business_items_search($department->businessid, 'outline').'</div>',
                 );
                 
                 $order_preview = array(
-                    'id' => 'latest_towns', 'theme' => 'primary',
+                    'theme' => 'primary',
+                    'id' => 'order_preview',
+                    'tags' => 'style="display:none;"', 
                     'type' => 'custom',
-                    'title' => 'ORDER PREVIEW',
-                    'body' => '<div class="box-body" id="order_preview">'.as_order_form().'</div>',
+                    'title' => '<span id="customer_name">ORDER PREVIEW</span>',
+                    'body' => '<div class="box-body">'.as_order_form().'</div>',
+                    'tools' => array(
+                        'today' => array(
+                            'type' => 'small',
+                            'label' => 'Date: '.date('d/m/Y'),
+                        ),
+                    ),
                 );
                 
                 $as_content['row_view'][] = array(
@@ -267,9 +277,9 @@ class BxStockDept extends BxDepartment
                 
                 $as_content['row_view'][] = array(
                     'colms' => array(
-                        0 => array('class' => 'col-lg-4 col-xs-12', 'c_items' => array($customer_search ) ),
+                        0 => array('class' => 'col-lg-3 col-xs-12', 'c_items' => array($customer_search ) ),
                         1 => array('class' => 'col-lg-4 col-xs-12', 'c_items' => array($item_search ) ),
-                        2 => array('class' => 'col-lg-4 col-xs-12', 'c_items' => array($order_preview ) ),
+                        2 => array('class' => 'col-lg-5 col-xs-12', 'c_items' => array($order_preview ) ),
                     ),
                 );
                 break;

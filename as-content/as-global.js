@@ -149,21 +149,22 @@ function as_search_customer_change()
 	}
 }
 
-function as_select_customer(item_id)
+function as_select_customer(customerid, details)
 {
-	var itemstr = item_id.split('_');
 	//document.getElementById('selected_customer').value = customerid;
+	//document.getElementById('customer_name').innerHTML = 'ORDER: ' + details;
 
-	//as_reveal('#order_item_search');
+	as_reveal('#item_search');
 	//document.getElementById('item_results').innerHTML = '';
 }
 
-function as_show_order_form(customerid)
+function as_show_order_form(item_id)
 {
-	document.getElementById('selected_customer').value = customerid;
+	var itemstr = item_id.split('_');
+	//document.getElementById('selected_customer').value = itemstr[0];
 
-	as_reveal('#order_item_search');
-	document.getElementById('item_results').innerHTML = '';
+	as_reveal('#order_preview');
+	//document.getElementById('item_results').innerHTML = '';
 }
 
 function as_search_user_change()

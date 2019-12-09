@@ -222,7 +222,6 @@
 
   function as_products_search($businessid, $products, $type = 'inline')
   {
-    $html = '<div class="box-body">';
     $html .= '<ul class="products-list">';
     
     foreach ($products as $product) 
@@ -243,7 +242,7 @@
       $html .= ' - <span style="color: #f00;">' . $product['itemcode']. '</span></span>';
       
       $html .= '<table style="width:100%;"><tr><td>';
-      $html .= '<span class="product-description" style="color: #000; width:320px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
+      $html .= '<span class="product-description" style="color: #000; width:275px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
       if ($product['content'] != '') $html .= '<span style="color: #151B8D; font-size: 18px;">' . $product['content'] . '</span>';
       $html .= '<table><tr><td><b>Volume</b></td><td><b> : </b></td><td> ' .$product['volume'].'</td></tr>';
       $html .= '<tr><td><b>Mass</b></td><td><b> : </b></td><td> ' . $product['mass'].'</td></tr>';
@@ -296,7 +295,6 @@
     }
     
     $html .= "\n</ul>";
-    $html .= "\n</div>";
     return $html;
   }
 

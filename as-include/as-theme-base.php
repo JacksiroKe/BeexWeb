@@ -1224,6 +1224,9 @@ class as_html_theme_base
 						$this->output("\t\t".'<span class="label label-' . @$tool['theme'] . '">' . @$tool['label'] . '</span>');
 						break;
 					
+					case 'small':
+						$this->output("\t\t".'<small class="pull-right">' . @$tool['label'] . '</small>');
+						break;
 				}
 			}
 			$this->output("\t\t".'</div>');
@@ -1337,7 +1340,10 @@ class as_html_theme_base
 				$this->output("\t\t".'<section class="'.$row['section'].'">');
 							
 			foreach ($row['colms'] as $bx => $column) {
-				$this->output("\t\t".'<div class="'.$column['class'].'">');
+				$this->output("\t\t".'<div class="'.$column['class'].'"'.
+					(isset($column['id']) ? ' id="'.$column['id'].'"' : '').
+					(isset($column['tags']) ? ' '.$column['tags'] : '').
+					'>');
 				
 				if (isset($column['extras'])) 
 					foreach ($column['extras'] as $xt => $extras) $this->output($extras);
@@ -1415,7 +1421,8 @@ class as_html_theme_base
 	public function custom($html)
 	{
 		if (!empty($html)) {
-			$this->output("\t\t".'<div class="box box-'.$html['theme'].'">');
+			$this->output("\t\t".'<div class="box box-'.$html['theme'].'"'.(isset($html['id']) ? ' id="'.$html['id'].'"' : '').
+			(isset($html['tags']) ? ' '.$html['tags'] : '').'>');
 			
 			if (isset($html['title'])) $this->box_title($html);
 				
@@ -1521,7 +1528,8 @@ class as_html_theme_base
 	public function carousel($carousel)
 	{
 		if (!empty($carousel)) {
-			$this->output("\t\t".'<div class="box box-primary">');
+			$this->output("\t\t".'<div class="box box-primary"'.(isset($carousel['id']) ? ' id="'.$carousel['id'].'"' : '').
+			(isset($carousel['tags']) ? ' '.$carousel['tags'] : '').'>');
 			
 			if (isset($carousel['title'])) $this->box_title($carousel);
 			
@@ -1559,7 +1567,8 @@ class as_html_theme_base
 	public function box_view($box)
 	{
 		if (isset($box)) {
-			if (isset($box['theme'])) $this->output("\t\t".'<div class="box box-'.$box['theme'].'">');
+			if (isset($box['theme'])) $this->output("\t\t".'<div class="box box-'.$box['theme'].'"'.(isset($box['id']) ? ' id="'.$box['id'].'"' : '').
+			(isset($box['tags']) ? ' '.$box['tags'] : '').'>');
 			
 			if (isset($box['title'])) $this->box_title($box);
 				
@@ -1647,7 +1656,8 @@ class as_html_theme_base
 	public function list_view($box)
 	{
 		if (!empty($box)) {
-			$this->output("\t\t".'<div class="box box-'.$box['theme'].'">');
+			$this->output("\t\t".'<div class="box box-'.$box['theme'].'"'.(isset($box['id']) ? ' id="'.$box['id'].'"' : '').
+			(isset($box['tags']) ? ' '.$box['tags'] : '').'>');
 			
 			if (isset($box['title'])) $this->box_title($box);
 				
@@ -1682,7 +1692,8 @@ class as_html_theme_base
 	public function dashlist_view($dashlist)
 	{
 		if (!empty($dashlist)) {
-			$this->output("\t\t".'<div class="box box-'.$dashlist['theme'].'">');
+			$this->output("\t\t".'<div class="box box-'.$dashlist['theme'].'"'.(isset($dashlist['id']) ? ' id="'.$dashlist['id'].'"' : '').
+			(isset($dashlist['tags']) ? ' '.$dashlist['tags'] : '').'>');
 			
 			if (isset($dashlist['title'])) $this->box_title($dashlist);
 			
@@ -1719,7 +1730,8 @@ class as_html_theme_base
 	public function bslist_view($dashlist)
 	{
 		if (!empty($dashlist)) {
-			$this->output("\t\t".'<div class="box box-'.$dashlist['theme'].'">');
+			$this->output("\t\t".'<div class="box box-'.$dashlist['theme'].'"'.(isset($dashlist['id']) ? ' id="'.$dashlist['id'].'"' : '').
+			(isset($dashlist['tags']) ? ' '.$dashlist['tags'] : '').'>');
 			
 			if (isset($dashlist['title'])) $this->box_title($dashlist);
 			
