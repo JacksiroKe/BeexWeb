@@ -231,7 +231,7 @@
       $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
 
       if ($type == 'outline')
-        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with item Order" onclick="as_show_order_form(\'item_'.$product['postid'].'\')">';
+        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with item Order" onclick="as_addto_order_form(\'item_'.$product['postid'].'\')">';
       else
         $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'item_'.$product['postid'].'\')">';
 
@@ -346,21 +346,65 @@
 
   function as_order_form() 
   {
-    $html = '<form class="form-horizontal" method="post">';
+    $html = '<div class="row invoice-info">';
+    $html .= '<div class="col-sm-8 invoice-col" id="customer_details"></div>';
+    $html .= '<div class="col-sm-4 invoice-col">';
+    //$html .= '<b>Invoice #007612</b><br><br>';
+    $html .= '<b>Order ID:</b> 00001<br>';
+    $html .= '<b>Payment Due:</b> '.date('d/m/Y').'<br>';
+    //$html = '<b>Account:</b> 968-34567';
+    $html .= '</div></div>';
+    $html .= '<div class="row">';
+    $html .= '<div class="col-xs-12 table-responsive" id="wishlist">';
     
-    $html .= '<input type="hidden" id="stockid" />';
-    $html .= '<input type="hidden" id="actual_stock" />';
-    $html .= '<input type="hidden" id="available_stock" />';
+    $html .= '</div></div>';
 
-    $html .= '<div class="row"><div class="form-group">
-      <label class="col-sm-3 control-label">Quantity</label>
-      <div class="col-sm-9">
-      <input type="number" placeholder="1" min="1" class="form-control" id="quantity" required />
-      </div></div></div><br>';
+    $html .= '<div class="row">';
+    $html .= '<div class="col-xs-3"></div>';
+    /*$html .= '<p class="lead">Payment Methods:</p>
+      <img src="../../dist/img/credit/visa.png" alt="Visa">
+      <img src="../../dist/img/credit/mastercard.png" alt="Mastercard">
+      <img src="../../dist/img/credit/american-express.png" alt="American Express">
+      <img src="../../dist/img/credit/paypal2.png" alt="Paypal">
 
-    $html .= '<div class="box-footer">';
-    $html .= '<input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Submit" onclick="as_show_waiting_after(this, false); return as_submit_order();" />';
-    $html .= '</div></form>';
+      <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
+        Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles, weebly ning heekya handango imeem plugg
+        dopplr jibjab, movity jajah plickers sifteo edmodo ifttt zimbra.
+      </p>
+    </div>';*/
+
+    $html .= '<div class="col-xs-9">';
+    $html .= '<p class="lead" id="amountdue">Amount Due '.date('d/m/Y').':</p>';
+    /*$html .= '<div class="table-responsive">';
+    $html .= '<table class="table">';
+    $html .= '<tr><th style="width:50%">Subtotal:</th>
+            <td>$250.30</td>
+          </tr>
+          <tr>
+            <th>Tax (9.3%)</th>
+            <td>$10.34</td>
+          </tr>
+          <tr>
+            <th>Shipping:</th>
+            <td>$5.80</td>
+          </tr>
+          <tr>
+            <th>Total:</th>
+            <td>$265.24</td>
+          </tr>
+        </table>';
+    $html .= '</div>';*/
+    $html .= '</div></div>';
+  
+    $html .= '<div class="row no-print">';
+    $html .= '<div class="col-xs-12">';
+    //$html .= '<a href="invoice-print.html" target="_blank" class="btn btn-default"><i class="fa fa-print"></i> Print</a>';
+    $html .= '<button type="button" class="btn btn-success pull-right"><i class="fa fa-credit-card"></i> Submit Order
+      </button>';
+    /*$html .= '<button type="button" class="btn btn-primary pull-right" style="margin-right: 5px;">
+        <i class="fa fa-download"></i> Generate PDF
+      </button>';*/
+    $html .= '</div></div>';
 
     return $html;
   }

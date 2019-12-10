@@ -415,6 +415,31 @@ function as_db_products_selectspec($sort, $business = null, $search = null, $sto
 }
 
 /**
+ * Return the selectspec to retrieve items (of type $specialtype if provided, or 'P' by default) sorted by $sort,
+ * restricted to $createip (if not null) and the category for $categoryslugs (if not null), with the corresponding like
+ * made by $likeuserid (if not null) and including $full content or not. Return $count (if null, a default is used)
+ * items starting from offset $start.
+ * @param $likeuserid
+ * @param $sort
+ * @param $start
+ * @param $categoryslugs
+ * @param $createip
+ * @param bool $specialtype
+ * @param bool $full
+ * @param $count
+ * @return array
+ */
+function as_db_product_selectspec($postid)
+{
+	$selectspec = as_db_products_basic_selectspec();
+	$selectspec['source'] .= ' LEFT JOIN ^categories AS childcat ON ^posts.categoryid=childcat.categoryid';
+	$selectspec['source'] .= ' LEFT JOIN ^categories AS parent ON childcat.parentid=parent.categoryid';
+	$selectspec['source'] .= ' WHERE ^posts.postid=' . $postid;
+
+	return $selectspec;
+}
+
+/**
  * Return the stock activity for an item.
  * @param $stockid
  * @return array
@@ -486,6 +511,31 @@ function as_db_customer_search_selectspec($search, $business)
 	);
 	
 	return $selectspec;
+}
+
+/**
+ * Return the selecspec to retrieve a single array with details of the account of the user identified by
+ * $useridhandle, which should be a userid if $isuserid is true, otherwise $useridhandle should be a handle.
+ * @param $useridhandle
+ * @param $isuserid
+ * @return array
+ */
+function as_db_customer_selectspec($customerid)
+{
+	return array(
+		'columns' => array(
+			'customerid', 'type', 'business', 'userid', 'title', 'phone', 'email', 'location1', 'location2', 'location3', 
+			'county' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location1)',
+			'code' => '(SELECT code FROM ^locations WHERE ^locations.locationid=^customers.location1)',
+			'subcounty' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location2)',
+			'town' => '(SELECT title FROM ^locations WHERE ^locations.locationid=^customers.location3)',
+			'created' => 'UNIX_TIMESTAMP(created)',
+		),
+
+		'source' => "^customers WHERE ^customers.customerid=#",
+		'arguments' => array($customerid),
+		'single' => true,
+	);
 }
 
 /**
@@ -1836,7 +1886,6 @@ function as_db_user_account_selectspec($useridhandle, $isuserid)
 		'single' => true,
 	);
 }
-
 
 /**
  * Return the selectspec to retrieve all user profile information of the user identified by

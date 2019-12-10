@@ -36,7 +36,7 @@ $htmlresult .= '<br><br><ul class="products-list product-list-in-box">';
 
 foreach ($itemresults as $result) 
 {
-	$htmlresult .= '<li class="item list-item-result" onclick="as_select_customer('.$result['customerid'].', \''.strtoupper($result['title']).'\')">';
+	$htmlresult .= '<li class="item list-item-result" onclick="as_select_customer('.$result['customerid'].')">';
 	$htmlresult .= '<div class="product-img">';
 	$htmlresult .= '<img src="http://localhost/beexpress/site/as-media/user.jpg" width="20" height="20" class="profile-user-img img-responsive img-circle" style="border-radius: 15px" alt="User Image">';
 	$htmlresult .= '</div>';

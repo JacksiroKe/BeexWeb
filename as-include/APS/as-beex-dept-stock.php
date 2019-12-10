@@ -258,14 +258,8 @@ class BxStockDept extends BxDepartment
                     'id' => 'order_preview',
                     'tags' => 'style="display:none;"', 
                     'type' => 'custom',
-                    'title' => '<span id="customer_name">ORDER PREVIEW</span>',
+                    'title' => '<span>ORDER PREVIEW</span>',
                     'body' => '<div class="box-body">'.as_order_form().'</div>',
-                    'tools' => array(
-                        'today' => array(
-                            'type' => 'small',
-                            'label' => 'Date: '.date('d/m/Y'),
-                        ),
-                    ),
                 );
                 
                 $as_content['row_view'][] = array(

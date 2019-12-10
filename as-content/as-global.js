@@ -132,6 +132,9 @@ function as_search_customer_change()
 	var params = {};
 	params.item_biz = document.getElementById('businessid').value;
 	params.searchtext = document.getElementById('searchcustomer').value;
+	document.getElementById('item_results').innerHTML = '';
+	as_conceal('#order_preview');
+	as_conceal('#item_search');
 	if(params.searchtext.length > 3)
 	{ 
 		as_conceal('#order_item_search');
@@ -149,22 +152,58 @@ function as_search_customer_change()
 	}
 }
 
-function as_select_customer(customerid, details)
+function as_select_customer(customerid)
 {
-	//document.getElementById('selected_customer').value = customerid;
-	//document.getElementById('customer_name').innerHTML = 'ORDER: ' + details;
-
+	document.getElementById('selected_customer').value = customerid;
 	as_reveal('#item_search');
 	//document.getElementById('item_results').innerHTML = '';
+	var params = {};
+	params.customer = customerid;
+	params.infotype = 'customer';
+	as_ajax_post('getinfo', params, function(lines) {
+		if (lines[0] == '1') {
+			var resultsview = document.getElementById('customer_details');
+			resultsview.innerHTML = lines.slice(1).join('\n');
+			//as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
+		}
+	});
 }
 
-function as_show_order_form(item_id)
+function as_addto_order_form(item_id)
 {
 	var itemstr = item_id.split('_');
 	//document.getElementById('selected_customer').value = itemstr[0];
 
+	var formX = document.getElementById('order_preview');
+	if (formX.style.display === "none") as_reveal('#order_preview');
+
 	as_reveal('#order_preview');
-	//document.getElementById('item_results').innerHTML = '';
+	
+	var params = {};
+	params.item = itemstr[1];
+	params.infotype = 'item';
+	as_ajax_post('getinfo', params, function(lines) {
+		if (lines[0] == '1') {
+			var wishlistview = document.getElementById('wishlist');
+			var amountdueview = document.getElementById('amountdue');
+			wishlistview.innerHTML = lines.slice(1).join('\n');
+
+			var wishlistview = document.getElementById('wishlist');
+			var amountdueview = document.getElementById('amountdue');
+			var fbstr = lines.slice(1).join('\n').split('xqx');
+			wishlistview.innerHTML = fbstr[0];
+			amountdueview.innerHTML = fbstr[1];
+			//as_show_waiting_after(elem, false);
+		} else if (lines[0] == '0') {
+			as_show_waiting_after(elem, false);
+		} else {
+			as_ajax_error();
+		}
+	});
 }
 
 function as_search_user_change()
