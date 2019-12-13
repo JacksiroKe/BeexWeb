@@ -175,29 +175,41 @@ function as_select_customer(customerid)
 
 function as_addto_order_form(item_id)
 {
-	var itemstr = item_id.split('_');
-	//document.getElementById('selected_customer').value = itemstr[0];
-
 	var formX = document.getElementById('order_preview');
 	if (formX.style.display === "none") as_reveal('#order_preview');
 
-	as_reveal('#order_preview');
-	
 	var params = {};
-	params.item = itemstr[1];
+	params.itemid = item_id;
 	params.infotype = 'item';
 	as_ajax_post('getinfo', params, function(lines) {
 		if (lines[0] == '1') {
-			var wishlistview = document.getElementById('wishlist');
-			var amountdueview = document.getElementById('amountdue');
-			wishlistview.innerHTML = lines.slice(1).join('\n');
+			var rt_rows = document.getElementById("rtrows");
+			var rt_prices = document.getElementById("rtprices");
+			var wishtable = document.getElementById("wishlist");
+			var amountview = document.getElementById('amountdue');
 
-			var wishlistview = document.getElementById('wishlist');
-			var amountdueview = document.getElementById('amountdue');
+			var rows = parseInt(rt_rows.value) + 1;
+
 			var fbstr = lines.slice(1).join('\n').split('xqx');
-			wishlistview.innerHTML = fbstr[0];
-			amountdueview.innerHTML = fbstr[1];
-			//as_show_waiting_after(elem, false);
+			var prices = parseInt(rt_prices.value) + parseInt(fbstr[4]);
+			
+			var tablerow = wishtable.insertRow(rows);
+			var rowcell1 = tablerow.insertCell(0);
+			var rowcell2 = tablerow.insertCell(1);
+			var rowcell3 = tablerow.insertCell(2);
+			var rowcell4 = tablerow.insertCell(3);
+			var rowcell5 = tablerow.insertCell(4);
+			
+			rowcell1.innerHTML = fbstr[0]; //qty
+			rowcell2.innerHTML = fbstr[1]; //title
+			rowcell3.innerHTML = fbstr[2]; //itemcode
+			rowcell4.innerHTML = fbstr[3]; //content
+			rowcell5.innerHTML = fbstr[4]; //price
+			amountview.innerHTML = fbstr[5] + " " + prices; //amount due
+			
+			rt_rows.value = rows + "";
+			rt_prices.value = prices + "";
+
 		} else if (lines[0] == '0') {
 			as_show_waiting_after(elem, false);
 		} else {

@@ -318,7 +318,7 @@ class BxCustomerCare extends BxDepartment
                         ),
                         
                         'person' => array(
-                            'tags' => 'name="person" autocomplete="off" required',
+                            'tags' => 'name="person" autocomplete="off"',
                             'label' => 'Contact Person',
                         ),
                         
@@ -328,7 +328,7 @@ class BxCustomerCare extends BxDepartment
                         ),
                         
                         'email' => array(
-                            'tags' => 'name="email" autocomplete="off" required',
+                            'tags' => 'name="email" autocomplete="off"',
                             'label' => 'Email Address (Optional)',
                         ),
                         

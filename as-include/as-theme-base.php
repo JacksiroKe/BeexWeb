@@ -1259,7 +1259,6 @@ class as_html_theme_base
 					break;
 			}
 
-			$this->output("\t\t\t\t\t\t".'</div>');
 			$this->output("\t\t\t\t\t".'</div>');
 			$this->output("\t\t\t\t".'</div>');
 			$this->output("\t\t\t".'</div>');
@@ -1713,7 +1712,8 @@ class as_html_theme_base
 
 					if (isset($item['infors'])) {
 						foreach ($item['infors'] as $info) {
-							$this->output("\t\t".'<a class="btn btn-app" style="height: 100px; margin-right:10px;">');
+							$this->output("\t\t".'<a class="btn btn-app" style="height: 100px; margin-right:10px;"'.
+							(isset($info['tags']) ? ' '.$info['tags'] : '').'>');
 							if (isset($info['inew'])) $this->output("\t\t".'<span class="badge bg-green">'.$info['inew'].'</span>');
 							$this->output("\t\t".'<i class="fa fa-'.$info['ibadge'].'"></i><h4>'.$info['icount'].'</h4>'.$info['ilabel'].'</a>');
 						}
@@ -1757,7 +1757,7 @@ class as_html_theme_base
 					$this->output("\t\t".'<div class="row">');
 					if (isset($item['numbers'])) {						
 						foreach ($item['numbers'] as $nitem) {
-							$this->output("\t\t".'<div class="col-sm-'.(12 / count($item['numbers'])).' border-right" '.$nitem['tags'].' style="cursor:pointer;">');
+							$this->output("\t\t".'<div class="col-sm-'.(12 / count($item['numbers'])).' border-right" '.$nitem['tags'].'>');
 							$this->output("\t\t".'<div class="description-block">');
 							$this->output("\t\t".'<h5 class="description-header">'.$nitem['ncount'].'</h5>');
 							$this->output("\t\t".'<span class="description-text">'.$nitem['nlabel'].'</span>');
@@ -1771,46 +1771,29 @@ class as_html_theme_base
 					if (isset($item['parts'])) {
 						$this->output("\t\t".'<div class="row" style="background: #eee; margin:5px;padding: 5px;border-radius: 5px;">');		
 						foreach ($item['parts'] as $part) {
-							$this->output("\t\t".'<a href="'.$part['link'].'"><div class="col-md-3">');
+							$this->output("\t\t".'<div class="col-md-3">');
 							$this->output("\t\t".'<div class="box box-widget widget-user-2">');
 							$this->output("\t\t".'<div class="widget-user-header bg-yellow" style="padding:5px;">');
 							$this->output("\t\t".'<h3 class="widget-user-username" style="margin-left:0px;">'.$part['label'].'</h3>');
 							$this->output("\t\t".'<h5 class="widget-user-desc" style="margin-left:0px;">'.$part['description'].'</h5>');
 							$this->output("\t\t".'</div>');
-							$this->output("\t\t".'<div class="box-footer no-padding">', '<ul class="nav nav-stacked">');
-							$this->output("\t\t".'<li><a href="#">Managers <span class="pull-right badge bg-blue">'.$part['managers'].'</span></a></li>');
-							$this->output("\t\t".'</ul>', '</div>', '</div>');
-							$this->output("\t\t".'</div></a>');
+							if (isset($part['links'])) {
+								$this->output("\t\t".'<div class="box-footer no-padding">', '<ul class="nav nav-stacked">');
+								foreach ($part['links'] as $link) {
+									$this->output("\t\t".'<li><a href="'.$link['url'].'"' .
+									(isset($link['tags']) ? ' ' . $link['tags'] : '' ). '>'.
+									$link['title'].' <span class="pull-right badge bg-'.$link['color'].'">'.$link['text'].'</span></a></li>');
+								}
+								$this->output("\t\t".'</ul>', '</div>');
+							}
+							$this->output("\t\t".'</div>');
+							$this->output("\t\t".'</div>');
 						}
 						$this->output("\t\t".'</div>');
 					}
 					$this->output("\t\t".'</div>');
 
 					$this->output("\t\t".'</div>');
-					/*$this->output("\t\t".'<li class="item">');
-					$this->output("\t\t".'<div class="product-img">'.$item['img'].'</div>');
-					$this->output("\t\t".'<div class="product-info">');
-					$labels = explode('|', $item['label']);
-					$this->output("\t\t".'<a href="'.$item['link'].'" class="product-title" style="font-size: 20px;">'.$labels[0].'</a> ');
-					if (isset($labels[1])) $this->output( strtoupper($labels[1]));
-					if (isset($item['description'])) $this->output("\t\t".'<span class="product-description">'.$item['description'].'</span>');
-
-					if (isset($item['infors'])) {
-						foreach ($item['infors'] as $info) {
-							$this->output("\t\t".'<a class="btn btn-app" style="height: 100px; margin-right:10px;">');
-							if (isset($info['inew'])) $this->output("\t\t".'<span class="badge bg-green">'.$info['inew'].'</span>');
-							$this->output("\t\t".'<i class="fa fa-'.$info['ibadge'].'"></i><h4>'.$info['icount'].'</h4>'.$info['ilabel'].'</a>');
-						}
-					}
-					$this->output("\t\t".'</div><br>');*/
-
-					/*if (isset($item['infors'])) {
-						foreach ($item['infors'] as $info) {
-							$this->output("\t\t".'<a class="btn btn-app" style="height: 100px; margin-right:10px;">');
-							if (isset($info['inew'])) $this->output("\t\t".'<span class="badge bg-green">'.$info['inew'].'</span>');
-							$this->output("\t\t".'<i class="fa fa-'.$info['ibadge'].'"></i><h4>'.$info['icount'].'</h4>'.$info['ilabel'].'</a>');
-						}
-					}*/
 					$this->output("\t\t".'</li>');
 				}
 				$this->output("\t\t".'</ul>');

@@ -386,7 +386,7 @@ function as_db_products_basic_selectspec($business = null)
  * @param $count
  * @return array
  */
-function as_db_products_selectspec($sort, $business = null, $search = null, $stocktype = 'CSTOCK', $categoryslugs = null, $createip = null, $specialtype = false)
+function as_db_products_selectspec($sort, $business, $search = null, $stocktype = 'CSTOCK', $categoryslugs = null, $createip = null, $specialtype = false)
 {
 	if ($specialtype == 'P' || $specialtype == 'P_QUEUED') $type = $specialtype;
 	else $type = $specialtype ? 'P_HIDDEN' : 'P';
@@ -400,13 +400,23 @@ function as_db_products_selectspec($sort, $business = null, $search = null, $sto
 		(isset($createip) ? "createip=UNHEX($) AND " : "") . "type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
 	
 	if (isset($search)) {
-		$selectspec['source'] .= ' WHERE ^posts.title LIKE "%' . $search . '%"';
-		$selectspec['source'] .= ' OR ^posts.itemcode LIKE "%' . $search . '%"';
-		$selectspec['source'] .= ' OR childcat.title LIKE "%' . $search . '%"';
-		$selectspec['source'] .= ' OR parent.title LIKE "%' . $search . '%"';
-		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%"';
+		$selectspec['source'] .= ' WHERE ^posts.title LIKE "%' . $search . '%"' . 
+			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
+
+		$selectspec['source'] .= ' OR ^posts.itemcode LIKE "%' . $search . '%"' . 
+			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
+
+		$selectspec['source'] .= ' OR childcat.title LIKE "%' . $search . '%"' . 
+			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
+
+		$selectspec['source'] .= ' OR parent.title LIKE "%' . $search . '%"' . 
+			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
+
+		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%"' . 
+			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
+
 	}
-	else if (isset($business)) $selectspec['source'] .= ' WHERE ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"';
+	else if ($business > 0) $selectspec['source'] .= ' WHERE ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"';
 
 	array_push($selectspec['arguments'], $type);
 	$selectspec['sortasc'] = $sort;
@@ -435,7 +445,8 @@ function as_db_product_selectspec($postid)
 	$selectspec['source'] .= ' LEFT JOIN ^categories AS childcat ON ^posts.categoryid=childcat.categoryid';
 	$selectspec['source'] .= ' LEFT JOIN ^categories AS parent ON childcat.parentid=parent.categoryid';
 	$selectspec['source'] .= ' WHERE ^posts.postid=' . $postid;
-
+	$selectspec['single'] = true;
+	
 	return $selectspec;
 }
 

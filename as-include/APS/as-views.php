@@ -231,9 +231,9 @@
       $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
 
       if ($type == 'outline')
-        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with item Order" onclick="as_addto_order_form(\'item_'.$product['postid'].'\')">';
+        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with item Order" onclick="as_addto_order_form('.$product['postid'].');">';
       else
-        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'item_'.$product['postid'].'\')">';
+        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'item_'.$product['postid'].'\');">';
 
       $html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
       $html .= '<div class="product-info">';
@@ -355,8 +355,14 @@
     //$html = '<b>Account:</b> 968-34567';
     $html .= '</div></div>';
     $html .= '<div class="row">';
-    $html .= '<div class="col-xs-12 table-responsive" id="wishlist">';
-    
+    $html .= '<div class="col-xs-12 table-responsive" >';
+
+    $html .= '<input id="rtrows" value="0" />';
+    $html .= '<input id="rtprices" value="0" />';
+
+    $html .= '<table class="table table-striped" id="wishlist">';
+    $html .= '<thead><tr><th>Qty</th><th>Item</th><th>Code</th><th>Description</th><th>Subtotal</th></tr></thead>';
+    $html .= '</table>';
     $html .= '</div></div>';
 
     $html .= '<div class="row">';

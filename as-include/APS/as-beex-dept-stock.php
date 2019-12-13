@@ -150,11 +150,6 @@ class BxStockDept extends BxDepartment
         $userid = as_get_logged_in_userid();
         $section = as_get('section');
 
-        list ($products, $customers) = as_db_select_with_pending( 
-            as_db_products_selectspec('title', $department->businessid),
-            as_db_recent_customers($department->businessid)
-        );
-        
         $bodycontent = array( 'type' => 'form', 'style' => 'tall', 'theme' => 'primary'); 
         $bodycontent['title'] = strtoupper(strip_tags($as_content['title']));
         
@@ -207,7 +202,6 @@ class BxStockDept extends BxDepartment
         );
 
         switch ($section) {
-
             case 'orders':
                 $toppanel = array(
                     'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
@@ -331,7 +325,7 @@ class BxStockDept extends BxDepartment
                         'fields' => array(
                             'namesearch' => array(
                                 'type' => 'custom',
-                                'html' => as_business_items_search($department->businessid, 'inline'),
+                                'html' => as_business_items_search(0, 'inline'),
                             ),
                         ),
                     ),

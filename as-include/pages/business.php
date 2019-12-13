@@ -166,7 +166,7 @@ if (is_numeric($request)) {
 			'href' => as_path_html($rootpage . '/' . $request . '/edit'),
 			'label' => 'Edit Your Business',
 		);
-		$profile1['body']['items']['modal-managers'] = array( 
+		$profile1['body']['items']['biz-managers'] = array( 
 			'tag' => array('modalbtn', 'btn btn-primary btn-block'),
 			'label' => 'Add or Remove Manager(s)',
 		);
@@ -230,20 +230,18 @@ if (is_numeric($request)) {
 	
 	$profile2 = array( 'type' => 'tabs', 'navs' => array( 'aboutus' => 'About Us', 'contactus' => 'Contact Us'), 'pane' => $navtabs );
 	
-	$modalboxes = array(
-		'modal-managers' => array(
-			'class' => 'modal fade',
-			'header' => array(
-				'title' => 'BUSINESS MANAGERS',
-			),
-			'view' => array(
-				'type' => 'form', 'style' => 'tall',
-				'fields' => array(
-					'namesearch' => array(
-						'type' => 'custom',
-						'html' => as_business_managers_search($business->businessid).
-							as_business_managers_list($userid, $business->businessid, $owners, $managers)
-					),
+	$modalboxes['biz-managers'] = array(
+		'class' => 'modal fade',
+		'header' => array(
+			'title' => 'BUSINESS MANAGERS',
+		),
+		'view' => array(
+			'type' => 'form', 'style' => 'tall',
+			'fields' => array(
+				'namesearch' => array(
+					'type' => 'custom',
+					'html' => as_business_managers_search($business->businessid).
+						as_business_managers_list($userid, $business->businessid, $owners, $managers)
 				),
 			),
 		),
@@ -551,10 +549,28 @@ if (is_numeric($request)) {
 							'link' => as_path_html('department/' . $department->departid),
 							'infors' => array(
 								'depts' => array('icount' => $department->sections, 'ilabel' => 'Sub-Dept'.as_many($department->sections), 'ibadge' => 'columns'),
-								'managers' => array('icount' => count($managers), 'ilabel' => 'Manager'.as_many(count($managers)), 'ibadge' => 'users', 'inewx' => 3),
+								'managers' => array('icount' => count($managers), 'ilabel' => 'Manager'.as_many(count($managers)), 'ibadge' => 'users', 'inewx' => 3, 'tags' => 'data-toggle="modal" data-target="#dept-managers-' . $department->departid .'"'),
 							),
 						);
 					}
+					
+					$modalboxes['dept-managers-'. $department->departid ] = array(
+						'class' => 'modal fade',
+						'header' => array(
+							'title' => strtoupper($department->title).' DEPARTMENT MANAGERS',
+						),
+						'view' => array(
+							'type' => 'form', 'style' => 'tall',
+							'fields' => array(
+								'namesearch' => array(
+									'type' => 'custom',
+									'html' => as_business_managers_search($business->businessid).
+										as_business_managers_list($userid, $business->businessid, $owners, $managers)
+								),
+							),
+						),
+					);
+
 					$k++;
 				}
 		
@@ -678,52 +694,45 @@ else {
 				),
 			);
 				
-			if (count($businesses)){				
-				/*foreach ($businesses as $business){					
-					$modalboxes = array(
-						'modal-managers-'.$business->businessid => array(
-							'class' => 'modal fade',
-							'header' => array(
-								'title' => 'BUSINESS MANAGERS',
-							),
-							'view' => array(
-								'type' => 'form', 'style' => 'tall',
-								'fields' => array(
-									'namesearch' => array(
-										'type' => 'custom',
-										'html' => '<div class="form-group" id="searchdiv">
-										<div class="col-sm-12">
-										<label for="searchuser">Search by a User\'s Name, or Email Address</label>
-										<input id="searchuser" autocomplete="off" onkeyup="as_search_user_change(this.value);" type="text" value="" class="form-control">
-										<input id="business_id" type="hidden" value="' . $business->businessid . '">
-										</div>
-										</div>
-										<div class="form-group" id="managers_feedback">
-										<div class="col-sm-12"><div id="manager_results"></div></div>',
-									),
-									'managerlist' => array(
-										'type' => 'custom',
-										'html' => '<span id="manager_list">.managershtml.</span>',
-									),
-								),
-							),
-						),
-					);
-				}*/
-
+			if (count($businesses)){
 				foreach ($businesses as $business){
+					$owners = explode(',', $business->users);	
 					$managers = explode(',', $business->managers);
+					
 					$dashlist['items'][$business->businessid] = array('img' => as_path_html('./as-media/' . $defaulticon ), 
 						'label' => $business->title . '| Your Role: ' . ($business->userid == $userid ? 'OWNER' : 'MANAGER'),
 						'description' => $business->content, 'link' => 'business/'.$business->businessid,
 						'numbers' => array(
-							'managers' => array('ncount' => count($managers), 'nlabel' => 'Manager'.as_many(count($managers)), 
-								'tags' => 'data-toggle="modal" data-target="#managers_'.$business->businessid.'"'),
-							'depts' => array('ncount' => $business->departments, 'nlabel' => 'Department'.as_many($business->departments),
-								'tags' => 'data-toggle="modal" data-target="#modal-managers-'.$business->businessid.'"'),
+							'managers' => array(
+								'ncount' => count($managers), 
+								'nlabel' => 'Manager'.as_many(count($managers)), 
+								'tags' => 'data-toggle="modal" data-target="#biz-managers-'.$business->businessid.'" style="cursor:pointer;"'
+							),
+							'depts' => array(
+								'ncount' => $business->departments, 
+								'nlabel' => 'Department'.as_many($business->departments),
+								'tags' => 'style="cursor:pointer;"'
+							),
 						),
 					);
 					
+					$modalboxes['biz-managers-'.$business->businessid ] = array(
+						'class' => 'modal fade',
+						'header' => array(
+							'title' => 'BUSINESS MANAGERS',
+						),
+						'view' => array(
+							'type' => 'form', 'style' => 'tall',
+							'fields' => array(
+								'namesearch' => array(
+									'type' => 'custom',
+									'html' => as_business_managers_search($business->businessid).
+										as_business_managers_list($userid, $business->businessid, $owners, $managers)
+								),
+							),
+						),
+					);
+
 					$departments = BxDepartment::get_list($business->businessid);
 					if (count($departments)) {				
 						$navdepartmenthtml = '';
@@ -732,20 +741,53 @@ else {
 							if (!isset($department->parentid)) {
 								if ($department->content == null) $department->content = "...";
 								$dashlist['items'][$business->businessid]['parts'][] = array(
-									'label' => as_html($department->title).' DEPT', 
+									'label' => as_html($department->title).'<br>DEPARTMENT', 
 									'description' => $department->content,
-									'link' => as_path_html('department/' . $department->departid),
 									'managers' => $department->managers,
 									'sections' => $department->sections,
 									'tags' => ' style="cursor:pointer;"',
+									'links' => array(
+										'managers' => array(
+											'tags' => 'data-toggle="modal" data-target="#dept-managers-'.$department->departid.'"',
+											'url' => '#', 
+											'title' => 'Managers', 
+											'color' => 'blue', 
+											'text' => 0
+										),
+										'viewdept' => array(
+											'url' => as_path_html('department/' . $department->departid), 
+											'title' => 'Go to Department', 
+											'color' => 'green', 
+											'text' => '<i class="fa fa-angle-double-right"></i>'
+										),
+									),
 								);
 							}
+
+							$modalboxes['dept-managers-'.$department->departid ] = array(
+								'class' => 'modal fade',
+								'header' => array(
+									'title' => strtoupper($department->title).' DEPARTMENT MANAGERS',
+								),
+								'view' => array(
+									'type' => 'form', 'style' => 'tall',
+									'fields' => array(
+										'namesearch' => array(
+											'type' => 'custom',
+											'html' => as_business_managers_search($business->businessid).
+												as_business_managers_list($userid, $business->businessid, $owners, $managers)
+										),
+									),
+								),
+							);
+		
 							$k++;
 						}
 				
 					}
 				}
 			}
+
 			if (isset($modalboxes)) $dashlist['modals'] = $modalboxes;
 			if (isset($hasalert)) $dashlist['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $dashlist['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);

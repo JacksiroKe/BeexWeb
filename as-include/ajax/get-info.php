@@ -46,21 +46,10 @@ switch (as_post_text('infotype'))
 		break;
 	
 	case 'item':
-		$postid = as_post_text('item');
-		$product = as_db_select_with_pending(as_db_product_selectspec($postid));
-		
-		$htmlresult .= '<table class="table table-striped"><thead>';
-        $htmlresult .= '<tr><th>Qty</th><th>Item</th><th>Code</th><th>Description</th><th>Subtotal</th></tr>';
-        $htmlresult .= '</thead>';
-      	$htmlresult .= '<tbody><tr>
-          <td>1</td>
-          <td>'.$product['title'].'</td>
-          <td>'.$product['itemcode'].'</td>
-          <td>'.$product['content'].'</td>
-          <td>Kshs. 0.00</td>
-        </tr>';
-      	$htmlresult .= '</tbody></table>';
-		$htmlresult .= 'xqxAmount Due '.date('d/m/Y').':';
+		$postid = as_post_text('itemid');
+		$product = as_db_select_with_pending(as_db_product_selectspec($postid));		
+		$htmlresult .= '1xqx'.$product['title'].'xqx'.$product['itemcode'].'xqx'.$product['content'].
+			'xqx'.$product['content'].'xqxAmount Due '.date('d/m/Y').': <b>Ksh. 0.00</b>';
 		break;
 }
 
