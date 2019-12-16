@@ -174,18 +174,21 @@ class BxDepartment
     /**
      * Fetches the list of record in the business class
      */
-    public static function get_list( $identifier, $sections = false )
+    public static function get_list($userid, $identifier, $sections = false )
     {
-        $selectspec['columns'] = array('departid', 'depttype', 'businessid', 'parentid', 'title', 'icon', 'content', '^businessdepts.userid', 'managers',
-            'users', 'extra', 'created' => 'UNIX_TIMESTAMP(^businessdepts.created)', 'updated' => 'UNIX_TIMESTAMP(^businessdepts.updated)',
+        $selectspec['columns'] = array('departid', 'depttype', 'businessid', 'parentid', 'title', 'icon', 'content', 
+			'^businessdepts.userid', 'managers', 'users', 'extra', 
+			'created' => 'UNIX_TIMESTAMP(^businessdepts.created)', 'updated' => 'UNIX_TIMESTAMP(^businessdepts.updated)',
             'sections' => '(SELECT COUNT(*) FROM ^businessdepts WHERE parentid = ^businessdepts.departid)');
         
         if ($sections) {
-            $selectspec['source'] = '^businessdepts WHERE parentid=#';
-            $selectspec['arguments'] = array($identifier);
+            $selectspec['source'] = '^businessdepts WHERE ^businessdepts.parentid='.$identifier.' AND ^businessdepts.userid='.$userid;
+            $selectspec['source'] .= ' OR ^businessdepts.parentid='.$identifier.' AND ^businessdepts.managers LIKE "%'.$userid.',%"';
+            $selectspec['source'] .= ' OR ^businessdepts.parentid='.$identifier;
         } else {
-            $selectspec['source'] = '^businessdepts WHERE businessid=#';
-            $selectspec['arguments'] = array($identifier);
+            $selectspec['source'] = '^businessdepts WHERE ^businessdepts.businessid='.$identifier.' AND ^businessdepts.userid='.$userid;
+            $selectspec['source'] .= ' OR ^businessdepts.businessid='.$identifier.' AND ^businessdepts.managers LIKE "%'.$userid.',%"';
+            $selectspec['source'] .= ' OR ^businessdepts.businessid='.$identifier;
         }
 
         $selectspec['sortasc'] = 'title';

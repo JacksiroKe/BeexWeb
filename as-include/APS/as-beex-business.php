@@ -185,6 +185,29 @@ class BxBusiness
   }
 
   /**
+   * Find is user is manager or owner of business
+   */
+  public static function is_manager( $userid, $businessid ) 
+  {
+    $selectspec['columns'] = array('userid', 'users', 'managers');
+    $selectspec['source'] = '^businesses WHERE ^businesses.businessid='.$businessid;
+    $selectspec['single'] = true;
+
+    $result = as_db_select_with_pending( $selectspec );
+    if ( $result ) {
+		$owners = explode(',', $result['users']);
+		$managers = explode(',', $result['managers']);
+
+		if (
+			(int) $result['userid'] == $userid || 
+			(in_array($userid, $owners)) || 
+			(in_array($userid, $managers))
+		) return true;
+    }
+    else return false;
+  }
+
+  /**
    * Fetches the list of record in the business class
    */
   public static function get_list( $userid )
@@ -192,34 +215,42 @@ class BxBusiness
     $list = array();
     if (!empty($userid)) 
     {
-      $results = as_db_select_with_pending(array(
-        'columns' => array('businessid', 'bstype', 'title', 'contact', 'location', 'username', 'content', 'icon', 'images', 'tags', 'managers', 
-          'departments' => '(SELECT COUNT(*) FROM ^businessdepts WHERE businessid = ^businesses.businessid)', 'userid', 
-          'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)'),
-        'source' => '^businesses WHERE userid='.$userid.' OR managers ='.$userid.' OR managers LIKE "%'.$userid.',%"',
-        'sortasc' => 'title',
-      ));
-      
-      if (count($results))
-      foreach ( $results as $result ) {
-        $business = new BxBusiness();
-        $business->businessid = (int) $result['businessid'];
-        $business->bstype = $result['bstype'];
-        $business->title = $result['title'];
-        $business->contact = $result['contact'];
-        $business->location = $result['location'];
-        $business->username = $result['username'];
-        $business->content = $result['content'];
-        $business->icon = $result['icon'];
-        $business->images = $result['images'];
-        $business->tags = $result['tags'];
-        $business->userid = (int) $result['userid'];
-        $business->managers = $result['managers'];
-        $business->created = $result['created'];
-        $business->updated = $result['updated'];
-        $business->departments = $result['departments'];
-        $list[] = $business;
-      }
+		$selectspec['columns'] = array('^businesses.businessid', '^businesses.bstype', '^businesses.title', '^businesses.contact',
+			'^businesses.location', '^businesses.username', '^businesses.content', '^businesses.icon', '^businesses.images', 
+			'^businesses.tags', '^businesses.managers', '^businesses.userid', 
+			'departments' => '(SELECT COUNT(*) FROM ^businessdepts WHERE ^businessdepts.businessid = ^businesses.businessid)',
+			'created' => 'UNIX_TIMESTAMP(^businesses.created)', 'updated' => 'UNIX_TIMESTAMP(^businesses.updated)');
+
+		$selectspec['source'] = '^businesses LEFT JOIN ^businessdepts ON ^businesses.businessid=^businessdepts.businessid';
+		//$selectspec['source'] .= ' ^businesses WHERE userid='.$userid.' OR managers ='.$userid.' OR managers LIKE "%'.$userid.',%"';
+		$selectspec['source'] .= ' WHERE ^businesses.userid='.$userid.' OR ^businesses.managers ='.$userid;
+		$selectspec['source'] .= ' OR ^businesses.managers LIKE "%'.$userid.',%"';
+		$selectspec['source'] .= ' OR ^businessdepts.managers LIKE "%'.$userid.',%"';
+		
+		$selectspec['sortasc'] = 'title';
+
+		$results = as_db_select_with_pending($selectspec);
+
+		if (count($results))
+		foreach ( $results as $result ) {
+			$business = new BxBusiness();
+			$business->businessid = (int) $result['businessid'];
+			$business->bstype = $result['bstype'];
+			$business->title = $result['title'];
+			$business->contact = $result['contact'];
+			$business->location = $result['location'];
+			$business->username = $result['username'];
+			$business->content = $result['content'];
+			$business->icon = $result['icon'];
+			$business->images = $result['images'];
+			$business->tags = $result['tags'];
+			$business->userid = (int) $result['userid'];
+			$business->managers = $result['managers'];
+			$business->created = $result['created'];
+			$business->updated = $result['updated'];
+			$business->departments = $result['departments'];
+			$list[] = $business;
+		}
     }  
     return $list;
   }

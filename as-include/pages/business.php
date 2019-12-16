@@ -85,7 +85,7 @@ if (as_clicked('doregister')) {
 }
 if (is_numeric($request)) {
 	$business = BxBusiness::get_single($userid, $request);
-	$departments = BxDepartment::get_list($request);
+	$departments = BxDepartment::get_list($userid, $request);
 	$owners = explode(',', $business->users);	
 	$managers = explode(',', $business->managers);	
 
@@ -159,7 +159,7 @@ if (is_numeric($request)) {
 		),
 	);
 	
-	if ($business->userid == $userid)
+	if (BxBusiness::is_manager( $userid, $business->userid ))
 	{
 		$profile1['body']['items']['link1'] = array( 
 			'tag' => array('link', 'btn btn-primary btn-block'),
@@ -506,7 +506,7 @@ if (is_numeric($request)) {
 		default:		
 			$bodycontent = array(
 				'tags' => 'method="post" action="' . as_path_html(as_request()) . '"',
-				'title' => count($departments) .' DEPARTMENT' . (count($departments) == 1 ? '' : 'S'),
+				'title' => ' You are Managing ' . count($departments) .' Department' . (count($departments) == 1 ? '' : 's'),
 				'type' => 'form',
 				'style' => 'tall',
 				'ok' => $savedoptions ? as_lang_html('main/options_saved') : null,
@@ -522,7 +522,12 @@ if (is_numeric($request)) {
 					'label' => as_lang_html('main/back_button'),
 				),
 		
-				'tools' => array(
+				'hidden' => array( 'code' => as_get_form_security_code('business-departments')),
+			);
+			
+			if (BxBusiness::is_manager( $userid, $business->userid ))
+			{
+				$bodycontent['tools'] = array(
 					'add' => array(
 						'type' => 'link',
 						'url' => $request.'/newdept',
@@ -530,11 +535,9 @@ if (is_numeric($request)) {
 						'class' => 'btn btn-primary btn-block',
 						'label' => as_lang_html('main/add_department_button'),
 					),
-				),
-				
-				'hidden' => array( 'code' => as_get_form_security_code('business-departments')),
-			);
-				
+				);
+			}
+			
 			if (count($departments)) {
 				unset($bodycontent['fields']['intro']);
 		
@@ -741,7 +744,7 @@ else {
 						),
 					);
 
-					$departments = BxDepartment::get_list($business->businessid);
+					$departments = BxDepartment::get_list($userid, $business->businessid);
 					if (count($departments)) {				
 						$navdepartmenthtml = '';
 						$k = 1;

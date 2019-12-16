@@ -84,7 +84,7 @@ $in = array();
 
 if (is_numeric($request)) {
 	$department = BxDepartment::get_single($userid, $request);
-	$sections = BxDepartment::get_list($request, true); 
+	$sections = BxDepartment::get_list($userid, $request, true); 
 
 	if (as_clicked('doregister')) {
 		require_once AS_INCLUDE_DIR . 'app/post-create.php';

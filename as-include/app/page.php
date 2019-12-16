@@ -608,7 +608,8 @@ function as_content_prepare($voting = false, $categoryids = array())
 		);
 	}
 
-	$businesses = BxBusiness::get_list(as_get_logged_in_userid());
+	$userid = as_get_logged_in_userid();
+	$businesses = BxBusiness::get_list($userid);
 	$as_content['navigation']['main']['allbiz'] = array( 'label' => as_lang_html('main/nav_bs') );
 
 	$as_content['navigation']['main']['business'] = array(
@@ -629,7 +630,7 @@ function as_content_prepare($voting = false, $categoryids = array())
 				'icon' => 'fa fa-home',
 			);
 
-			$departments = BxDepartment::get_list($business->businessid);
+			$departments = BxDepartment::get_list($userid, $business->businessid);
 			if (count($departments)) {
 				foreach ($departments as $department){
 					$as_content['navigation']['main'][$business->username]['sub'][$department->departid] = array(
