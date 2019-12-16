@@ -99,31 +99,31 @@ class BxBusiness
     
     //Create default Departments
     $ccdept = new BxCustomercare();
-		$ccdept->depttype = 'CC';
+	$ccdept->depttype = 'CC';
     $ccdept->userid = $this->userid;
     $ccdept->businessid = $businessid;
     $ccdept->create_department();
 
     $findept = new BxFinanceDept();
-		$stockdept->depttype = 'FIN';
-    $stockdept->userid = $this->userid;
-    $stockdept->businessid = $businessid;
+	$findept->depttype = 'FIN';
+    $findept->userid = $this->userid;
+    $findept->businessid = $businessid;
     $findept->create_department();
 
     $hrdept = new BxHumanResource();
-		$hrdept->depttype = 'HR';
+	$hrdept->depttype = 'HR';
     $hrdept->userid = $this->userid;
     $hrdept->businessid = $businessid;
     $hrdept->create_department();
     
     $salesdept = new BxSalesDept();
-		$salesdept->depttype = 'SALE';
+	$salesdept->depttype = 'SALE';
     $salesdept->userid = $this->userid;
     $salesdept->businessid = $businessid;
     $salesdept->create_department();
     
     $stockdept = new BxStockDept();
-		$stockdept->depttype = 'STK';
+	$stockdept->depttype = 'STK';
     $stockdept->userid = $this->userid;
     $stockdept->businessid = $businessid;
     $stockdept->create_department();
@@ -222,5 +222,16 @@ class BxBusiness
       }
     }  
     return $list;
+  }
+  
+  public static function managers( $creator, $managers )
+  {
+	$total_managers = 1;
+    if (count($managers)) {
+      foreach ($managers as $mid) {
+        if (!empty($mid) && $creator != $mid) $total_managers++;
+	  }
+	}
+	return $total_managers;
   }
 }

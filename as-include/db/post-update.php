@@ -61,7 +61,7 @@ function as_db_record_set($table, $column, $departid, $fields, $value = null)
 	foreach ($fields as $field => $fieldValue) {
 		$sql .= as_db_escape_string($field) . ' = $, ';
 	}
-	$sql = substr($sql, 0, -2) . ' WHERE ' . $column . ' = $';
+	$sql = substr($sql, 0, -2) . ', updated=NOW() WHERE ' . $column . ' = $';
 
 	$params = array_values($fields);
 	$params[] = $departid;

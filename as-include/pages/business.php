@@ -166,9 +166,10 @@ if (is_numeric($request)) {
 			'href' => as_path_html($rootpage . '/' . $request . '/edit'),
 			'label' => 'Edit Your Business',
 		);
+		$managers_c = BxBusiness::managers( $business->userid, $managers );
 		$profile1['body']['items']['biz-managers'] = array( 
 			'tag' => array('modalbtn', 'btn btn-primary btn-block'),
-			'label' => 'Add or Remove Manager(s)',
+			'label' => $managers_c.' Manager'.as_many($managers_c),
 		);
 	}
 	else {
@@ -233,7 +234,7 @@ if (is_numeric($request)) {
 	$modalboxes['biz-managers'] = array(
 		'class' => 'modal fade',
 		'header' => array(
-			'title' => strtoupper($business->title).': DEPARTMENT MANAGERS',
+			'title' => strtoupper($business->title).' BUSINESS MANAGERS',
 		),
 		'view' => array(
 			'type' => 'form', 'style' => 'tall',
@@ -242,7 +243,7 @@ if (is_numeric($request)) {
 					'type' => 'custom',
 					'html' => as_managers_search('business', $business->businessid).
 						"\n".'<div id="business_'.$business->businessid.'_listview">'.
-						as_managers_list('business', $business->businessid, $userid, $owners, $managers).'</div>'
+						as_managers_list('business', $business->businessid, $business->userid, $owners, $managers).'</div>'
 				),
 			),
 		),
@@ -540,7 +541,10 @@ if (is_numeric($request)) {
 				$navdepartmenthtml = '';
 				$k = 1;
 				foreach ($departments as $department) {
+					$type = 'depart';
 					$managers = explode(',', $department->managers);
+					$mancount = BxBusiness::managers( $department->userid, $managers );
+					
 					if (!isset($department->parentid)) {
 						if ($department->content == null) $department->content = "...";
 						$bodycontent['dash']['items'][$department->departid] = array(
@@ -550,7 +554,7 @@ if (is_numeric($request)) {
 							'link' => as_path_html('department/' . $department->departid),
 							'infors' => array(
 								'depts' => array('icount' => $department->sections, 'ilabel' => 'Sub-Dept'.as_many($department->sections), 'ibadge' => 'columns'),
-								'managers' => array('icount' => count($managers), 'ilabel' => 'Manager'.as_many(count($managers)), 'ibadge' => 'users', 'inewx' => 3, 'tags' => 'data-toggle="modal" data-target="#dept-managers-' . $department->departid .'"'),
+								'managers' => array('icount' => $mancount, 'ilabel' => 'Manager'.as_many($mancount), 'ibadge' => 'users', 'inewx' => 3, 'tags' => 'data-toggle="modal" data-target="#dept-managers-' . $department->departid .'"'),
 							),
 						);
 					}
@@ -558,16 +562,16 @@ if (is_numeric($request)) {
 					$modalboxes['dept-managers-'. $department->departid ] = array(
 						'class' => 'modal fade',
 						'header' => array(
-							'title' => strtoupper($department->title).' DEPARTMENT MANAGERS',
+							'title' => strtoupper($department->title).': DEPARTMENT MANAGERS',
 						),
 						'view' => array(
 							'type' => 'form', 'style' => 'tall',
 							'fields' => array(
 								'namesearch' => array(
 									'type' => 'custom',
-									'html' => as_managers_search('depart', $department->departid).
-										"\n".'<div id="business_'.$department->departid.'_listview">'.
-										as_managers_list('depart', $department->departid, $userid, $owners, $managers).'</div>'
+									'html' => as_managers_search($type, $department->departid).
+										"\n".'<div id="'.$type.'_'.$department->departid.'_listview">'.
+										as_managers_list($type, $department->departid, $department->userid, $owners, $managers).'</div>'
 								),
 							),
 						),
@@ -698,6 +702,7 @@ else {
 				
 			if (count($businesses)){
 				foreach ($businesses as $business){
+					$type = 'business';
 					$owners = explode(',', $business->users);	
 					$managers = explode(',', $business->managers);
 					
@@ -728,9 +733,9 @@ else {
 							'fields' => array(
 								'namesearch' => array(
 									'type' => 'custom',
-									'html' => as_managers_search('business', $business->businessid).
-										"\n".'<div id="business_'.$business->businessid.'_listview">'.
-										as_managers_list('business', $business->businessid, $userid, $owners, $managers).'</div>'
+									'html' => as_managers_search($type, $business->businessid).
+										"\n".'<div id="'.$type.'_'.$business->businessid.'_listview">'.
+										as_managers_list($type, $business->businessid, $business->userid, $owners, $managers).'</div>'
 								),
 							),
 						),
@@ -777,9 +782,9 @@ else {
 									'fields' => array(
 										'namesearch' => array(
 											'type' => 'custom',
-											'html' => as_managers_search('depart', $business->businessid).
-												"\n".'<div id="depart_'.$business->businessid.'_listview">'.
-												as_managers_list('depart', $business->businessid, $userid, $owners, $managers).'</div>'
+											'html' => as_managers_search($type, $business->businessid).
+												"\n".'<div id="'.$type.'_'.$business->businessid.'_listview">'.
+												as_managers_list($type, $business->businessid, $business->userid, $owners, $managers).'</div>'
 										),
 									),
 								),

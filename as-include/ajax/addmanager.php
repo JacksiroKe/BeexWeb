@@ -62,7 +62,7 @@ if ($type == 'depart')
 	{
 		as_db_record_set('businessdepts', 'departid', $identifier, 'managers', implode(', ', $newmanagers) );
 	}
-
+	
 	$link = as_opt('site_url').'department/'.$identifier;
 
 	echo "AS_AJAX_RESPONSE\n1\n";
@@ -84,15 +84,15 @@ if ($type == 'depart')
 			$htmlresult .= $manager['firstname'] . ' ' . $manager['lastname'] . ' ('.$manager['email'].') is now a manager of ' .  $depart->title . ' Department! ';
 			$htmlresult .= ($manager['gender'] == 1 ? 'He' : 'She' ).' will get a notification about this change of responsibility soon!</div>xqx';
 			
-			as_send_notification($userid, $manager['firstname'].' '.$manager['lastname'], $manager['email'], $manager['handle'], as_lang('emails/new_department_subject'), as_lang('emails/new_department_manager_subject'), array(
-				'^department_title' => $depart->title,
-				'^department_business' => $department->business,
-				'^department_description' => $depart->content,
-				'^department_url' => $link,
+			as_send_notification($userid, $manager['firstname'].' '.$manager['lastname'], $manager['email'], $manager['handle'], as_lang('emails/new_depart_manager_subject'), as_lang('emails/new_depart_manager_body'), array(
+				'^depart_title' => $depart->title,
+				'^depart_business' => $depart->business,
+				'^depart_description' => $depart->content,
+				'^depart_url' => $link,
 				'^url' => as_opt('site_url'),
 			));
 
-			as_db_notification_create($manager['userid'], as_lang_html_sub('notify/added_department_manager', $depart->title), 'new-dp-manager', $link, '');
+			as_db_notification_create($manager['userid'], as_lang_html_sub('notify/added_depart_manager', $depart->title), 'new-dp-manager', $link, '');
 
 			break;
 	}
@@ -100,10 +100,10 @@ if ($type == 'depart')
 	$htmlresult .= '</ul>';
 	if ($alreadyadded == 2) 
 	{
-		$betabiz = BxBusiness::get_single($userid, $identifier);
-		$new_owners = explode(',', $betabiz->users);
-		$new_managers = explode(',', $betabiz->managers);
-		$htmlresult .= as_managers_list($type, $betabiz->businessid, $userid, $new_owners, $new_managers);
+		$betadept = BxDepartment::get_single($userid, $identifier);
+		$new_owners = explode(',', $betadept->users);
+		$new_managers = explode(',', $betadept->managers);
+		$htmlresult .= as_managers_list($type, $identifier, $userid, $new_owners, $new_managers);
 	}	
 }
 else 
@@ -149,7 +149,7 @@ else
 			$htmlresult .= $manager['firstname'] . ' ' . $manager['lastname'] . ' ('.$manager['email'].') is now a manager of ' .  $business->title . ' Business! ';
 			$htmlresult .= ($manager['gender'] == 1 ? 'He' : 'She' ).' will get a notification about this change of responsibility soon!</div>xqx';
 			
-			as_send_notification($userid, $manager['firstname'].' '.$manager['lastname'], $manager['email'], $manager['handle'], as_lang('emails/new_business_subject'), as_lang('emails/new_business_manager_subject'), array(
+			as_send_notification($userid, $manager['firstname'].' '.$manager['lastname'], $manager['email'], $manager['handle'], as_lang('emails/new_business_manager_subject'), as_lang('emails/new_business_manager_body'), array(
 				'^business_title' => $business->title,
 				'^business_username' => $business->username,
 				'^business_location' => $business->location,
@@ -170,7 +170,7 @@ else
 		$betabiz = BxBusiness::get_single($userid, $identifier);
 		$new_owners = explode(',', $betabiz->users);
 		$new_managers = explode(',', $betabiz->managers);
-		$htmlresult .= as_managers_list($type, $betabiz->businessid, $userid, $new_owners, $new_managers);
+		$htmlresult .= as_managers_list($type, $identifier, $userid, $new_owners, $new_managers);
 	}
 }
 

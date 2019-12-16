@@ -344,9 +344,9 @@
     return $html;
   }
 
-  function as_managers_list($type, $identifier, $userid, $owners, $managers, $showowner = true)
+  function as_managers_list($type, $identifier, $creator, $owners, $managers, $showowner = true)
   {
-    $owner = as_db_select_with_pending(as_db_user_profile($userid));
+    $owner = as_db_select_with_pending(as_db_user_profile($creator));
 	$element = $type . '_' . $identifier . '_';
     
     $html = "\n".'<div id="'.$element.'list">';
@@ -362,7 +362,7 @@
 
     if (count($managers)) {
       foreach ($managers as $mid) {
-        if (!empty($mid) && $userid != $mid) {
+        if (!empty($mid) && $creator != $mid) {
 			$manager = as_db_select_with_pending(as_db_user_profile($mid));
 			$html .= '<li class="item list-item-result" onclick="as_show_quick_form(\''.$element.'item_'.$manager['userid'].'\')">';
 			$html .= '<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
