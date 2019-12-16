@@ -218,16 +218,19 @@ function as_addto_order_form(item_id)
 	});
 }
 
-function as_search_user_change()
+function as_search_user_change(type, identifier)
 {
+	element = type + '_' + identifier + '_';
 	var params = {};
-	params.item_biz = document.getElementById('businessid').value;
-	params.searchtext = document.getElementById('searchuser').value;
+	params.item_type = type;
+	params.item_id = identifier;
+	params.searchtext = document.getElementById(element + 'query').value;
+	
 	if(params.searchtext.length > 3)
 	{ 
 		as_ajax_post('searchuser', params, function(lines) {
 			if (lines[0] == '1') {
-				var resultsview = document.getElementById('search_user_results');
+				var resultsview = document.getElementById(element + 'results');
 				resultsview.innerHTML = lines.slice(1).join('\n');
 			} else if (lines[0] == '0') {
 				as_show_waiting_after(elem, false);
@@ -236,6 +239,34 @@ function as_search_user_change()
 			}
 		});
 	}
+}
+
+function as_change_role(type, identifier, userid)
+{
+	element = type + '_' + identifier + '_';
+	var params = {};
+	params.item_type = type;
+	params.item_id = identifier;
+	params.user_id = userid;
+	params.new_role = document.getElementById(element + 'role_' + userid).value;
+	
+	as_ajax_post('addmanager', params, function(lines) 
+	{
+		if (lines[0] == '1') {
+			var feedback = document.getElementById(element + 'feedback');
+			var resultsview = document.getElementById(element + 'results');
+			var listviewview = document.getElementById(element + 'listview');
+			
+			var fbstr = lines.slice(1).join('\n').split('xqx');
+			feedback.innerHTML = fbstr[0];
+			//resultsview.innerHTML = fbstr[1];
+			listviewview.innerHTML = fbstr[1];
+		} else if (lines[0] == '0') {
+		} else {
+			as_ajax_error();
+		}
+	});
+	return false;
 }
 
 function as_search_user_change_d()
@@ -258,30 +289,7 @@ function as_search_user_change_d()
 	}
 }
 
-function as_change_business_role(elem, businessid, userid)
-{
-	var params = {};
-	params.manager = userid;
-	params.business = businessid;
-	params.newrole = document.getElementById(elem + '_role_' + userid).value;
-	
-	as_ajax_post('addmanager', params, function(lines) 
-	{
-		if (lines[0] == '1') {
-			var feedback = document.getElementById('feeback_user_results');
-			var listview = document.getElementById('list_results');
-			var fbstr = lines.slice(1).join('\n').split('xqx');
-			feedback.innerHTML = fbstr[0];
-			listview.innerHTML = fbstr[1];
-		} else if (lines[0] == '0') {
-		} else {
-			as_ajax_error();
-		}
-	});
-	return false;
-}
-
-function as_change_business_role_d(userid)
+function as_change_role_d(userid)
 {
 	var params = {};
 	params.manager = userid;

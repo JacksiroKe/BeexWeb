@@ -620,7 +620,7 @@ function as_content_prepare($voting = false, $categoryids = array())
 	if (count($businesses)){				
 		foreach ($businesses as $business){
 			$as_content['navigation']['main'][$business->username] = array(
-				'label' => $business->title,
+				'label' => as_str_trim($business->title, 'CHARS', 22, '.'),
 				'icon' => 'fa fa-map-signs',
 			);
 			$as_content['navigation']['main'][$business->username]['sub'][0] = array(

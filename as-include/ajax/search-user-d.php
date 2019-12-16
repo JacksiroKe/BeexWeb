@@ -72,7 +72,7 @@ foreach ($itemresults as $result)
                 
                 <div class="col-lg-6">
                   <div class="input-group">
-				  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Assign this Role" onclick="return as_change_business_role_d('.$result['userid'].');"/>
+				  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Assign this Role" onclick="return as_change_role_d('.$result['userid'].');"/>
 				  <input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form(\'form_'.$result['userid'].'\');"/>
 			</div>
 		</div>

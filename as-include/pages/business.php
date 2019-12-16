@@ -233,15 +233,16 @@ if (is_numeric($request)) {
 	$modalboxes['biz-managers'] = array(
 		'class' => 'modal fade',
 		'header' => array(
-			'title' => 'BUSINESS MANAGERS',
+			'title' => strtoupper($business->title).': DEPARTMENT MANAGERS',
 		),
 		'view' => array(
 			'type' => 'form', 'style' => 'tall',
 			'fields' => array(
 				'namesearch' => array(
 					'type' => 'custom',
-					'html' => as_business_managers_search($business->businessid).
-						as_business_managers_list($userid, $business->businessid, $owners, $managers)
+					'html' => as_managers_search('business', $business->businessid).
+						"\n".'<div id="business_'.$business->businessid.'_listview">'.
+						as_managers_list('business', $business->businessid, $userid, $owners, $managers).'</div>'
 				),
 			),
 		),
@@ -564,8 +565,9 @@ if (is_numeric($request)) {
 							'fields' => array(
 								'namesearch' => array(
 									'type' => 'custom',
-									'html' => as_business_managers_search($business->businessid).
-										as_business_managers_list($userid, $business->businessid, $owners, $managers)
+									'html' => as_managers_search('depart', $department->departid).
+										"\n".'<div id="business_'.$department->departid.'_listview">'.
+										as_managers_list('depart', $department->departid, $userid, $owners, $managers).'</div>'
 								),
 							),
 						),
@@ -726,8 +728,9 @@ else {
 							'fields' => array(
 								'namesearch' => array(
 									'type' => 'custom',
-									'html' => as_business_managers_search($business->businessid).
-										as_business_managers_list($userid, $business->businessid, $owners, $managers)
+									'html' => as_managers_search('business', $business->businessid).
+										"\n".'<div id="business_'.$business->businessid.'_listview">'.
+										as_managers_list('business', $business->businessid, $userid, $owners, $managers).'</div>'
 								),
 							),
 						),
@@ -774,8 +777,9 @@ else {
 									'fields' => array(
 										'namesearch' => array(
 											'type' => 'custom',
-											'html' => as_business_managers_search($business->businessid).
-												as_business_managers_list($userid, $business->businessid, $owners, $managers)
+											'html' => as_managers_search('depart', $business->businessid).
+												"\n".'<div id="depart_'.$business->businessid.'_listview">'.
+												as_managers_list('depart', $business->businessid, $userid, $owners, $managers).'</div>'
 										),
 									),
 								),

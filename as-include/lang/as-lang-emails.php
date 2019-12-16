@@ -98,4 +98,14 @@ return array(
 	'new_business_manager_subject' => 'Congrats! You are now a ^business_title Manager!',
 	'not_business_manager_subject' => 'Sorry! You are no longer a ^business_title Manager!',
 
+	'new_department_body' => "Congratulations for setting up a new department for ^department_business on ^site_title.\n\nYour department details are as follows:\n\Name: ^department_title\n\nDescription: ^department_description\n\nFeel free to update this information if you that necessary.\n\nPlease click below to open your department profile page.\n\n^department_url\n\nThank you,\n\n^site_title\n^url",
+	'new_department_subject' => 'Congratulations for setting up ^department_title Department!',
+	
+	'new_department_manager_body' => "Congratulations! One of the Managers of the ^department_title department in ^department_business has added more priviledges to your profile on ^site_title. You are now a Manager of the department too. ^department_description\n\nPlease click below to open this department's main page.\n\n^department_url\n\nThank you,\n\n^site_title\n^url",
+	
+	'not_department_manager_body' => "Sorry! You are no longer a manager of ^department_title anymore. More information over this action will be provided to you in subsequent communications to you and over the email.\n\nIf you find this to be a mistake please contact our admin via private message.\n\n^url\n\nThank you,\n\n^site_title",
+	
+	'new_department_manager_subject' => 'Congrats! You are now a ^department_title Manager!',
+	'not_department_manager_subject' => 'Sorry! You are no longer a ^department_title Manager!',
+
 );

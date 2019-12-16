@@ -2045,3 +2045,55 @@ function as_many($count, $plural = 's')
 {
 	return ($count == 1 ? '' : $plural);
 }
+
+function as_str_trim($string, $method = 'WORDS', $length = 25, $pattern = '...') 
+{ 
+    if(!is_numeric($length)) 
+    { 
+        $length = 25; 
+    } 
+     
+    if(strlen($string) <= $length) 
+    { 
+        return $string; 
+    } 
+    else 
+    { 
+        switch($method) 
+        { 
+            case 'CHARS': 
+                return substr($string, 0, $length) . $pattern;     
+            break; 
+         
+            case 'WORDS': 
+                if (strstr($string, ' ') == false)  
+                { 
+                    return str_trim($string, 'CHARS', $length, $pattern); 
+                } 
+             
+                $count = 0; 
+                $truncated = ''; 
+                $word = explode(" ", $string); 
+                 
+                foreach($word AS $single) 
+                {             
+                    if($count < $length) 
+                    { 
+                        if(($count + strlen($single)) <= $length) 
+                        { 
+                            $truncated .= $single . ' '; 
+                            $count = $count + strlen($single); 
+                            $count++; 
+                        } 
+                        else if(($count + strlen($single)) >= $length) 
+                        { 
+                            break; 
+                        } 
+                    } 
+                } 
+                         
+                return rtrim($truncated) . $pattern; 
+            break; 
+        } 
+    } 
+}

@@ -34,6 +34,37 @@
     return $html;
   }
 
+  function as_stock_history($history, $available_stock)
+  {
+    $html = '<div class="box-body">';
+    $html .= '<div class="table-responsive">';
+    $html .= '<table class="table no-margin">';
+    $html .= '<thead><tr>';
+    $html .= '<th>Entry</th><th>Type</th><th>Buy.Price</th><th>Sale.Price</th><th>Qty</th><th>Entry Date</th>';
+    $html .= '</tr></thead>';
+
+    $html .= '<tbody>';
+    foreach($history as $entry) 
+    {   
+      $html .= '<tr>';
+      $html .= '<td>'.$entry['activityid'].'#</td>';
+      $html .= '<td>'.$entry['type'].'</td>';
+      $html .= '<td>'.$entry['bprice'].'</td>';
+      $html .= '<td>'.$entry['sprice'].'</td>';
+      $html .= '<td>'.$entry['quantity'].'</td>';
+      $html .= '<td>'.as_format_date($entry['created'], true).'</td>';
+      $html .= '</tr>';
+    }
+    $html .= '</tbody>';
+    $html .= '<tfoot><tr>';
+    $html .= '<th></th><th colspan="3">AVAILABLE STOCK</th><th>'.$available_stock.'</th><th></th>';
+    $html .= '</tr></tfoot>';
+    $html .= '</table>';
+    $html .= '</div>';
+    $html .= '</div>';
+    return $html;
+  }
+
   function as_stock_add_form($elem, $product, $showcancel = true) 
   {
     $available_stock = (isset($product['available']) ? $product['available'] : 0);
@@ -96,37 +127,6 @@
 
     $html .= '</div></form>';
 
-    return $html;
-  }
-
-  function as_stock_history($history, $available_stock)
-  {
-    $html = '<div class="box-body">';
-    $html .= '<div class="table-responsive">';
-    $html .= '<table class="table no-margin">';
-    $html .= '<thead><tr>';
-    $html .= '<th>Entry</th><th>Type</th><th>Buy.Price</th><th>Sale.Price</th><th>Qty</th><th>Entry Date</th>';
-    $html .= '</tr></thead>';
-
-    $html .= '<tbody>';
-    foreach($history as $entry) 
-    {   
-      $html .= '<tr>';
-      $html .= '<td>'.$entry['activityid'].'#</td>';
-      $html .= '<td>'.$entry['type'].'</td>';
-      $html .= '<td>'.$entry['bprice'].'</td>';
-      $html .= '<td>'.$entry['sprice'].'</td>';
-      $html .= '<td>'.$entry['quantity'].'</td>';
-      $html .= '<td>'.as_format_date($entry['created'], true).'</td>';
-      $html .= '</tr>';
-    }
-    $html .= '</tbody>';
-    $html .= '<tfoot><tr>';
-    $html .= '<th></th><th colspan="3">AVAILABLE STOCK</th><th>'.$available_stock.'</th><th></th>';
-    $html .= '</tr></tfoot>';
-    $html .= '</table>';
-    $html .= '</div>';
-    $html .= '</div>';
     return $html;
   }
 
@@ -316,7 +316,7 @@
   {    
     $html = '<div class="form-group" id="searchdiv">';
     $html .= '<div class="col-sm-12">';
-    $html .= '<label for="search_item">Search for an Item by its Title, Code, Category or Description</label>';
+    $html .= '<label for="search_item">Search by Title, Code, Category or Description</label>';
     $html .= '<input id="search_item" autocomplete="off" onkeyup="as_search_item_change(\''.$type.'\');" onkeydown="as_search_item_change(\''.$type.'\');" type="text" value="" class="form-control">';
     $html .= '<input id="business_id" type="hidden" value="' . $identifier . '">';
     $html .= '</div>';
@@ -330,17 +330,79 @@
     return $html;    
   }
 
-  function as_business_managers_search($businessid)
+  function as_managers_search($type, $identifier)
   {    
-    $html = '<div class="form-group" id="searchdiv">';
-    $html .= '<div class="col-sm-12">';
-    $html .= '<label for="searchuser">Search by a User\'s Name, or Email Address</label>';
-    $html .= '<input id="businessid" type="hidden" value="' . $businessid . '"/>';
-    $html .= '<input id="searchuser" autocomplete="off" onkeyup="as_search_user_change(this.value);" onkeydown="as_search_user_change(this.value);" type="text" value="" class="form-control"/>';
-    $html .= '</div>';
-    $html .= '</div>';
-    $html .= '<div id="feeback_user_results"></div>';
-    $html .= '<div id="search_user_results"></div>';
+	$element = $type . '_' . $identifier . '_';
+    $html = "\n".'<div class="form-group" id="'.$element.'search">';
+    $html .= "\n".'<div class="col-sm-12">';
+    $html .= "\n".'<label for="'.$element.'query">Search by Name, or Email Address</label>';
+    $html .= "\n".'<input id="'.$element.'query" autocomplete="off" onkeyup="as_search_user_change(\''.$type.'\', ' . $identifier . ');" onkeydown="as_search_user_change(\''.$type.'\', ' . $identifier . ');" type="text" value="" class="form-control"/>';
+    $html .= "\n".'</div>';
+    $html .= "\n".'</div>';
+    $html .= "\n".'<div id="'.$element.'feedback"></div>';
+    $html .= "\n".'<div id="'.$element.'results"></div>';
+    return $html;
+  }
+
+  function as_managers_list($type, $identifier, $userid, $owners, $managers, $showowner = true)
+  {
+    $owner = as_db_select_with_pending(as_db_user_profile($userid));
+	$element = $type . '_' . $identifier . '_';
+    
+    $html = "\n".'<div id="'.$element.'list">';
+    $html .= "\n".'<ul class="products-list product-list-in-box" style="border-top: 1px solid #000">';
+
+	if ($showowner) 
+	{
+		$html .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $owner).'</div>';
+		$html .= '<div class="product-info"><span class="product-title" style="font-size: 20px;">';
+		$html .= $owner['firstname'].' '.$owner['lastname'].'</span><span class="product-description">BUSINESS OWNER</span>';
+		$html .= "</div><br></li>\n";		
+	}
+
+    if (count($managers)) {
+      foreach ($managers as $mid) {
+        if (!empty($mid) && $userid != $mid) {
+			$manager = as_db_select_with_pending(as_db_user_profile($mid));
+			$html .= '<li class="item list-item-result" onclick="as_show_quick_form(\''.$element.'item_'.$manager['userid'].'\')">';
+			$html .= '<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
+			$html .= '<div class="product-info"><span class="product-title" style="font-size: 20px;">';
+			$html .= $manager['firstname'].' '.$manager['lastname'].'</span><span class="product-description">BUSINESS MANAGER</span>';
+			$html .= "</div><br></li>\n";
+
+			$html .= '<li id="'.$element.'item_'.$manager['userid'].'" style="display:none;">';
+			$html .= '<form class="form-horizontal"><div class="box-body">';
+
+			$html .= '<div class="row">
+						<div class="col-lg-6">
+				  <div class="form-group">
+				  <label class="col-sm-3 control-label">Role</label>
+				  <div class="col-sm-9">
+				  <select class="form-control" id="'.$element.'item_role_'.$manager['userid'].'">
+				  <option value="owners"> Owner </option>
+				  <option value="managers" selected> Manager </option>
+				  <option value="norole"> No Role </option>
+				  </select>
+				  </div>
+				</div>';
+			$html .= '</div>'."\n".'<div class="col-lg-6">
+                          <div class="input-group">
+                  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Change this Role" onclick="return as_change_role(\''.$element.'item\', '.$identifier.', '.$manager['userid'].');"/>
+                  <input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form(\''.$element.'item_'.$manager['userid'].'\');"/>
+              </div>
+            </div>
+            </div>';
+            
+			$html .= "\n</div>";
+
+			$html .= "\n</form>";
+			$html .= "\n</li>";
+        }
+      }
+    }
+
+    $html .= "\n</ul>";
+    $html .= "\n</div>";
     return $html;
   }
 
@@ -412,66 +474,6 @@
       </button>';*/
     $html .= '</div></div>';
 
-    return $html;
-  }
-
-  function as_business_managers_list($userid, $businessid, $owners, $managers)
-  {
-    $owner = as_db_select_with_pending(as_db_user_profile($userid));
-    
-    $html = '<div id="list_results">';
-    $html .= '<ul class="products-list product-list-in-box" style="border-top: 1px solid #000">';
-
-    $html .= '<li class="item"><div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $owner).'</div>';
-    $html .= '<div class="product-info"><span class="product-title" style="font-size: 20px;">';
-    $html .= $owner['firstname'].' '.$owner['lastname'].'</span><span class="product-description">BUSINESS OWNER</span>';
-    $html .= "</div><br></li>\n";
-
-    if (count($managers)) {
-      foreach ($managers as $mid) {
-        if (!empty($mid) && $userid != $mid) {
-          $manager = as_db_select_with_pending(as_db_user_profile($mid));
-          $html .= '<li class="item list-item-result" onclick="as_show_quick_form(\'manlist_'.$manager['userid'].'\')">';
-          $html .= '<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
-          $html .= '<div class="product-info"><span class="product-title" style="font-size: 20px;">';
-          $html .= $manager['firstname'].' '.$manager['lastname'].'</span><span class="product-description">BUSINESS MANAGER</span>';
-          $html .= "</div><br></li>\n";
-          
-          $html .= '<li id="manlist_'.$manager['userid'].'" style="display:none;">';
-          $html .= '<form class="form-horizontal"><div class="box-body">';
-          
-          $html .= '<div class="row">
-                        <div class="col-lg-6">
-                  <div class="form-group">
-                  <label class="col-sm-3 control-label">Role</label>
-                  <div class="col-sm-9">
-                  <select class="form-control" id="manlist_role_'.$manager['userid'].'">
-                  <option value="owners"> Owner </option>
-                  <option value="managers"> Manager </option>
-                  <option value="norole"> No Role </option>
-                  </select>
-                  </div>
-                </div>
-                        </div>
-                        
-                        <div class="col-lg-6">
-                          <div class="input-group">
-                  <input type="submit" class="btn btn-info pull-right" style="margin-left: 10px"  value="Change this Role" onclick="return as_change_business_role(\'manlist\', '.$businessid.', '.$manager['userid'].');"/>
-                  <input type="reset" class="btn btn-default pull-right" style="margin-left: 10px"  value="Cancel" onclick="as_show_quick_form(\'manlist_'.$manager['userid'].'\');"/>
-              </div>
-            </div>
-            </div>';
-            
-          $html .= '</div>';
-          
-          $html .= '</form>';
-          $html .= "</li>\n";
-        }
-      }
-    }
-
-    $html .= '</ul>';
-    $html .= '</div>';
     return $html;
   }
 

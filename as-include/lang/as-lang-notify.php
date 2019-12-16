@@ -21,7 +21,8 @@
 
 return array(
 	
-	'added_business_manager' => 'Congrats! You are now a Manager at Business ^', 
+	'added_business_manager' => 'Congrats! You are now a Manager at ^', 
+	'added_department_manager' => 'Congrats! You are now a Manager at ^', 
 	'confirm_email' => 'Please confirm your email',
 	'elevated_up' => 'Your profile has been elevated',
 	'elevated_down' => 'Your profile has been demoted',
