@@ -220,7 +220,7 @@
     return $html;
   }
 
-  function as_products_search($businessid, $products, $type = 'inline')
+  function as_stock_entry_items($businessid, $products)
   {
     $html .= '<ul class="products-list">';
     
@@ -230,10 +230,82 @@
       $product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
       $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
 
-      if ($type == 'outline')
-        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with item Order" onclick="as_addto_order_form('.$product['postid'].');">';
-      else
-        $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'item_'.$product['postid'].'\');">';
+      $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'item_'.$product['postid'].'\');">';
+
+      $html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
+      $html .= '<div class="product-info">';
+      $html .= '<span class="product-title" style="font-size: 20px;">';
+      $html .= '<span style="color: #006400;">'.$product['category'] . (isset($product['parentcat']) ? ' ' .$product['parentcat'] : ''). '</span>';
+      $html .= ' - <span style="color: #f00;">' . $product['itemcode']. '</span></span>';
+      
+      $html .= '<table style="width:100%;"><tr><td>';
+      $html .= '<span class="product-description" style="color: #000; width:275px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
+      if ($product['content'] != '') $html .= '<span style="color: #151B8D; font-size: 18px;">' . $product['content'] . '</span>';
+      $html .= '<table><tr><td><b>Volume</b></td><td><b> : </b></td><td> ' .$product['volume'].'</td></tr>';
+      $html .= '<tr><td><b>Mass</b></td><td><b> : </b></td><td> ' . $product['mass'].'</td></tr>';
+      $html .= '<tr><td><b>Texture</b></td><td><b> / </b></td><td> <b>Color: '.$texture[0].' </b>; <span style="color: #151B8D; font-weight: bold;">Pattern: ' . $texture[1].'</span></td></tr>';
+      $html .= "\n</table></span></td><td>";
+    
+      $html .= "\n".'<table><tr><td><span class="label label-info pull-right" style="width: 100px;"><b>ACTUAL</b><br><span id="get_actual_'.$product['postid'].'" style="font-size: 22px">'.$product['actual_stock']. '</span></span><br></td></tr>';
+      $html .= '<tr><td><span class="label label-warning pull-right" style="width: 100px;"><b>AVAILABLE</b><br><span id="get_available_'.$product['postid'].'" style="font-size: 22px">'.$product['available_stock']. '</span></span></td></tr></table>';
+      
+      $html .= '</td></tr></table>';
+      $html .= "</li>\n";
+      
+      if ($type == 'inline') 
+      {
+        $html .= "\n".'<li id="item_'.$product['postid'].'" style="display:none;">';	
+        $html .= "\n".'<div id="get_itemresults_'.$product['postid'].'">';
+  
+        $html .= "\n".'<div class="nav-tabs-custom">';
+      
+        $html .= "\n".'<ul class="nav nav-tabs pull-right">';
+        $html .= "\n".'<li class="active"><a href="#stock-entry'.$product['postid'].'" data-toggle="tab">RECEIVE</a></li>';
+        $html .= "\n".'<li><a href="#stock-history'.$product['postid'].'" data-toggle="tab">HISTORY</a></li>';
+        $html .= "\n".'<li class="pull-left header"><i class="fa fa-info"></i>STOCK ACTIONS</li>';
+        $html .= "\n</ul>";
+      
+        $html .= "\n".'<div class="tab-content no-padding">';
+      
+        $html .= "\n".'<div class="tab-pane active" id="stock-entry'.$product['postid'].'" style="position: relative;">';	
+        $html .= as_stock_add_form('get', $product);
+        $html .= "\n</div>";
+      
+        $html .= "\n".'<div class="tab-pane" id="stock-history'.$product['postid'].'" style="position: relative;">';
+        
+        $stockids = as_db_find_by_stockitem($product['postid'], $businessid);
+        if (count($stockids))
+        {
+          $history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
+          $html .= as_stock_history($history, $product['available']);
+        }
+        else
+        {
+          $html .= "\n".'<h3>No Stock History for this product at the moment</h3>';
+        }
+      
+        $html .= "\n</div>";
+  
+        $html .= "\n</div>";
+        $html .= "\n</li>";
+      }
+    }
+    
+    $html .= "\n</ul>";
+    return $html;
+  }
+
+  function as_stock_exit_items($businessid, $products)
+  {
+    $html .= '<ul class="products-list">';
+    
+    foreach ($products as $product) 
+    {
+      $texture = explode(';', $product['texture']);
+      $product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
+      $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
+
+      $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with item Order" onclick="as_addto_order_form('.$product['postid'].');">';
 
       $html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
       $html .= '<div class="product-info">';
@@ -367,7 +439,8 @@
 			$html .= '<li class="item list-item-result" onclick="as_show_quick_form(\''.$element.'item_'.$manager['userid'].'\')">';
 			$html .= '<div class="product-img">'.as_avatar(20, 'profile-user-img img-responsive', $manager).'</div>';
 			$html .= '<div class="product-info"><span class="product-title" style="font-size: 20px;">';
-			$html .= $manager['firstname'].' '.$manager['lastname'].'</span><span class="product-description">BUSINESS MANAGER</span>';
+			$html .= $manager['firstname'].' '.$manager['lastname'].'</span><span class="product-description">'.
+				strtoupper($type).' MANAGER</span>';
 			$html .= "</div><br></li>\n";
 
 			$html .= '<li id="'.$element.'item_'.$manager['userid'].'" style="display:none;">';

@@ -396,27 +396,19 @@ function as_db_products_selectspec($sort, $business, $search = null, $stocktype 
 	$selectspec = as_db_products_basic_selectspec($business);
 	$selectspec['source'] .= ' LEFT JOIN ^categories AS childcat ON ^posts.categoryid=childcat.categoryid';
 	$selectspec['source'] .= ' LEFT JOIN ^categories AS parent ON childcat.parentid=parent.categoryid';
-	$selectspec['source'] .= " JOIN (SELECT postid FROM ^posts WHERE " . as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) .
-		(isset($createip) ? "createip=UNHEX($) AND " : "") . "type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
+	$selectspec['source'] .= " JOIN (SELECT postid FROM ^posts WHERE " . as_db_categoryslugs_sql_args($categoryslugs, $selectspec['arguments']) . (isset($createip) ? "createip=UNHEX($) AND " : "") . "type=$ " . $sortsql . ") y ON ^posts.postid=y.postid";
+	
+	$extrasql = '^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"';
+	$isbusiness = ($business > 0 ? ' AND ' . $extrasql : '' );
 	
 	if (isset($search)) {
-		$selectspec['source'] .= ' WHERE ^posts.title LIKE "%' . $search . '%"' . 
-			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
-
-		$selectspec['source'] .= ' OR ^posts.itemcode LIKE "%' . $search . '%"' . 
-			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
-
-		$selectspec['source'] .= ' OR childcat.title LIKE "%' . $search . '%"' . 
-			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
-
-		$selectspec['source'] .= ' OR parent.title LIKE "%' . $search . '%"' . 
-			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
-
-		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%"' . 
-			($business > 0 ? ' AND ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"' : '' );
-
+		$selectspec['source'] .= ' WHERE ^posts.title LIKE "%' . $search . '%"' . $isbusiness;
+		$selectspec['source'] .= ' OR ^posts.itemcode LIKE "%' . $search . '%"' . $isbusiness;
+		$selectspec['source'] .= ' OR childcat.title LIKE "%' . $search . '%"' . $isbusiness;
+		$selectspec['source'] .= ' OR parent.title LIKE "%' . $search . '%"' . $isbusiness;
+		$selectspec['source'] .= ' OR ^posts.content LIKE "%' . $search . '%"' . $isbusiness;
 	}
-	else if ($business > 0) $selectspec['source'] .= ' WHERE ^stock.business=' . $business . ' AND ^stock.type="'.$stocktype.'"';
+	else if ($business > 0) $selectspec['source'] .= ' WHERE ' . $extrasql;
 
 	array_push($selectspec['arguments'], $type);
 	$selectspec['sortasc'] = $sort;
@@ -459,7 +451,7 @@ function as_db_product_stock_activity($stockid)
 {
 	$selectspec = array(
 		'columns' => array(
-			'activityid', 'type', 'stockid', 'itemid', 'userid', 'quantity', 'bprice', 'sprice', 'state', 'created' => 'UNIX_TIMESTAMP(created)',
+			'activityid', 'type', 'parentid', 'stockid', 'itemid', 'userid', 'quantity', 'bprice', 'sprice', 'state', 'created' => 'UNIX_TIMESTAMP(created)',
 		),
 
 		'source' => "^stockactivity WHERE ^stockactivity.stockid=#",

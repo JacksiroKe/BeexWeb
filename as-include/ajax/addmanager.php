@@ -60,7 +60,7 @@ if ($type == 'depart')
 
 	if ($alreadyadded == 2) 
 	{
-		as_db_record_set('businessdepts', 'departid', $identifier, 'managers', implode(', ', $newmanagers) );
+		as_db_record_set('businessdepts', 'departid', $identifier, 'managers', implode(', ', $newmanagers).', ' );
 	}
 	
 	$link = as_opt('site_url').'department/'.$identifier;
@@ -125,7 +125,7 @@ else
 
 	if ($alreadyadded == 2) 
 	{
-		as_db_record_set('businesses', 'businessid', $identifier, 'managers', implode(', ', $newmanagers) );
+		as_db_record_set('businesses', 'businessid', $identifier, 'managers', implode(', ', $newmanagers).', ' );
 	}
 
 	$link = as_opt('site_url').'business/'.$identifier;

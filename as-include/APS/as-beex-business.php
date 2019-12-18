@@ -199,7 +199,7 @@ class BxBusiness
 		$managers = explode(',', $result['managers']);
 
 		if (
-			(int) $result['userid'] == $userid || 
+			$result['userid'] == $userid || 
 			(in_array($userid, $owners)) || 
 			(in_array($userid, $managers))
 		) return true;

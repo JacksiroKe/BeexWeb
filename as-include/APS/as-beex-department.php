@@ -176,17 +176,21 @@ class BxDepartment
      */
     public static function get_list($userid, $identifier, $sections = false )
     {
-        $selectspec['columns'] = array('departid', 'depttype', 'businessid', 'parentid', 'title', 'icon', 'content', 
-			'^businessdepts.userid', 'managers', 'users', 'extra', 
+        $selectspec['columns'] = array('departid', 'depttype', 'businessid' => '^businessdepts.businessid', 'parentid', 
+			'title' => '^businessdepts.title', 'icon' => '^businessdepts.icon', 'content' => '^businessdepts.content', 
+			'userid' => '^businessdepts.userid', 'managers' => '^businessdepts.managers', 'users' => '^businessdepts.users', 
+			'extra' => '^businessdepts.extra', 'bizcreator' => '^businesses.userid', 'bizmanagers' => '^businesses.managers',
 			'created' => 'UNIX_TIMESTAMP(^businessdepts.created)', 'updated' => 'UNIX_TIMESTAMP(^businessdepts.updated)',
             'sections' => '(SELECT COUNT(*) FROM ^businessdepts WHERE parentid = ^businessdepts.departid)');
-        
+			
+        $selectspec['source'] = '^businessdepts LEFT JOIN ^businesses ON ^businesses.businessid=^businessdepts.businessid';
+		
         if ($sections) {
-            $selectspec['source'] = '^businessdepts WHERE ^businessdepts.parentid='.$identifier.' AND ^businessdepts.userid='.$userid;
+            $selectspec['source'] .= ' WHERE ^businessdepts.parentid='.$identifier.' AND ^businessdepts.userid='.$userid;
             $selectspec['source'] .= ' OR ^businessdepts.parentid='.$identifier.' AND ^businessdepts.managers LIKE "%'.$userid.',%"';
             $selectspec['source'] .= ' OR ^businessdepts.parentid='.$identifier;
         } else {
-            $selectspec['source'] = '^businessdepts WHERE ^businessdepts.businessid='.$identifier.' AND ^businessdepts.userid='.$userid;
+            $selectspec['source'] .= ' WHERE ^businessdepts.businessid='.$identifier.' AND ^businessdepts.userid='.$userid;
             $selectspec['source'] .= ' OR ^businessdepts.businessid='.$identifier.' AND ^businessdepts.managers LIKE "%'.$userid.',%"';
             $selectspec['source'] .= ' OR ^businessdepts.businessid='.$identifier;
         }
@@ -196,21 +200,29 @@ class BxDepartment
         $results = as_db_select_with_pending($selectspec);
         $list = array();
 
-        foreach ( $results as $result ) {
-            $department = new BxDepartment();
-            $department->departid = (int) $result['departid'];
-            $department->depttype = $result['depttype'];
-            $department->businessid = $result['businessid'];
-            $department->parentid = $result['parentid'];
-            $department->title = $result['title'];
-            $department->icon = $result['icon'];
-            $department->content = $result['content'];
-            $department->userid = (int) $result['userid'];
-            $department->managers = (int) $result['managers'];
-            $department->sections = (int) $result['sections'];
-            $department->created = $result['created'];
-            $department->updated = $result['updated'];
-            $list[] = $department;
+        foreach ( $results as $result ) 
+		{
+			$bizmanagers = explode(',', $result['bizmanagers']);
+			$deptmanagers = explode(',', $result['managers']);
+			
+			$department = new BxDepartment();
+			$department->departid = (int) $result['departid'];
+			$department->depttype = $result['depttype'];
+			$department->businessid = $result['businessid'];
+			$department->parentid = $result['parentid'];
+			$department->title = $result['title'];
+			$department->icon = $result['icon'];
+			$department->content = $result['content'];
+			$department->userid = (int) $result['userid'];
+			$department->sections = (int) $result['sections'];
+			$department->managers = $result['managers'];
+			$department->created = $result['created'];
+			$department->updated = $result['updated'];
+			
+			if ( $userid == $result['bizcreator'] ) $list[] = $department;
+			else if ( $userid == $result['userid'] ) $list[] = $department;
+			else if (in_array($userid, $bizmanagers)) $list[] = $department;
+			else if (in_array($userid, $deptmanagers) ) $list[] = $department;
         }
         return $list;
     }

@@ -183,24 +183,42 @@ class BxStockDept extends BxDepartment
         }
 
         $managershtml .= '</ul>';
+		
+		$modalboxes['modal-search'] = array(
+			'class' => 'modal fade',
+			'header' => array( 'title' => 'STOCK MANAGEMENT' ),
+			'view' => array(
+				'type' => 'form', 'style' => 'tall',
+				'fields' => array(
+					'namesearch' => array(
+						'type' => 'custom',
+						'html' => as_business_items_search(0, 'inline'),
+					),
+				),
+			),
+		);
 
-        $modalboxes['modal-dmanagers'] = array(
-            'class' => 'modal fade',
-            'header' => array( 'title' => 'DEPARTMENT MANAGERS' ),
-            'view' => array(
-                'type' => 'form', 'style' => 'tall',
-                'fields' => array(
-                    'namesearch' => array(
-                        'type' => 'custom',
-                        'html' => as_search_manager( $department->businessid )
-                    ),
-                    'managerlist' => array(
-                        'type' => 'custom',
-                        'html' => '<span id="manager_list">'.$managershtml.'</span>',
-                    ),
-                ),
-            ),
-        );
+		$type = 'department';
+		$owners = explode(', ', $department->users);
+		$managers = explode(', ', $department->managers);
+		
+		$modalboxes['modal-dmanagers'] = array(
+			'class' => 'modal fade',
+			'header' => array(
+				'title' => strtoupper($department->title).': DEPARTMENT MANAGERS',
+			),
+			'view' => array(
+				'type' => 'form', 'style' => 'tall',
+				'fields' => array(
+					'namesearch' => array(
+						'type' => 'custom',
+						'html' => as_managers_search($type, $department->departid).
+							"\n".'<div id="'.$type.'_'.$department->departid.'_listview">'.
+							as_managers_list($type, $department->departid, $department->userid, $owners, $managers).'</div>'
+					),
+				),
+			),
+		);
 
         switch ($section) {
             case 'orders':
@@ -259,18 +277,13 @@ class BxStockDept extends BxDepartment
                 
                 $as_content['row_view'][] = array(
                     'colms' => array(
-                        0 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($toppanel ) ),
-                        1 => array('class' => 'col-lg-12 col-xs-12', 'modals' => $modalboxes ),
+                        0 => array('class' => 'col-lg-12 col-xs-12', 'modals' => $modalboxes ),
+                        1 => array('class' => 'col-lg-12 col-xs-12', 'c_items' => array($toppanel ) ),
+						2 => array('class' => 'col-lg-5 col-xs-12', 'c_items' => array($customer_search, $item_search ) ),
+                        3 => array('class' => 'col-lg-7 col-xs-12', 'c_items' => array($order_preview ) ),
                     ),
                 );
                 
-                $as_content['row_view'][] = array(
-                    'colms' => array(
-                        0 => array('class' => 'col-lg-3 col-xs-12', 'c_items' => array($customer_search ) ),
-                        1 => array('class' => 'col-lg-4 col-xs-12', 'c_items' => array($item_search ) ),
-                        2 => array('class' => 'col-lg-5 col-xs-12', 'c_items' => array($order_preview ) ),
-                    ),
-                );
                 break;
             
             default:
@@ -318,20 +331,6 @@ class BxStockDept extends BxDepartment
                     ),
                 );
             
-                $modalboxes['modal-search'] = array(
-                    'class' => 'modal fade',
-                    'header' => array( 'title' => 'STOCK MANAGEMENT' ),
-                    'view' => array(
-                        'type' => 'form', 'style' => 'tall',
-                        'fields' => array(
-                            'namesearch' => array(
-                                'type' => 'custom',
-                                'html' => as_business_items_search(0, 'inline'),
-                            ),
-                        ),
-                    ),
-                );
-                     
                 $as_content['script_onloads'][] = array(
                     "as_tableview('stockview', ".$department->businessid.")"
                 );

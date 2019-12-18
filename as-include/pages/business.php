@@ -544,8 +544,9 @@ if (is_numeric($request)) {
 				$navdepartmenthtml = '';
 				$k = 1;
 				foreach ($departments as $department) {
-					$type = 'depart';
-					$managers = explode(',', $department->managers);
+					$type = 'department';
+					$owners = explode(', ', $department->users);
+					$managers = explode(', ', $department->managers);
 					$mancount = BxBusiness::managers( $department->userid, $managers );
 					
 					if (!isset($department->parentid)) {
@@ -694,15 +695,13 @@ else {
 			$as_content['title'] = 'Your Businesses <small>DASHBOARD</small>';
 			
 			$businesses = BxBusiness::get_list($userid);
-
-			$dashlist = array( 'type' => 'bslist', 'theme' => 'primary', 
-				'title' => count($businesses) .' BUSINESS' . as_many(count($businesses), 'ES'), 
+			$dashlist = array( 'type' => 'bslist', 'theme' => 'primary', 'title' => '', 
 				'tools' => array(
 					'add' => array( 'type' => 'link', 'label' => 'NEW BUSINESS',
 					'url' => as_path_html($rootpage.'/register'), 'class' => 'btn btn-primary btn-block' )
 				),
 			);
-				
+			
 			if (count($businesses)){
 				foreach ($businesses as $business){
 					$type = 'business';
@@ -800,6 +799,8 @@ else {
 				}
 			}
 
+			$dashlist['title'] = count($dashlist['items']) .' BUSINESS' . as_many(count($dashlist['items']), 'ES');
+			
 			if (isset($modalboxes)) $dashlist['modals'] = $modalboxes;
 			if (isset($hasalert)) $dashlist['alert_view'] = array('type' => $hasalert, 'message' => $texttoshow);
 			if (isset($hascallout)) $dashlist['callout_view'] = array('type' => $hascallout, 'message' => $texttoshow);

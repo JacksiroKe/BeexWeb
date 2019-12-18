@@ -504,6 +504,7 @@ function as_db_table_definitions()
 
 		'stockactivity' => array(  //type, stockid, itemid, userid, quantity, bprice, sprice, state, created
 			'activityid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'parentid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'type' => "ENUM('ENTRY', 'EXIT', 'MANAGE', 'NOTE') NOT NULL DEFAULT 'ENTRY'",
 			'stockid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
 			'reference' => 'INT UNSIGNED NOT NULL DEFAULT 0',

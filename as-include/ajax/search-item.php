@@ -28,7 +28,6 @@ require_once AS_INCLUDE_DIR . 'APS/as-views.php';
 
 $insearchitem = as_post_text('search_text');
 $businessid = as_post_text('item_biz');
-$type = as_post_text('result_type');
 
 $userid = as_get_logged_in_userid();
 
@@ -39,6 +38,8 @@ list ($products, $customers) = as_db_select_with_pending(
 
 echo "AS_AJAX_RESPONSE\n1\n";
 
-$htmlresult = as_products_search($businessid, $products, $type);
+if (as_post_text('result_type') == 'outline')
+	$htmlresult = as_stock_exit_items($businessid, $products, $type);
+else $htmlresult = as_stock_entry_items($businessid, $products, $type);
 
 echo $htmlresult;
