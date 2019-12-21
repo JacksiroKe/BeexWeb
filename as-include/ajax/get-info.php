@@ -48,8 +48,8 @@ switch (as_post_text('infotype'))
 	case 'item':
 		$postid = as_post_text('itemid');
 		$product = as_db_select_with_pending(as_db_product_selectspec($postid));		
-		$htmlresult .= '1xqx'.$product['title'].'xqx'.$product['itemcode'].'xqx'.$product['content'].
-			'xqx'.$product['content'].'xqxAmount Due '.date('d/m/Y').': <b>Ksh. 0.00</b>';
+		$htmlresult .= '150xxx'.$product['title'].'xqx'.$product['itemcode'].'xqx'.$product['content'].
+			'xqx'.$product['content'];
 		break;
 }
 

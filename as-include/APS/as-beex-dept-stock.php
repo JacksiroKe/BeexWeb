@@ -192,7 +192,7 @@ class BxStockDept extends BxDepartment
 				'fields' => array(
 					'namesearch' => array(
 						'type' => 'custom',
-						'html' => as_business_items_search(0, 'inline'),
+						'html' => as_business_items_search(0, 'stockentry'),
 					),
 				),
 			),
@@ -253,23 +253,22 @@ class BxStockDept extends BxDepartment
                     'id' => 'latest_towns', 'theme' => 'primary',
                     'type' => 'custom',
                     'title' => 'CUSTOMER SEARCH', 
-                    'body' => '<div class="box-body" id="customer_search">'.as_business_customers_search($department->businessid).'</div>',
+                    'body' => '<div class="box-body" id="customer_search">'.as_business_customers_search('stockexit', $department->businessid).'</div>',
                 );
                 
                 $item_search = array(
                     'theme' => 'primary',
                     'id' => 'item_search',
-                    'tags' => 'style="display:none;"', 
+                    //'tags' => 'style="display:none;"', 
                     'type' => 'custom',
                     'title' => 'ITEM SEARCH', 
                     'body' => '<div class="box-body">'.
-                        as_business_items_search($department->businessid, 'outline').'</div>',
+                        as_business_items_search($department->businessid, 'stockexit').'</div>',
                 );
                 
                 $order_preview = array(
                     'theme' => 'primary',
-                    'id' => 'order_preview',
-                    'tags' => 'style="display:none;"', 
+                    'id' => 'order_preview', 
                     'type' => 'custom',
                     'title' => '<span>ORDER PREVIEW</span>',
                     'body' => '<div class="box-body">'.as_order_form().'</div>',

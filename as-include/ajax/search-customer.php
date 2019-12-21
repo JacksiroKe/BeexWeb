@@ -31,14 +31,21 @@ $userid = as_get_logged_in_userid();
 $itemresults = as_db_select_with_pending( as_db_customer_search_selectspec($insearchitem, $businessid));
 
 echo "AS_AJAX_RESPONSE\n1\n";
-
-$htmlresult .= '<br><br><ul class="products-list product-list-in-box">';
+/*<br><br><br>';
+	
+    $html .= '<div id="results_'.$type.'">';
+    $html .= '<div class="col-sm-12x">';
+    $html .= '<div id="items_'.$type.'"></div>';
+    $html .= '</div>';
+    $html .= '</div>';*/
+	
+$htmlresult .= '<br><br><br><div class="col-sm-12x"><ul class="products-list">';
 
 foreach ($itemresults as $result) 
 {
 	$htmlresult .= '<li class="item list-item-result" onclick="as_select_customer('.$result['customerid'].')">';
 	$htmlresult .= '<div class="product-img">';
-	$htmlresult .= '<img src="http://localhost/beexpress/site/as-media/user.jpg" width="20" height="20" class="profile-user-img img-responsive img-circle" style="border-radius: 15px" alt="User Image">';
+	$htmlresult .= '<img src="http://localhost/beexpress/site/as-media/user.jpg" width="20" height="20" style="margin: 0px 10px 0px 10px" alt="User Image">';
 	$htmlresult .= '</div>';
 	$htmlresult .= '<div class="product-info">';
 	$htmlresult .= '<span class="product-title" style="font-size: 20px;">'.$result['title'].'</span>';
@@ -48,5 +55,7 @@ foreach ($itemresults as $result)
 	$htmlresult .= '</span>';
 	$htmlresult .= '</li>';
 }
+
+$htmlresult .= '</ul></div>';
 
 echo $htmlresult;

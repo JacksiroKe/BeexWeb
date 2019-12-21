@@ -36,7 +36,7 @@ $managers = as_db_select_with_pending( as_db_user_search_selectspec($insearchite
 echo "AS_AJAX_RESPONSE\n1\n";
 
 $htmlresult = '<div class="box-body">';
-$htmlresult .= '<ul class="products-list product-list-in-box">';
+$htmlresult .= '<ul class="products-list">';
 
 foreach ($managers as $manager) 
 {

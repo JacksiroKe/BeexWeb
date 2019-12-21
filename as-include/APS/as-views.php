@@ -220,186 +220,18 @@
     return $html;
   }
 
-  function as_stock_entry_items($businessid, $products)
-  {
-    $html .= '<ul class="products-list">';
-    
-    foreach ($products as $product) 
-    {
-      $texture = explode(';', $product['texture']);
-      $product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
-      $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
-
-      $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with Stock Entry" onclick="as_show_quick_form(\'item_'.$product['postid'].'\');">';
-
-      $html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
-      $html .= '<div class="product-info">';
-      $html .= '<span class="product-title" style="font-size: 20px;">';
-      $html .= '<span style="color: #006400;">'.$product['category'] . (isset($product['parentcat']) ? ' ' .$product['parentcat'] : ''). '</span>';
-      $html .= ' - <span style="color: #f00;">' . $product['itemcode']. '</span></span>';
-      
-      $html .= '<table style="width:100%;"><tr><td>';
-      $html .= '<span class="product-description" style="color: #000; width:275px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
-      if ($product['content'] != '') $html .= '<span style="color: #151B8D; font-size: 18px;">' . $product['content'] . '</span>';
-      $html .= '<table><tr><td><b>Volume</b></td><td><b> : </b></td><td> ' .$product['volume'].'</td></tr>';
-      $html .= '<tr><td><b>Mass</b></td><td><b> : </b></td><td> ' . $product['mass'].'</td></tr>';
-      $html .= '<tr><td><b>Texture</b></td><td><b> / </b></td><td> <b>Color: '.$texture[0].' </b>; <span style="color: #151B8D; font-weight: bold;">Pattern: ' . $texture[1].'</span></td></tr>';
-      $html .= "\n</table></span></td><td>";
-    
-      $html .= "\n".'<table><tr><td><span class="label label-info pull-right" style="width: 100px;"><b>ACTUAL</b><br><span id="get_actual_'.$product['postid'].'" style="font-size: 22px">'.$product['actual_stock']. '</span></span><br></td></tr>';
-      $html .= '<tr><td><span class="label label-warning pull-right" style="width: 100px;"><b>AVAILABLE</b><br><span id="get_available_'.$product['postid'].'" style="font-size: 22px">'.$product['available_stock']. '</span></span></td></tr></table>';
-      
-      $html .= '</td></tr></table>';
-      $html .= "</li>\n";
-      
-      if ($type == 'inline') 
-      {
-        $html .= "\n".'<li id="item_'.$product['postid'].'" style="display:none;">';	
-        $html .= "\n".'<div id="get_itemresults_'.$product['postid'].'">';
-  
-        $html .= "\n".'<div class="nav-tabs-custom">';
-      
-        $html .= "\n".'<ul class="nav nav-tabs pull-right">';
-        $html .= "\n".'<li class="active"><a href="#stock-entry'.$product['postid'].'" data-toggle="tab">RECEIVE</a></li>';
-        $html .= "\n".'<li><a href="#stock-history'.$product['postid'].'" data-toggle="tab">HISTORY</a></li>';
-        $html .= "\n".'<li class="pull-left header"><i class="fa fa-info"></i>STOCK ACTIONS</li>';
-        $html .= "\n</ul>";
-      
-        $html .= "\n".'<div class="tab-content no-padding">';
-      
-        $html .= "\n".'<div class="tab-pane active" id="stock-entry'.$product['postid'].'" style="position: relative;">';	
-        $html .= as_stock_add_form('get', $product);
-        $html .= "\n</div>";
-      
-        $html .= "\n".'<div class="tab-pane" id="stock-history'.$product['postid'].'" style="position: relative;">';
-        
-        $stockids = as_db_find_by_stockitem($product['postid'], $businessid);
-        if (count($stockids))
-        {
-          $history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
-          $html .= as_stock_history($history, $product['available']);
-        }
-        else
-        {
-          $html .= "\n".'<h3>No Stock History for this product at the moment</h3>';
-        }
-      
-        $html .= "\n</div>";
-  
-        $html .= "\n</div>";
-        $html .= "\n</li>";
-      }
-    }
-    
-    $html .= "\n</ul>";
-    return $html;
-  }
-
-  function as_stock_exit_items($businessid, $products)
-  {
-    $html .= '<ul class="products-list">';
-    
-    foreach ($products as $product) 
-    {
-      $texture = explode(';', $product['texture']);
-      $product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
-      $product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
-
-      $html .= "\n".'<li class="item list-item-result" alt="Click to Proceed with item Order" onclick="as_addto_order_form('.$product['postid'].');">';
-
-      $html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
-      $html .= '<div class="product-info">';
-      $html .= '<span class="product-title" style="font-size: 20px;">';
-      $html .= '<span style="color: #006400;">'.$product['category'] . (isset($product['parentcat']) ? ' ' .$product['parentcat'] : ''). '</span>';
-      $html .= ' - <span style="color: #f00;">' . $product['itemcode']. '</span></span>';
-      
-      $html .= '<table style="width:100%;"><tr><td>';
-      $html .= '<span class="product-description" style="color: #000; width:275px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
-      if ($product['content'] != '') $html .= '<span style="color: #151B8D; font-size: 18px;">' . $product['content'] . '</span>';
-      $html .= '<table><tr><td><b>Volume</b></td><td><b> : </b></td><td> ' .$product['volume'].'</td></tr>';
-      $html .= '<tr><td><b>Mass</b></td><td><b> : </b></td><td> ' . $product['mass'].'</td></tr>';
-      $html .= '<tr><td><b>Texture</b></td><td><b> / </b></td><td> <b>Color: '.$texture[0].' </b>; <span style="color: #151B8D; font-weight: bold;">Pattern: ' . $texture[1].'</span></td></tr>';
-      $html .= "\n</table></span></td><td>";
-    
-      $html .= "\n".'<table><tr><td><span class="label label-info pull-right" style="width: 100px;"><b>ACTUAL</b><br><span id="get_actual_'.$product['postid'].'" style="font-size: 22px">'.$product['actual_stock']. '</span></span><br></td></tr>';
-      $html .= '<tr><td><span class="label label-warning pull-right" style="width: 100px;"><b>AVAILABLE</b><br><span id="get_available_'.$product['postid'].'" style="font-size: 22px">'.$product['available_stock']. '</span></span></td></tr></table>';
-      
-      $html .= '</td></tr></table>';
-      $html .= "</li>\n";
-      
-      if ($type == 'inline') 
-      {
-        $html .= "\n".'<li id="item_'.$product['postid'].'" style="display:none;">';	
-        $html .= "\n".'<div id="get_itemresults_'.$product['postid'].'">';
-  
-        $html .= "\n".'<div class="nav-tabs-custom">';
-      
-        $html .= "\n".'<ul class="nav nav-tabs pull-right">';
-        $html .= "\n".'<li class="active"><a href="#stock-entry'.$product['postid'].'" data-toggle="tab">RECEIVE</a></li>';
-        $html .= "\n".'<li><a href="#stock-history'.$product['postid'].'" data-toggle="tab">HISTORY</a></li>';
-        $html .= "\n".'<li class="pull-left header"><i class="fa fa-info"></i>STOCK ACTIONS</li>';
-        $html .= "\n</ul>";
-      
-        $html .= "\n".'<div class="tab-content no-padding">';
-      
-        $html .= "\n".'<div class="tab-pane active" id="stock-entry'.$product['postid'].'" style="position: relative;">';	
-        $html .= as_stock_add_form('get', $product);
-        $html .= "\n</div>";
-      
-        $html .= "\n".'<div class="tab-pane" id="stock-history'.$product['postid'].'" style="position: relative;">';
-        
-        $stockids = as_db_find_by_stockitem($product['postid'], $businessid);
-        if (count($stockids))
-        {
-          $history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
-          $html .= as_stock_history($history, $product['available']);
-        }
-        else
-        {
-          $html .= "\n".'<h3>No Stock History for this product at the moment</h3>';
-        }
-      
-        $html .= "\n</div>";
-  
-        $html .= "\n</div>";
-        $html .= "\n</li>";
-      }
-    }
-    
-    $html .= "\n</ul>";
-    return $html;
-  }
-
-  function as_business_customers_search($businessid)
+  function as_business_customers_search($type, $businessid)
   {    
-    $html = '<div class="form-group" id="searchdiv">';
+    $html = '<div class="form-group">';
     $html .= '<div class="col-sm-12">';
     $html .= '<label for="searchcustomer">Search for a Customer</label>';
     $html .= '<input id="businessid" type="hidden" value="' . $businessid . '"/>';
-    $html .= '<input id="searchcustomer" autocomplete="off" onkeyup="as_search_customer_change(this.value);" type="text" value="" class="form-control"/>';
+    $html .= '<input id="searchcustomer" autocomplete="off" type="text" value="" class="form-control" onkeyup="as_search_customer_change(\''.$type.'\');" onkeydown="as_search_customer_change(\''.$type.'\');" />';
     $html .= '</div>';
     $html .= '</div>';
     $html .= '<input type="hidden" id="selected_customer" >';
-    $html .= '<div id="search_customer_results"></div>';
+    $html .= '<div id="customers_'.$type.'"></div>';
     return $html;
-  }
-
-  function as_business_items_search($identifier, $type, $isdepartment = false)
-  {    
-    $html = '<div class="form-group" id="searchdiv">';
-    $html .= '<div class="col-sm-12">';
-    $html .= '<label for="search_item">Search by Title, Code, Category or Description</label>';
-    $html .= '<input id="search_item" autocomplete="off" onkeyup="as_search_item_change(\''.$type.'\');" onkeydown="as_search_item_change(\''.$type.'\');" type="text" value="" class="form-control">';
-    $html .= '<input id="business_id" type="hidden" value="' . $identifier . '">';
-    $html .= '</div>';
-    $html .= '</div>';
-    $html .= '<input type="hidden" id="selected_item" >';
-    $html .= '<div class="form-group" id="results">';
-    $html .= '<div class="col-sm-12x">';
-    $html .= '<div id="item_results"></div>';
-    $html .= '</div>';
-    $html .= '</div>';
-    return $html;    
   }
 
   function as_managers_search($type, $identifier)
@@ -479,6 +311,159 @@
     return $html;
   }
 
+  function as_business_items_search($identifier, $type, $isdepartment = false)
+  {    
+    $html = '<div class="form-group">';
+    $html .= '<div class="col-sm-12">';
+    $html .= '<label for="searched_'.$type.'">Search by Title, Code, Category or Description</label>';
+    $html .= '<input type="text" id="searched_'.$type.'" autocomplete="off" onkeyup="as_search_item_change(\''.$type.'\');" onkeydown="as_search_item_change(\''.$type.'\');" value="" class="form-control"/>';
+    $html .= '<input type="hidden" id="business_'.$type.'" value="' . $identifier . '"/>';
+    $html .= '<input type="hidden" id="selected_'.$type.'" />';
+    $html .= '</div>';
+    $html .= '</div><br><br><br>';
+	
+    $html .= '<div id="results_'.$type.'">';
+    $html .= '<div class="col-sm-12x">';
+    $html .= '<div id="items_'.$type.'"></div>';
+    $html .= '</div>';
+    $html .= '</div>';
+    return $html;    
+  }
+
+  function as_stock_entry_items($businessid, $products)
+  {
+    $html .= '<ul class="products-list">';
+    
+    foreach ($products as $product) 
+	{
+		$texture = explode(';', $product['texture']);
+		$product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
+		$product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
+
+		$html .= "\n".'<li class="item list-item-result" onclick="as_show_quick_form(\'item_'.$product['postid'].'\');">';
+
+		$html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
+		$html .= '<div class="product-info">';
+		$html .= '<span class="product-title" style="font-size: 20px;">';
+		$html .= '<span style="color: #006400;">'.$product['category'] . (isset($product['parentcat']) ? ' ' .$product['parentcat'] : ''). '</span>';
+		$html .= ' - <span style="color: #f00;">' . $product['itemcode']. '</span></span>';
+
+		$html .= '<table style="width:100%;"><tr><td>';
+		$html .= '<span class="product-description" style="color: #000; width:275px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
+		if ($product['content'] != '') $html .= '<span style="color: #151B8D; font-size: 18px;">' . $product['content'] . '</span>';
+		$html .= '<table><tr><td><b>Volume</b></td><td><b> : </b></td><td> ' .$product['volume'].'</td></tr>';
+		$html .= '<tr><td><b>Mass</b></td><td><b> : </b></td><td> ' . $product['mass'].'</td></tr>';
+		$html .= '<tr><td><b>Texture</b></td><td><b> / </b></td><td> <b>Color: '.$texture[0].' </b>; <span style="color: #151B8D; font-weight: bold;">Pattern: ' . $texture[1].'</span></td></tr>';
+		$html .= "\n</table></span></td><td>";
+
+		$html .= "\n".'<table><tr><td><span class="label label-info pull-right" style="width: 100px;"><b>ACTUAL</b><br><span id="get_actual_'.$product['postid'].'" style="font-size: 22px">'.$product['actual_stock']. '</span></span><br></td></tr>';
+		$html .= '<tr><td><span class="label label-warning pull-right" style="width: 100px;"><b>AVAILABLE</b><br><span id="get_available_'.$product['postid'].'" style="font-size: 22px">'.$product['available_stock']. '</span></span></td></tr></table>';
+
+		$html .= '</td></tr></table>';
+		$html .= "</li>\n";
+      
+		$html .= "\n".'<li id="item_'.$product['postid'].'" style="display:none;">';	
+		$html .= "\n".'<div id="get_itemresults_'.$product['postid'].'">';
+
+		$html .= "\n".'<div class="nav-tabs-custom">';
+
+		$html .= "\n".'<ul class="nav nav-tabs pull-right">';
+		$html .= "\n".'<li class="active"><a href="#stock-entry'.$product['postid'].'" data-toggle="tab">RECEIVE</a></li>';
+		$html .= "\n".'<li><a href="#stock-history'.$product['postid'].'" data-toggle="tab">HISTORY</a></li>';
+		$html .= "\n".'<li class="pull-left header"><i class="fa fa-info"></i>STOCK ACTIONS</li>';
+		$html .= "\n</ul>";
+
+		$html .= "\n".'<div class="tab-content no-padding">';
+
+		$html .= "\n".'<div class="tab-pane active" id="stock-entry'.$product['postid'].'" style="position: relative;">';	
+		$html .= as_stock_add_form('get', $product);
+		$html .= "\n</div>";
+
+		$html .= "\n".'<div class="tab-pane" id="stock-history'.$product['postid'].'" style="position: relative;">';
+
+		$stockids = as_db_find_by_stockitem($product['postid'], $businessid);
+		if (count($stockids))
+		{
+			$history = as_db_select_with_pending( as_db_product_stock_activity($stockids[0]));
+			$html .= as_stock_history($history, $product['available']);
+		}
+		else
+		{
+			$html .= "\n".'<h3>No Stock History for this product at the moment</h3>';
+		}
+
+		$html .= "\n</div>";
+
+		$html .= "\n</div>";
+		$html .= "\n</li>";
+    }
+    
+    $html .= "\n</ul>";
+    return $html;
+  }
+
+  function as_stock_exit_items($businessid, $products)
+  {
+    $html = '<ul class="products-list">';
+    $site_url = as_opt('site_url');
+    foreach ($products as $product) 
+	{
+		$texture = explode(';', $product['texture']);
+		$product['actual_stock'] = (isset($product['actual']) ? $product['actual'] : 0);
+		$product['available_stock'] = (isset($product['available']) ? $product['available'] : 0);
+
+		$html .= "\n".'<li class="item list-item-result">';
+
+		$html .= '<div onclick="as_order_prepare('.$product['postid'].');">';
+		$html .= '<div class="product-img">'.as_get_media_html($product['icon'], 200, 200).'</div>';
+		$html .= '<div class="product-info">';
+		$html .= '<span class="product-title" style="font-size: 20px;">';
+		$html .= '<span style="color: #006400;">'.$product['category'] . (isset($product['parentcat']) ? ' ' .$product['parentcat'] : ''). '</span>';
+		$html .= ' - <span style="color: #f00;">' . $product['itemcode']. '</span></span>';
+
+		$html .= '<table style="width:100%;"><tr><td>';
+		$html .= '<span class="product-description" style="color: #000; width:275px;"><span style="font-size: 18px;"><b>'.$product['title'].':</b></span> ';
+		if ($product['content'] != '') $html .= '<span style="color: #151B8D; font-size: 18px;">' . $product['content'] . '</span>';
+		$html .= '<table><tr><td><b>Volume</b></td><td><b> : </b></td><td> ' .$product['volume'].'</td></tr>';
+		$html .= '<tr><td><b>Mass</b></td><td><b> : </b></td><td> ' . $product['mass'].'</td></tr>';
+		$html .= '<tr><td><b>Texture</b></td><td><b> / </b></td><td> <b>Color: '.$texture[0].' </b>; <span style="color: #151B8D; font-weight: bold;">Pattern: ' . $texture[1].'</span></td></tr>';
+		$html .= "\n</table></span></td><td>";
+
+		$html .= "\n".'<table><tr><td><span class="label label-info pull-right" style="width: 100px;"><b>ACTUAL</b><br><span id="get_actual_'.$product['postid'].'" style="font-size: 22px">'.$product['actual_stock']. '</span></span><br></td></tr>';
+		$html .= '<tr><td><span class="label label-warning pull-right" style="width: 100px;"><b>AVAILABLE</b><br><span id="get_available_'.$product['postid'].'" style="font-size: 22px">'.$product['available_stock']. '</span></span></td></tr></table>';
+
+		$html .= '</td></tr></table>';
+		$html .= '</div>';
+		$html .= "\n</div>";
+		
+		$html .= "\n".'<div id="item_'.$product['postid'].'" style="display: none;"><br>';
+		$html .= "\n".'<img id="loading_'.$product['postid'].'" src="'.as_opt('site_url').'as-media/gif-loading1.gif">';
+		
+		$html .= "\n".'<div id="set_item_'.$product['postid'].'" class="set_item_input" style="display: none;">';
+		
+		$html .= '<input type="hidden" id="details_'.$product['postid'].'" />';
+		$html .= '<input type="hidden" id="mprice_'.$product['postid'].'" />';
+		$html .= "\n".'<table id="stock_exit_'.$product['postid'].'"><tr>';
+		$html .= '<td class="as_label">Qty: </td>';
+		$html .= '<td><input id="quantity_'.$product['postid'].'" type="number" value="1" min="1" class="as_input" 
+		onkeyup="as_update_stock(\''.$product['postid'].'\');" onkeydown="as_update_stock('.$product['postid'].'\');" required /></td>';
+		
+		$html .= '<td class="as_label">Kshs. </td>';
+		$html .= '<td><input id="price_'.$product['postid'].'" type="text" value="0" class="as_input" readonly /></td>';
+		  
+		$html .= '</tr></table></br>';
+		$html .= '<table><tr><td><input type="submit" class="as_button" value="Add to Order" onclick="as_place_order('.$product['postid'].', \''.$site_url.'\');"/></td>';
+		$html .= '<td><input type="submit" class="as_button" value="Cancel" onclick="as_order_prepare(\'item_'.$product['postid'].'\');"/></td></tr></table>';
+		
+		$html .= "\n</div>";
+		
+		$html .= "</li>\n";
+    }
+    
+    $html .= "\n</ul>";
+    return $html;
+  }
+  
   function as_order_form() 
   {
     $html = '<div class="row invoice-info">';
@@ -492,11 +477,11 @@
     $html .= '<div class="row">';
     $html .= '<div class="col-xs-12 table-responsive" >';
 
-    $html .= '<input id="rtrows" value="0" />';
-    $html .= '<input id="rtprices" value="0" />';
+    $html .= '<input type="hidden" id="rtrows" value="0" />';
+    $html .= '<input type="hidden" id="rtprices" value="0" />';
 
     $html .= '<table class="table table-striped" id="wishlist">';
-    $html .= '<thead><tr><th>Qty</th><th>Item</th><th>Code</th><th>Description</th><th>Subtotal</th></tr></thead>';
+    $html .= '<thead><tr><th>#</th><th>Qty</th><th>Item</th><th>Code</th><th>Description</th><th>Subtotal</th><th>ACTION</th></tr></thead>';
     $html .= '</table>';
     $html .= '</div></div>';
 
@@ -515,7 +500,13 @@
     </div>';*/
 
     $html .= '<div class="col-xs-9">';
-    $html .= '<p class="lead" id="amountdue">Amount Due '.date('d/m/Y').':</p>';
+	
+	$html .= "\n".'<table><tr>';
+	$html .= '<td><h3>Amount Due <u>'.date('d/m/Y').'</u>: </h3></td>';
+	$html .= '<td class="as_label">Kshs. </td>';
+	$html .= '<td><input id="total_price" type="text" value="0" class="as_input" readonly /></td>';
+	$html .= '</tr></table>';
+	
     /*$html .= '<div class="table-responsive">';
     $html .= '<table class="table">';
     $html .= '<tr><th style="width:50%">Subtotal:</th>

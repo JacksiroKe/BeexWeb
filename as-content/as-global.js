@@ -127,13 +127,13 @@ function as_select_subcounty()
 	});
 }
 
-function as_search_customer_change()
+function as_search_customer_change(type)
 {
 	var params = {};
 	params.item_biz = document.getElementById('businessid').value;
 	params.searchtext = document.getElementById('searchcustomer').value;
-	document.getElementById('item_results').innerHTML = '';
-	as_conceal('#order_preview');
+	document.getElementById('results_' + type).innerHTML = '';
+	//as_conceal('#order_preview');
 	as_conceal('#item_search');
 	if(params.searchtext.length > 3)
 	{ 
@@ -141,7 +141,7 @@ function as_search_customer_change()
 
 		as_ajax_post('searchcustomer', params, function(lines) {
 			if (lines[0] == '1') {
-				var resultsview = document.getElementById('search_customer_results');
+				var resultsview = document.getElementById('customers_' + type);
 				resultsview.innerHTML = lines.slice(1).join('\n');
 			} else if (lines[0] == '0') {
 				as_show_waiting_after(elem, false);
@@ -165,51 +165,6 @@ function as_select_customer(customerid)
 			var resultsview = document.getElementById('customer_details');
 			resultsview.innerHTML = lines.slice(1).join('\n');
 			//as_show_waiting_after(elem, false);
-		} else if (lines[0] == '0') {
-			as_show_waiting_after(elem, false);
-		} else {
-			as_ajax_error();
-		}
-	});
-}
-
-function as_addto_order_form(item_id)
-{
-	var formX = document.getElementById('order_preview');
-	if (formX.style.display === "none") as_reveal('#order_preview');
-
-	var params = {};
-	params.itemid = item_id;
-	params.infotype = 'item';
-	as_ajax_post('getinfo', params, function(lines) {
-		if (lines[0] == '1') {
-			var rt_rows = document.getElementById("rtrows");
-			var rt_prices = document.getElementById("rtprices");
-			var wishtable = document.getElementById("wishlist");
-			var amountview = document.getElementById('amountdue');
-
-			var rows = parseInt(rt_rows.value) + 1;
-
-			var fbstr = lines.slice(1).join('\n').split('xqx');
-			var prices = parseInt(rt_prices.value) + parseInt(fbstr[4]);
-			
-			var tablerow = wishtable.insertRow(rows);
-			var rowcell1 = tablerow.insertCell(0);
-			var rowcell2 = tablerow.insertCell(1);
-			var rowcell3 = tablerow.insertCell(2);
-			var rowcell4 = tablerow.insertCell(3);
-			var rowcell5 = tablerow.insertCell(4);
-			
-			rowcell1.innerHTML = fbstr[0]; //qty
-			rowcell2.innerHTML = fbstr[1]; //title
-			rowcell3.innerHTML = fbstr[2]; //itemcode
-			rowcell4.innerHTML = fbstr[3]; //content
-			rowcell5.innerHTML = fbstr[4]; //price
-			amountview.innerHTML = fbstr[5] + " " + prices; //amount due
-			
-			rt_rows.value = rows + "";
-			rt_prices.value = prices + "";
-
 		} else if (lines[0] == '0') {
 			as_show_waiting_after(elem, false);
 		} else {
@@ -269,63 +224,18 @@ function as_change_role(type, identifier, userid)
 	return false;
 }
 
-function as_search_user_change_d()
+function as_search_item_change(itype)
 {
 	var params = {};
-	params.item_dept = document.getElementById('department_id').value;
-	params.searchtext = document.getElementById('searchuser').value;
-	if(params.searchtext.length > 3)
-	{ 
-		as_ajax_post('searchuser_d', params, function(lines) {
-			if (lines[0] == '1') {
-				var resultsview = document.getElementById('manager_results');
-				resultsview.innerHTML = lines.slice(1).join('\n');
-			} else if (lines[0] == '0') {
-				as_show_waiting_after(elem, false);
-			} else {
-				as_ajax_error();
-			}
-		});
-	}
-}
+	params.item_type = itype;
+	params.business = document.getElementById('business_' + itype).value;
+	params.searched = document.getElementById('searched_' + itype).value;
 
-function as_change_role_d(userid)
-{
-	var params = {};
-	params.manager = userid;
-	params.department = document.getElementById('department_id').value;
-	
-	as_ajax_post('addmanager_d', params, function(lines) 
-	{
-		if (lines[0] == '1') {
-			var feedback = document.getElementById('itemresults_' + userid);
-			var listview = document.getElementById('manager_list');
-			var fbstr = lines.slice(1).join('\n').split('xqx');
-			feedback.innerHTML = fbstr[0];
-			listview.innerHTML = fbstr[1];
-			//as_show_waiting_after(elem, false);
-		} else if (lines[0] == '0') {
-			as_show_waiting_after(elem, false);
-		} else {
-			as_ajax_error();
-		}
-	});
-	//as_show_waiting_after(document.getElementById('managers_feedback'), true);
-	return false;
-}
-
-function as_search_item_change(resulttype)
-{
-	var params = {};
-	params.result_type = resulttype;
-	params.item_biz = document.getElementById('business_id').value;
-	params.search_text = document.getElementById('search_item').value;
-
-	if(params.search_text.length > 1)
+	if(params.searched.length > 1)
 	{ 
 		as_ajax_post('searchitem', params, function(lines) {
 			if (lines[0] == '1') {
-				var simelem = document.getElementById('item_results');
+				var simelem = document.getElementById('results_' + itype);
 				simelem.innerHTML = lines.slice(1).join('\n');
 			} else if (lines[0] == '0') {
 			} else {
@@ -340,6 +250,87 @@ function as_show_quick_form(formid)
 	var formX = document.getElementById(formid);
 	if (formX.style.display === "none") as_reveal('#' + formid);
 	else as_conceal('#' + formid);
+}
+
+function as_order_prepare(itemid)
+{
+	var formX = document.getElementById('item_' + itemid);
+	if (formX.style.display === "none") 
+	{
+		as_reveal('#item_' + itemid);
+		
+		var params = {};
+		params.itemid = itemid;
+		params.infotype = 'item';
+		as_ajax_post('getinfo', params, function(lines) {
+			if (lines[0] == '1') {
+				var fbstr = lines.slice(1).join('\n').split('xxx');
+				document.getElementById('price_' + itemid).value = fbstr[0];
+				document.getElementById('mprice_' + itemid).value = fbstr[0];
+				document.getElementById('details_' + itemid).value = fbstr[1];
+				as_conceal('#loading_' + itemid);
+				as_reveal('#set_item_' + itemid);
+			} else if (lines[0] == '0') {
+			} else {
+				as_ajax_error();
+			}
+		});
+	}
+	else as_conceal('#item_' + itemid);
+}
+
+function as_place_order(itemid, siteurl)
+{
+	var qty = document.getElementById('quantity_' + itemid);
+	var price = document.getElementById('price_' + itemid);
+	var details = document.getElementById('details_' + itemid);
+	var tt_price = document.getElementById('total_price');
+	var fbstr = details.value.split('xqx');
+	
+	var rt_rows = document.getElementById("rtrows");
+	var rt_prices = document.getElementById("rtprices");
+	var wishtable = document.getElementById("wishlist");
+	var amountview = document.getElementById('amountdue');
+
+	var rows = parseInt(rt_rows.value) + 1;
+
+	var tablerow = wishtable.insertRow(rows);
+	var rowcell1 = tablerow.insertCell(0);
+	var rowcell2 = tablerow.insertCell(1);
+	var rowcell3 = tablerow.insertCell(2);
+	var rowcell4 = tablerow.insertCell(3);
+	var rowcell5 = tablerow.insertCell(4);
+	var rowcell6 = tablerow.insertCell(5);
+	var rowcell7 = tablerow.insertCell(6);
+	
+	rowcell1.innerHTML = rows; //number
+	rowcell2.innerHTML = qty.value; //qty
+	rowcell3.innerHTML = fbstr[0]; //title
+	rowcell4.innerHTML = fbstr[1]; //itemcode
+	rowcell5.innerHTML = fbstr[2]; //content
+	rowcell6.innerHTML = price.value; //price
+	rowcell7.innerHTML = '<img src="' + siteurl + 'as-media/delete.png" title="Click to remove this item from the Order List" onclick="as_remove_ordered_item(' + rows + ')"/>'; //deletebutton
+	tt_price.value = parseInt(price.value) + parseInt(tt_price.value); //amount due
+	
+	rt_rows.value = rows + "";
+	rt_prices.value = prices + "";
+}
+
+function as_update_stock(itemid)
+{
+	var qty = document.getElementById('quantity_' + itemid);
+	var price = document.getElementById('price_' + itemid);
+	var mprice = document.getElementById('mprice_' + itemid);
+	price.value = parseInt(mprice.value) * parseInt(qty.value); //amount due
+}
+
+function as_remove_ordered_item(rowitem)
+{	
+	var rt_rows = document.getElementById("rtrows");
+	var rows = parseInt(rt_rows.value) - 1;
+	var wishtable = document.getElementById("wishlist");
+	rt_rows.value = rows + "";
+	wishtable.deleteRow(rowitem);
 }
 
 function get_available_stock(elem, itemid)

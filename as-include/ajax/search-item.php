@@ -26,20 +26,17 @@ require_once AS_INCLUDE_DIR . 'util/string.php';
 require_once AS_INCLUDE_DIR . 'app/users.php';
 require_once AS_INCLUDE_DIR . 'APS/as-views.php';
 
-$insearchitem = as_post_text('search_text');
-$businessid = as_post_text('item_biz');
+$insearchitem = as_post_text('searched');
+$businessid = as_post_text('business');
 
 $userid = as_get_logged_in_userid();
 
-list ($products, $customers) = as_db_select_with_pending( 
-	as_db_products_selectspec('title', $businessid, $insearchitem),
-	as_db_recent_customers($businessid)
-);
+$products = as_db_select_with_pending( as_db_products_selectspec('title', $businessid, $insearchitem) );
 
 echo "AS_AJAX_RESPONSE\n1\n";
 
-if (as_post_text('result_type') == 'outline')
-	$htmlresult = as_stock_exit_items($businessid, $products, $type);
-else $htmlresult = as_stock_entry_items($businessid, $products, $type);
+if (as_post_text('item_type') == 'stockexit')
+	$htmlresult = as_stock_exit_items($businessid, $products);
+else $htmlresult = as_stock_entry_items($businessid, $products);
 
 echo $htmlresult;
