@@ -484,21 +484,10 @@
     $html .= '<thead><tr><th>#</th><th>Qty</th><th>Item</th><th>Code</th><th>Description</th><th>Subtotal</th><th>ACTION</th></tr></thead>';
     $html .= '</table>';
     $html .= '</div></div>';
-
+	
     $html .= '<div class="row">';
     $html .= '<div class="col-xs-3"></div>';
-    /*$html .= '<p class="lead">Payment Methods:</p>
-      <img src="../../dist/img/credit/visa.png" alt="Visa">
-      <img src="../../dist/img/credit/mastercard.png" alt="Mastercard">
-      <img src="../../dist/img/credit/american-express.png" alt="American Express">
-      <img src="../../dist/img/credit/paypal2.png" alt="Paypal">
-
-      <p class="text-muted well well-sm no-shadow" style="margin-top: 10px;">
-        Etsy doostang zoodles disqus groupon greplin oooj voxy zoodles, weebly ning heekya handango imeem plugg
-        dopplr jibjab, movity jajah plickers sifteo edmodo ifttt zimbra.
-      </p>
-    </div>';*/
-
+    
     $html .= '<div class="col-xs-9">';
 	
 	$html .= "\n".'<table><tr>';
@@ -507,25 +496,6 @@
 	$html .= '<td><input id="total_price" type="text" value="0" class="as_input" readonly /></td>';
 	$html .= '</tr></table>';
 	
-    /*$html .= '<div class="table-responsive">';
-    $html .= '<table class="table">';
-    $html .= '<tr><th style="width:50%">Subtotal:</th>
-            <td>$250.30</td>
-          </tr>
-          <tr>
-            <th>Tax (9.3%)</th>
-            <td>$10.34</td>
-          </tr>
-          <tr>
-            <th>Shipping:</th>
-            <td>$5.80</td>
-          </tr>
-          <tr>
-            <th>Total:</th>
-            <td>$265.24</td>
-          </tr>
-        </table>';
-    $html .= '</div>';*/
     $html .= '</div></div>';
   
     $html .= '<div class="row no-print">';

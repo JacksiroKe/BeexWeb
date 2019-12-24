@@ -519,6 +519,31 @@ function as_db_table_definitions()
 			'PRIMARY KEY (activityid)',
 		),
 		
+		'catalogue' => array(  //stockid, orderid, quantity, total, userid, state, created
+			'catalogid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'stockid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'orderid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'quantity' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'total' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'userid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'state' => 'INT UNSIGNED NOT NULL DEFAULT 1',
+			'created' => 'DATETIME NOT NULL',
+			'updated' => 'DATETIME',
+			'PRIMARY KEY (catalogid)',
+		),
+		
+		'orders' => array(  //qty, item, code, content, total, created
+			'orderid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
+			'quantity' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'total' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'userid' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'customer' => 'INT UNSIGNED NOT NULL DEFAULT 0',
+			'state' => 'INT UNSIGNED NOT NULL DEFAULT 1',
+			'created' => 'DATETIME NOT NULL',
+			'updated' => 'DATETIME',
+			'PRIMARY KEY (orderid)',
+		),
+		
 		'locations' => array( //type, parentid, title, code, content, details, image, created, updated
 			'locationid' => 'INT UNSIGNED NOT NULL AUTO_INCREMENT',
 			'type' => "ENUM('COUNTY', 'SUB-COUNTY', 'TOWN', 'OTHER') NOT NULL DEFAULT 'COUNTY'",
